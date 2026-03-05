@@ -1,24 +1,24 @@
-from flask import Flask, jsonify, request
+import os
+from flask import Flask
+from flask_cors import CORS
+from dotenv import load_dotenv
+from routes import register_routes
 
-app = Flask(__name__)
+load_dotenv()
 
-# Ruta de prueba (Health check)
-@app.route('/', methods=['GET'])
-def index():
-    return jsonify({
-        "status": "online",
-        "project": "MACUIN - Access Control",
-        "service": "Flask API"
-    })
-
-# Ejemplo de una ruta para recibir datos (POST)
-@app.route('/api/access', methods=['POST'])
-def log_access():
-    data = request.get_json()
-    # Aquí iría tu lógica de validación o guardado
-    return jsonify({"message": "Access logged", "data": data}), 201
+def create_app():
+    app = Flask(__name__)
+    
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+    app.config['DEBUG'] = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
+    
+    CORS(app)
+    
+    register_routes(app)
+    
+    return app
 
 if __name__ == '__main__':
-    # Usamos el puerto 5001 para no chocar con Laravel
-    # host='0.0.0.0' permite que se vea en tu red local si es necesario
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app = create_app()
+    port = int(os.getenv('FLASK_PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=app.config['DEBUG'])
