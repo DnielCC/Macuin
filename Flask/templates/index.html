@@ -1,21 +1,12 @@
-{% extends "base.html" %}
-
-{% block title %}{{ title }} - Aplicación Flask{% endblock %}
-
-{% block content %}
-<div class="row">
-    <div class="col-md-8 mx-auto text-center">
-        <div class="jumbotron bg-light p-5 rounded">
-            <h1 class="display-4">¡{{ message }}!</h1>
-            <p class="lead">Bienvenido a nuestra aplicación web desarrollada con Flask.</p>
-            <hr class="my-4">
-            <p>Esta es una aplicación web completa con vistas para usuarios, diseñada para funcionar en paralelo con Laravel.</p>
-            <a class="btn btn-primary btn-lg" href="{{ url_for('dashboard') }}" role="button">Ir al Dashboard</a>
-        </div>
-    </div>
-</div>
-
-<div class="row mt-5">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="row mt-5">
     <div class="col-md-4">
         <div class="card">
             <div class="card-body">
@@ -25,23 +16,5 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">📊 Dashboard</h5>
-                <p class="card-text">Panel de control y estadísticas.</p>
-                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">Ver más</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">📧 Contacto</h5>
-                <p class="card-text">Formulario de contacto y información.</p>
-                <a href="{{ url_for('contact') }}" class="btn btn-outline-primary">Ver más</a>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+</body>
+</html>
