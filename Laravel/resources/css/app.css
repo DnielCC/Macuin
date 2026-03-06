@@ -8,4 +8,9 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    /* MACUIN brand */
+    --color-macuin-yellow: #e5a00d;
+    --color-macuin-yellow-light: #f5c542;
+    --color-macuin-blue: #2f546b;
+    --color-macuin-dark: #1a1a1a;
 }
