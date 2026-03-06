@@ -8,7 +8,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - ENV=production
+      - ENV=development
+    volumes:
+      - ./API:/app
     networks:
       - macuin_network
     restart: unless-stopped
