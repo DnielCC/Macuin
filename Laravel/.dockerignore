@@ -1,0 +1,16 @@
+.git
+.gitignore
+README.md
+.env
+.env.example
+node_modules
+npm-debug.log
+yarn-error.log
+vendor/
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+.DS_Store
+Thumbs.db
