@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+<h2 class="fw-bold">Catálogo de Productos</h2>
+<p class="text-muted">Visualización y administración del inventario de productos</p>
+
+<div class="row g-4 mt-3">
+
+<div class="col-md-3">
+<div class="card shadow-sm border-0 rounded-4 p-3">
+<div class="d-flex justify-content-between">
+<div>
+<small class="text-muted">Total Productos</small>
+<h3 class="fw-bold">12</h3>
+</div>
+<div class="bg-primary bg-opacity-10 rounded-3 p-3">
+<i class="fas fa-cube text-primary"></i>
+</div>
+</div>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card shadow-sm border-0 rounded-4 p-3">
+<div class="d-flex justify-content-between">
+<div>
+<small class="text-muted">En Stock</small>
+<h3 class="fw-bold">8</h3>
+</div>
+<div class="bg-success bg-opacity-10 rounded-3 p-3">
+<i class="fas fa-check text-success"></i>
+</div>
+</div>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card shadow-sm border-0 rounded-4 p-3">
+<div class="d-flex justify-content-between">
+<div>
+<small class="text-muted">Bajo Stock</small>
+<h3 class="fw-bold">3</h3>
+</div>
+<div class="bg-warning bg-opacity-10 rounded-3 p-3">
+<i class="fas fa-exclamation text-warning"></i>
+</div>
+</div>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card shadow-sm border-0 rounded-4 p-3">
+<div class="d-flex justify-content-between">
+<div>
+<small class="text-muted">Agotados</small>
+<h3 class="fw-bold">1</h3>
+</div>
+<div class="bg-danger bg-opacity-10 rounded-3 p-3">
+<i class="fas fa-times text-danger"></i>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+
+<div class="card shadow-sm border-0 rounded-4 mt-4 p-3">
+
+<div class="d-flex justify-content-between mb-3">
+
+<div class="d-flex gap-2">
+
+<input class="form-control" style="width:250px" placeholder="Buscar por nombre, ID">
+
+<select class="form-select">
+<option>Todas</option>
+</select>
+
+<select class="form-select">
+<option>Todos los estados</option>
+</select>
+
+</div>
+
+<div class="d-flex gap-2">
+
+<button class="btn btn-primary">
+<i class="fas fa-plus"></i> Nuevo Producto
+</button>
+
+<button class="btn btn-outline-secondary">
+<i class="fas fa-upload"></i> Importar
+</button>
+
+<button class="btn btn-outline-secondary">
+<i class="fas fa-download"></i> Exportar
+</button>
+
+</div>
+
+</div>
+
+<div class="table-responsive">
+
+<table class="table align-middle">
+
+<thead class="table-light">
+<tr>
+<th>Producto</th>
+<th>Categoría</th>
+<th>Precio</th>
+<th>Stock</th>
+<th>Estado</th>
+<th>Proveedor</th>
+<th>Última Actualización</th>
+<th>Acciones</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr>
+
+<td>
+<strong>Filtro de Aceite Premium</strong><br>
+<small class="text-muted">PRD-001</small>
+</td>
+
+<td><span class="badge bg-primary">Filtros</span></td>
+
+<td>$12,500</td>
+
+<td>145 unidades</td>
+
+<td>
+<span class="badge bg-success">En Stock</span>
+</td>
+
+<td>AutoParts MX</td>
+
+<td>29 feb 2024</td>
+
+<td>
+<i class="fas fa-edit text-primary me-2"></i>
+<i class="fas fa-trash text-danger"></i>
+</td>
+
+</tr>
+
+<tr>
+
+<td>
+<strong>Bujía de Iridio</strong><br>
+<small class="text-muted">PRD-002</small>
+</td>
+
+<td><span class="badge bg-info">Sistema Eléctrico</span></td>
+
+<td>$8,900</td>
+
+<td>89 unidades</td>
+
+<td>
+<span class="badge bg-success">En Stock</span>
+</td>
+
+<td>ElectroCar SA</td>
+
+<td>29 feb 2024</td>
+
+<td>
+<i class="fas fa-edit text-primary me-2"></i>
+<i class="fas fa-trash text-danger"></i>
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

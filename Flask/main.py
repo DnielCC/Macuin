@@ -8,7 +8,8 @@ load_dotenv()
 
 def create_app():
     app = Flask(__name__)
-    
+
+    app.secret_key = 'macuin_super_secreto'
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     app.config['DEBUG'] = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
     

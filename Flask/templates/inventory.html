@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+<h2 class="fw-bold">Gestión de Inventario</h2>
+<p class="text-muted">Control y monitoreo del inventario del almacén</p>
+
+<div class="row g-4 mt-3">
+
+<div class="col-md-3">
+<div class="card shadow-sm border-0 rounded-4 p-3">
+<small class="text-muted">Total Productos</small>
+<h3 class="fw-bold">402</h3>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card shadow-sm border-0 rounded-4 p-3">
+<small class="text-muted">En Stock</small>
+<h3 class="fw-bold text-success">342</h3>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card shadow-sm border-0 rounded-4 p-3">
+<small class="text-muted">Bajo Stock</small>
+<h3 class="fw-bold text-warning">48</h3>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card shadow-sm border-0 rounded-4 p-3">
+<small class="text-muted">Agotados</small>
+<h3 class="fw-bold text-danger">12</h3>
+</div>
+</div>
+
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 mt-4 p-3">
+
+<div class="d-flex justify-content-between mb-3">
+
+<input class="form-control" style="width:250px" placeholder="Buscar producto...">
+
+<div class="d-flex gap-2">
+
+<button class="btn btn-primary">
+<i class="fas fa-plus"></i> Agregar Producto
+</button>
+
+<button class="btn btn-outline-secondary">
+<i class="fas fa-file-export"></i> Exportar
+</button>
+
+</div>
+
+</div>
+
+<div class="table-responsive">
+
+<table class="table align-middle">
+
+<thead class="table-light">
+<tr>
+<th>ID</th>
+<th>Producto</th>
+<th>Categoría</th>
+<th>Stock</th>
+<th>Estado</th>
+<th>Ubicación</th>
+<th>Acciones</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr>
+
+<td>PRD-001</td>
+
+<td>Filtro de Aceite</td>
+
+<td>Filtros</td>
+
+<td>145</td>
+
+<td>
+<span class="badge bg-success">Disponible</span>
+</td>
+
+<td>Almacén A1</td>
+
+<td>
+<i class="fas fa-edit text-primary me-2"></i>
+<i class="fas fa-trash text-danger"></i>
+</td>
+
+</tr>
+
+<tr>
+
+<td>PRD-002</td>
+
+<td>Bujía de Iridio</td>
+
+<td>Sistema Eléctrico</td>
+
+<td>89</td>
+
+<td>
+<span class="badge bg-success">Disponible</span>
+</td>
+
+<td>Almacén B2</td>
+
+<td>
+<i class="fas fa-edit text-primary me-2"></i>
+<i class="fas fa-trash text-danger"></i>
+</td>
+
+</tr>
+
+<tr>
+
+<td>PRD-003</td>
+
+<td>Pastillas de Freno</td>
+
+<td>Frenos</td>
+
+<td>5</td>
+
+<td>
+<span class="badge bg-warning">Bajo Stock</span>
+</td>
+
+<td>Almacén C3</td>
+
+<td>
+<i class="fas fa-edit text-primary me-2"></i>
+<i class="fas fa-trash text-danger"></i>
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}
