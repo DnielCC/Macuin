@@ -1,4 +1,4 @@
-FROM php:8.2-fpm
+FROM php:8.4-fpm
 
 WORKDIR /var/www/html
 
@@ -26,7 +26,7 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/resources/views
 
 # Create PHP-FPM pool directory and configuration
-RUN mkdir -p /etc/php/8.2/fpm/pool.d
+RUN mkdir -p /etc/php/8.4/fpm/pool.d
 RUN echo '[www] \
 listen = 0.0.0.0:9000 \
 listen.backlog = 511 \
@@ -41,7 +41,7 @@ pm.max_requests = 500 \
 access.log = /proc/self/fd/2 \
 clear_env = no \
 catch_workers_output = yes \
-decorate_workers_output = no' > /etc/php/8.2/fpm/pool.d/www.conf
+decorate_workers_output = no' > /etc/php/8.4/fpm/pool.d/www.conf
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/sites-available/default
