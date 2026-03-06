@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Unificado - MACUIN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .card-active {
+            background-color: #334155; 
+            color: white;
+            border-color: #334155;
+        }
+        .card-active .text-gray-500 {
+            color: #cbd5e1; 
+        }
+        .card-active .icon-container {
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4 font-sans text-gray-800">
+
+    <div class="bg-white rounded-xl shadow-lg max-w-3xl w-full p-8 relative">
+        <div class="text-center mb-8">
+            <div class="bg-black text-yellow-500 inline-flex items-center justify-center px-4 py-2 rounded mb-4 font-bold tracking-widest text-xl">
+                <i class="fa-solid fa-m mr-2"></i> MACUIN
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900">Registro Unificado - MACUIN</h1>
+            <p class="text-gray-500 text-sm mt-1">Sistema de Gestión de Componentes Automotrices</p>
+        </div>
+
+        <div>
+            <div class="mb-6">
+                <label class="block text-sm font-semibold mb-3">
+                    <i class="fa-solid fa-id-badge mr-2"></i>Seleccionar Rol de Usuario <span class="text-red-500">*</span>
+                </label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <div class="role-card border border-gray-200 rounded-lg p-4 cursor-pointer transition-all hover:border-slate-400 card-active relative" data-role="cliente">
+                        <i class="fa-solid fa-circle-check absolute top-4 right-4 text-white check-icon"></i>
+                        <div class="flex items-start">
+                            <div class="icon-container text-blue-500 mt-1 mr-3"><i class="fa-solid fa-bag-shopping text-xl"></i></div>
+                            <div>
+                                <h3 class="font-bold">Cliente - Client</h3>
+                                <p class="text-xs text-gray-500 mt-1">Acceso al catálogo y gestión de pedidos</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="role-card border border-gray-200 rounded-lg p-4 cursor-pointer transition-all hover:border-slate-400 relative" data-role="ventas">
+                        <i class="fa-solid fa-circle-check absolute top-4 right-4 text-white hidden check-icon"></i>
+                        <div class="flex items-start">
+                            <div class="icon-container text-green-500 mt-1 mr-3"><i class="fa-solid fa-chart-line text-xl"></i></div>
+                            <div>
+                                <h3 class="font-bold">Ventas - Sales</h3>
+                                <p class="text-xs text-gray-500 mt-1">Dashboard de ventas y reportes</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="role-card border border-gray-200 rounded-lg p-4 cursor-pointer transition-all hover:border-slate-400 relative" data-role="almacen">
+                        <i class="fa-solid fa-circle-check absolute top-4 right-4 text-white hidden check-icon"></i>
+                        <div class="flex items-start">
+                            <div class="icon-container text-purple-500 mt-1 mr-3"><i class="fa-solid fa-box text-xl"></i></div>
+                            <div>
+                                <h3 class="font-bold">Almacén - Warehouse</h3>
+                                <p class="text-xs text-gray-500 mt-1">Gestión de inventario y stock</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="role-card border border-gray-200 rounded-lg p-4 cursor-pointer transition-all hover:border-slate-400 relative" data-role="logistica">
+                        <i class="fa-solid fa-circle-check absolute top-4 right-4 text-white hidden check-icon"></i>
+                        <div class="flex items-start">
+                            <div class="icon-container text-orange-500 mt-1 mr-3"><i class="fa-solid fa-truck text-xl"></i></div>
+                            <div>
+                                <h3 class="font-bold">Logística - Logistics</h3>
+                                <p class="text-xs text-gray-500 mt-1">Control de envíos y estados</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="block text-xs font-semibold mb-1"><i class="fa-regular fa-user mr-1"></i> Nombre Completo <span class="text-red-500">*</span></label>
+                    <input type="text" placeholder="Juan Pérez García" class="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-sm outline-none focus:border-slate-500 focus:bg-white transition-colors">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1 flex justify-between items-center">
+                        <span><i class="fa-regular fa-envelope mr-1"></i> Correo Electrónico <span class="text-red-500">*</span></span>
+                        <span id="emailHint" class="text-gray-400 text-[10px] hidden">(debe ser @macuin.com)</span>
+                    </label>
+                    <input type="email" id="emailInput" placeholder="usuario@ejemplo.com" class="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-sm outline-none focus:border-slate-500 focus:bg-white transition-colors">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1"><i class="fa-solid fa-lock mr-1"></i> Contraseña <span class="text-red-500">*</span></label>
+                    <input type="password" placeholder="Mínimo 6 caracteres" class="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-sm outline-none focus:border-slate-500 focus:bg-white transition-colors">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1"><i class="fa-solid fa-lock mr-1"></i> Confirmar Contraseña <span class="text-red-500">*</span></label>
+                    <input type="password" placeholder="Repetir contraseña" class="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-sm outline-none focus:border-slate-500 focus:bg-white transition-colors">
+                </div>
+            </div>
+
+            <div id="dynamicBanner" class="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-center mb-6 transition-colors">
+                <i id="bannerIcon" class="fa-solid fa-bag-shopping text-blue-500 mr-3 text-lg"></i>
+                <div>
+                    <p class="text-sm font-semibold text-gray-800" id="bannerTitle">Registrándose como: Cliente - Client</p>
+                    <p class="text-xs text-gray-500" id="bannerDesc">Acceso al catálogo y gestión de pedidos</p>
+                </div>
+            </div>
+
+            <button type="button" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-md transition-colors text-sm">
+                CREAR CUENTA
+            </button>
+            
+            <div class="text-center mt-4 text-xs text-gray-500">
+                ¿Ya tienes una cuenta? <a href="#" class="text-blue-600 hover:underline">Inicia sesión aquí</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const roleData = {
+            'cliente': { title: 'Registrándose como: Cliente - Client', desc: 'Acceso al catálogo y gestión de pedidos', icon: 'fa-bag-shopping', colorClass: 'bg-blue-50 text-blue-500 border-blue-100', emailPlaceholder: 'usuario@ejemplo.com', showHint: false },
+            'ventas': { title: 'Registrándose como: Ventas - Sales', desc: 'Dashboard de ventas y reportes', icon: 'fa-chart-line', colorClass: 'bg-green-50 text-green-500 border-green-100', emailPlaceholder: 'usuario@macuin.com', showHint: true },
+            'almacen': { title: 'Registrándose como: Almacén - Warehouse', desc: 'Gestión de inventario y stock', icon: 'fa-box', colorClass: 'bg-purple-50 text-purple-500 border-purple-100', emailPlaceholder: 'usuario@macuin.com', showHint: true },
+            'logistica': { title: 'Registrándose como: Logística - Logistics', desc: 'Control de envíos y estados', icon: 'fa-truck', colorClass: 'bg-orange-50 text-orange-500 border-orange-100', emailPlaceholder: 'usuario@macuin.com', showHint: true }
+        };
+
+        const cards = document.querySelectorAll('.role-card');
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                cards.forEach(c => {
+                    c.classList.remove('card-active');
+                    c.querySelector('.check-icon').classList.add('hidden');
+                });
+                card.classList.add('card-active');
+                card.querySelector('.check-icon').classList.remove('hidden');
+                const data = roleData[card.getAttribute('data-role')];
+                document.getElementById('bannerTitle').textContent = data.title;
+                document.getElementById('bannerDesc').textContent = data.desc;
+                document.getElementById('dynamicBanner').className = `border rounded-lg p-4 flex items-center mb-6 transition-colors ${data.colorClass.replace(/text-[a-z]+-500/, '')}`;
+                document.getElementById('bannerIcon').className = `fa-solid ${data.icon} mr-3 text-lg ${data.colorClass.match(/text-[a-z]+-500/)[0]}`;
+                document.getElementById('emailInput').placeholder = data.emailPlaceholder;
+                document.getElementById('emailHint').classList.toggle('hidden', !data.showHint);
+            });
+        });
+    </script>
+</body>
+</html>

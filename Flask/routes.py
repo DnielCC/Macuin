@@ -110,3 +110,10 @@ def register_routes(app):
             return redirect(url_for('index'))
 
         return render_template('catalog.html')
+
+
+    @app.route('/vista_proyecto')
+    def index():
+        return render_template('vista _login_desde_admi.html')
+
+
