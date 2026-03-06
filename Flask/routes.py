@@ -80,24 +80,25 @@ def register_routes(app):
 
         return render_template('inventory.html')
 
+# -------- USUARIOS (VENTAS) --------
+    @app.route('/users')
+    def users():
+        # 1. Primero revisamos si está logueado
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
 
-    # -------- USUARIOS (VENTAS) --------
-        @app.route('/users')
-        def users():
+        # 2. AHORA SÍ: Revisamos el rol dentro de la función (Correctamente indentado)
+        if session.get("user_role") != "Ventas":
+            return redirect(url_for('index'))
 
-            if 'user_id' not in session:
-                return redirect(url_for('login'))
+        # 3. Definimos la lista y renderizamos (Todo esto va dentro de users)
+        lista_usuarios = [
+            {"nombre":"María González","email":"ventas@macuin.com","departamento":"Ventas","estado":"Activo"},
+            {"nombre":"Ana Martínez","email":"logistica@macuin.com","departamento":"Logística","estado":"Activo"},
+            {"nombre":"Carlos López","email":"almacen@macuin.com","departamento":"Almacén","estado":"Activo"}
+        ]
 
-    if session.get("user_role") != "Ventas":
-        return redirect(url_for('index'))
-
-    lista_usuarios = [
-        {"nombre":"María González","email":"ventas@macuin.com","departamento":"Ventas","estado":"Activo"},
-        {"nombre":"Ana Martínez","email":"logistica@macuin.com","departamento":"Logística","estado":"Activo"},
-        {"nombre":"Carlos López","email":"almacen@macuin.com","departamento":"Almacén","estado":"Activo"}
-    ]
-
-    return render_template('users.html', usuarios=lista_usuarios)
+        return render_template('users.html', usuarios=lista_usuarios)
 
     # -------- CATALOGO (LOGISTICA) --------
     @app.route('/catalog')
@@ -112,8 +113,11 @@ def register_routes(app):
         return render_template('catalog.html')
 
 
+   # -------- VISTA PROYECTO --------
     @app.route('/vista_proyecto')
-    def index():
-        return render_template('vista _login_desde_admi.html')
-
-
+    def vista_proyecto():  # <--- AQUÍ: Cambia "index" por "vista_proyecto"
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        
+    # Tu lógica aquí...
+        return render_template('vista_proyecto.html')
