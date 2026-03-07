@@ -4,25 +4,33 @@ def register_routes(app):
 
     # Base de datos simulada
     USUARIOS = {
+        "administrador": {
+            "nombre": "Frank ContrerasS 0",
+            "correo": "admin@macuin.com",
+            "rol": "Administrador",
+            "password": "admin123"
+        },
         "ventas": {
             "nombre": "María González",
             "correo": "ventas@macuin.com",
             "rol": "Ventas",
-            "password": "1234"
+            "password": "ventas123"
         },
         "logistica": {
             "nombre": "Ana Martínez",
             "correo": "logistica@macuin.com",
             "rol": "Logística",
-            "password": "1234"
+            "password": "logistica123"
         },
         "almacen": {
             "nombre": "Carlos López",
             "correo": "almacen@macuin.com",
             "rol": "Almacén",
-            "password": "1234"
+            "password": "almacen123"
         }
+        
     }
+
 
     # -------- LOGIN --------
     @app.route('/login', methods=['GET','POST'])
@@ -80,25 +88,24 @@ def register_routes(app):
 
         return render_template('inventory.html')
 
-# -------- USUARIOS (VENTAS) --------
-    @app.route('/users')
-    def users():
-        # 1. Primero revisamos si está logueado
-        if 'user_id' not in session:
-            return redirect(url_for('login'))
 
-        # 2. AHORA SÍ: Revisamos el rol dentro de la función (Correctamente indentado)
-        if session.get("user_role") != "Ventas":
-            return redirect(url_for('index'))
+    # -------- USUARIOS (VENTAS) --------
+        @app.route('/users')
+        def users():
 
-        # 3. Definimos la lista y renderizamos (Todo esto va dentro de users)
-        lista_usuarios = [
-            {"nombre":"María González","email":"ventas@macuin.com","departamento":"Ventas","estado":"Activo"},
-            {"nombre":"Ana Martínez","email":"logistica@macuin.com","departamento":"Logística","estado":"Activo"},
-            {"nombre":"Carlos López","email":"almacen@macuin.com","departamento":"Almacén","estado":"Activo"}
-        ]
+            if 'user_id' not in session:
+                return redirect(url_for('login'))
 
-        return render_template('users.html', usuarios=lista_usuarios)
+    if session.get("user_role") != "Ventas":
+        return redirect(url_for('index'))
+
+    lista_usuarios = [
+        {"nombre":"María González","email":"ventas@macuin.com","departamento":"Ventas","estado":"Activo"},
+        {"nombre":"Ana Martínez","email":"logistica@macuin.com","departamento":"Logística","estado":"Activo"},
+        {"nombre":"Carlos López","email":"almacen@macuin.com","departamento":"Almacén","estado":"Activo"}
+    ]
+
+    return render_template('users.html', usuarios=lista_usuarios)
 
     # -------- CATALOGO (LOGISTICA) --------
     @app.route('/catalog')
@@ -111,13 +118,3 @@ def register_routes(app):
             return redirect(url_for('index'))
 
         return render_template('catalog.html')
-
-
-   # -------- VISTA PROYECTO --------
-    @app.route('/vista_proyecto')
-    def vista_proyecto():  # <--- AQUÍ: Cambia "index" por "vista_proyecto"
-        if 'user_id' not in session:
-            return redirect(url_for('login'))
-        
-    # Tu lógica aquí...
-        return render_template('vista_proyecto.html')
