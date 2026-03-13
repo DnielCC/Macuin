@@ -41,6 +41,14 @@ class="nav-item {% if request.endpoint == 'index' %}active{% endif %}">
 Dashboard Overview
 </a>
 
+{% if session.get('user_role') == 'Administrador' %}
+<a href="{{ url_for('administrador') }}" 
+class="nav-item {% if request.endpoint == 'administrador' %}active{% endif %}">
+<i class="fas fa-user-shield"></i>
+Administración
+</a>
+{% endif %}
+
 
 {% if session.get('user_role') == 'Almacén' %}
 <a href="{{ url_for('inventory') }}" 

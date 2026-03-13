@@ -22,8 +22,11 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - FLASK_ENV=production
+      - FLASK_ENV=development
       - FLASK_PORT=5000
+    volumes:
+      - ./Flask:/app
+    command: gunicorn --reload -w 4 --threads 2 -b 0.0.0.0:5000 "main:create_app()"
     networks:
       - macuin_network
     restart: unless-stopped
@@ -40,6 +43,7 @@ services:
       - APP_URL=http://localhost:8002
     volumes:
       - ./Laravel:/var/www/html
+      - ./Laravel/php-dev.ini:/usr/local/etc/php/conf.d/docker-php-ext-opcache-dev.ini
     networks:
       - macuin_network
     restart: unless-stopped

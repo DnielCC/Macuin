@@ -4,8 +4,8 @@ def register_routes(app):
 
     # Base de datos simulada
     USUARIOS = {
-        "administrador": {
-            "nombre": "Frank ContrerasS 0",
+        "admin": {
+            "nombre": "Frank Contreras",
             "correo": "admin@macuin.com",
             "rol": "Administrador",
             "password": "admin123"
@@ -41,6 +41,8 @@ def register_routes(app):
             perfil = request.form.get('perfil')
             correo = request.form.get('correo')
             password = request.form.get('password')
+            
+            print(f"LOGIN ATTEMPT: perfil='{perfil}', correo='{correo}', password='{password}'", flush=True)
 
             if perfil in USUARIOS:
 
@@ -52,8 +54,13 @@ def register_routes(app):
                     session['user_name'] = user["nombre"]
                     session['user_email'] = user["correo"]
                     session['user_role'] = user["rol"]
+                    print(f"LOGIN SUCCESS: {perfil}", flush=True)
 
                     return redirect(url_for('index'))
+                else:
+                    print(f"LOGIN FAILED PASSWORD/EMAIL MISMATCH: expected {user['correo']} / {user['password']}", flush=True)
+            else:
+                print(f"LOGIN FAILED PERFIL NOT FOUND: '{perfil}'", flush=True)
 
         return render_template("login.html")
 
@@ -90,22 +97,33 @@ def register_routes(app):
 
 
     # -------- USUARIOS (VENTAS) --------
-        @app.route('/users')
-        def users():
+    @app.route('/users')
+    def users():
 
-            if 'user_id' not in session:
-                return redirect(url_for('login'))
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
 
-    if session.get("user_role") != "Ventas":
-        return redirect(url_for('index'))
+        if session.get("user_role") != "Ventas":
+            return redirect(url_for('index'))
 
-    lista_usuarios = [
-        {"nombre":"María González","email":"ventas@macuin.com","departamento":"Ventas","estado":"Activo"},
-        {"nombre":"Ana Martínez","email":"logistica@macuin.com","departamento":"Logística","estado":"Activo"},
-        {"nombre":"Carlos López","email":"almacen@macuin.com","departamento":"Almacén","estado":"Activo"}
-    ]
+        lista_usuarios = [
+            {"nombre":"María González","email":"ventas@macuin.com","departamento":"Ventas","estado":"Activo"},
+            {"nombre":"Ana Martínez","email":"logistica@macuin.com","departamento":"Logística","estado":"Activo"},
+            {"nombre":"Carlos López","email":"almacen@macuin.com","departamento":"Almacén","estado":"Activo"}
+        ]
 
-    return render_template('users.html', usuarios=lista_usuarios)
+        return render_template('users.html', usuarios=lista_usuarios)
+
+    # -------- ADMINISTRADOR --------
+    @app.route('/administrador')
+    def administrador():
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+
+        if session.get('user_role') != 'Administrador':
+            return redirect(url_for('index'))
+
+        return render_template('vista_login_desde_admi.html')
 
     # -------- CATALOGO (LOGISTICA) --------
     @app.route('/catalog')
