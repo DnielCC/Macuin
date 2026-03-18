@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+  <!-- HEADER -->
+  <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h2 class="fw-bold" style="color:#111827;">Inventario <span style="font-size:1rem;font-weight:400;color:#6b7280;">(Stock de Piezas)</span></h2>
+      <p class="text-muted mb-0">Consulta, ajusta entradas de mercancía y registra mermas por pasillo</p>
+    </div>
+    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalAjuste">
+      <i class="fas fa-plus-minus me-2"></i>Ajustar Stock
+    </button>
+  </div>
+
+  <!-- STATS -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="d-flex justify-content-between">
+          <div>
+            <small class="text-muted">Total SKUs</small>
+            <h3 class="fw-bold" id="kpiTotal">8</h3>
+          </div>
+          <div class="p-3 rounded-3 d-flex align-items-center" style="background:#fef3c7;">
+            <i class="fas fa-cubes" style="color:#d97706;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="d-flex justify-content-between">
+          <div>
+            <small class="text-muted">Stock Bajo (&lt;10 unid.)</small>
+            <h3 class="fw-bold" id="kpiStockBajo">0</h3>
+          </div>
+          <div class="p-3 rounded-3 d-flex align-items-center" style="background:#fee2e2;">
+            <i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="d-flex justify-content-between">
+          <div>
+            <small class="text-muted">Mermas Registradas</small>
+            <h3 class="fw-bold" id="kpiMermas">0</h3>
+          </div>
+          <div class="p-3 rounded-3 d-flex align-items-center" style="background:#ecfdf5;">
+            <i class="fas fa-minus-circle" style="color:#10b981;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA INVENTARIO -->
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+
+    <div class="d-flex justify-content-between mb-3 flex-wrap gap-2 align-items-center">
+      <div class="d-flex gap-2 flex-wrap">
+        <input class="form-control" style="max-width:280px;" id="searchInv"
+               placeholder="Buscar SKU o descripción..." oninput="renderTabla()">
+        <select class="form-select w-auto" id="filtroUbicacion" onchange="renderTabla()">
+          <option value="">Todas las ubicaciones</option>
+          <option>A-01</option><option>A-02</option><option>B-01</option>
+          <option>B-02</option><option>C-01</option>
+        </select>
+      </div>
+      <small class="text-muted" id="contadorInv">Mostrando 8 piezas</small>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle table-hover" id="tablaInv">
+        <thead class="table-light">
+          <tr>
+            <th>SKU (código_pieza)</th>
+            <th>Descripción</th>
+            <th>Ubicación</th>
+            <th>Stock Actual</th>
+            <th>Último Movimiento</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="bodyInv">
+          <!-- generado por JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <small class="text-muted mt-2 d-block">
+      <i class="fas fa-info-circle me-1 text-warning"></i>
+      Solo Almacén puede ajustar el stock. Las entradas suman mercancía nueva; las mermas registran piezas dañadas o faltantes.
+    </small>
+
+  </div>
+
+</div>
+
+<!-- ═══════════════ MODAL: AJUSTAR STOCK ═══════════════ -->
+<div class="modal fade" id="modalAjuste" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-plus-minus text-warning me-2"></i>Ajustar Stock</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Tabs -->
+        <ul class="nav nav-pills mb-4" id="tabsAjuste">
+          <li class="nav-item">
+            <button class="nav-link active" id="btnTabEntrada" onclick="cambiarTab('entrada', this)">
+              <i class="fas fa-arrow-down me-1"></i>Entrada de Mercancía
+            </button>
+          </li>
+          <li class="nav-item ms-2">
+            <button class="nav-link" id="btnTabMerma" onclick="cambiarTab('merma', this)">
+              <i class="fas fa-minus-circle me-1"></i>Registrar Merma
+            </button>
+          </li>
+        </ul>
+
+        <!-- Panel Entrada -->
+        <div id="panelEntrada">
+          <div class="alert alert-success d-flex gap-2 align-items-start" style="font-size:0.85rem;">
+            <i class="fas fa-truck mt-1"></i>
+            <span>Usa este formulario cuando llega mercancía nueva al almacén. El stock se <strong>sumará</strong> a la cantidad actual.</span>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">SKU (código_pieza)</label>
+              <select class="form-select" id="entradaSKU">
+                <option value="">Seleccionar pieza…</option>
+                <option value="FRE-001">FRE-001 — Disco de Freno Delantero</option>
+                <option value="FRE-009">FRE-009 — Pastilla de Freno</option>
+                <option value="SUS-014">SUS-014 — Amortiguador Trasero</option>
+                <option value="MOT-088">MOT-088 — Filtro de Aceite</option>
+                <option value="MOT-032">MOT-032 — Bujía de Encendido</option>
+                <option value="ELE-005">ELE-005 — Batería 12V</option>
+                <option value="LUB-021">LUB-021 — Aceite Motor 5W-30</option>
+                <option value="SUS-007">SUS-007 — Rótula de Dirección</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Cantidad a Ingresar</label>
+              <input type="number" class="form-control" id="entradaCantidad" placeholder="Ej. 50" min="1">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Ubicación</label>
+              <select class="form-select" id="entradaUbicacion">
+                <option>A-01</option><option>A-02</option><option>B-01</option>
+                <option>B-02</option><option>C-01</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Número de Remisión / Factura (opcional)</label>
+              <input type="text" class="form-control" id="entradaDocumento" placeholder="Ej. REM-20260314">
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Merma -->
+        <div id="panelMerma" class="d-none">
+          <div class="alert alert-danger d-flex gap-2 align-items-start" style="font-size:0.85rem;">
+            <i class="fas fa-exclamation-triangle mt-1"></i>
+            <span>Registra piezas dañadas, rotas o faltantes. El stock se <strong>restará</strong>. Esta acción queda en el historial de mermas.</span>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">SKU (código_pieza)</label>
+              <select class="form-select" id="mermaSKU">
+                <option value="">Seleccionar pieza…</option>
+                <option value="FRE-001">FRE-001 — Disco de Freno Delantero</option>
+                <option value="FRE-009">FRE-009 — Pastilla de Freno</option>
+                <option value="SUS-014">SUS-014 — Amortiguador Trasero</option>
+                <option value="MOT-088">MOT-088 — Filtro de Aceite</option>
+                <option value="MOT-032">MOT-032 — Bujía de Encendido</option>
+                <option value="ELE-005">ELE-005 — Batería 12V</option>
+                <option value="LUB-021">LUB-021 — Aceite Motor 5W-30</option>
+                <option value="SUS-007">SUS-007 — Rótula de Dirección</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Cantidad Afectada</label>
+              <input type="number" class="form-control" id="mermaCantidad" placeholder="Ej. 3" min="1">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Motivo</label>
+              <select class="form-select" id="mermaMotivo">
+                <option>Pieza rota</option>
+                <option>Pieza dañada</option>
+                <option>Faltante en inventario</option>
+                <option>Vencimiento</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Observaciones</label>
+              <textarea class="form-control" id="mermaObservaciones" rows="2" placeholder="Describe brevemente lo ocurrido…"></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning" onclick="guardarAjuste()">
+          <i class="fas fa-save me-1"></i>Guardar Ajuste
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: EDITAR UBICACIÓN DE PIEZA ═══════════════ -->
+<div class="modal fade" id="modalEditar" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-edit text-primary me-2"></i>Editar Pieza</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-3">SKU: <strong id="editSKU"></strong> — <span id="editDesc"></span></p>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Ubicación en Almacén</label>
+          <select class="form-select" id="editUbicacion">
+            <option>A-01</option><option>A-02</option><option>B-01</option>
+            <option>B-02</option><option>C-01</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Notas de Almacenamiento</label>
+          <textarea class="form-control" id="editNotas" rows="2" placeholder="Ej. Mantener en seco, frágil…"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="guardarEdicion()">
+          <i class="fas fa-save me-1"></i>Guardar Cambios
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ─── Estado en memoria ─── */
+let inventario = [
+  {sku:"FRE-001", descripcion:"Disco de Freno Delantero",    ubicacion:"A-01", stock:48,  fecha:"14/03/2026", mermas:0},
+  {sku:"FRE-009", descripcion:"Pastilla de Freno",           ubicacion:"A-01", stock:124, fecha:"12/03/2026", mermas:3},
+  {sku:"SUS-014", descripcion:"Amortiguador Trasero",        ubicacion:"A-02", stock:31,  fecha:"14/03/2026", mermas:0},
+  {sku:"MOT-088", descripcion:"Filtro de Aceite",            ubicacion:"B-01", stock:210, fecha:"13/03/2026", mermas:0},
+  {sku:"MOT-032", descripcion:"Bujía de Encendido",          ubicacion:"B-02", stock:88,  fecha:"10/03/2026", mermas:0},
+  {sku:"ELE-005", descripcion:"Batería 12V",                 ubicacion:"C-01", stock:14,  fecha:"09/03/2026", mermas:0},
+  {sku:"LUB-021", descripcion:"Aceite Motor 5W-30",          ubicacion:"B-01", stock:73,  fecha:"11/03/2026", mermas:0},
+  {sku:"SUS-007", descripcion:"Rótula de Dirección",         ubicacion:"A-02", stock:22,  fecha:"08/03/2026", mermas:0},
+];
+
+let itemActivo = null;
+let tabActiva  = 'entrada';
+let totalMermas = 3;
+
+/* ─── Render ─── */
+function badgeStock(stock) {
+  if (stock < 10)
+    return `<span class="badge bg-danger bg-opacity-10 text-danger fw-bold">${stock} ⚠</span>`;
+  if (stock < 30)
+    return `<span class="badge bg-warning bg-opacity-10 text-warning fw-bold">${stock}</span>`;
+  return `<span class="badge bg-success bg-opacity-10 text-success fw-bold">${stock}</span>`;
+}
+
+function renderTabla() {
+  const q   = document.getElementById('searchInv').value.toLowerCase();
+  const ubi = document.getElementById('filtroUbicacion').value;
+
+  const filtrado = inventario.filter(i => {
+    const txt   = `${i.sku} ${i.descripcion}`.toLowerCase();
+    const matchQ = q   === '' || txt.includes(q);
+    const matchU = ubi === '' || i.ubicacion === ubi;
+    return matchQ && matchU;
+  });
+
+  document.getElementById('bodyInv').innerHTML = filtrado.map(i => `
+    <tr>
+      <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">${i.sku}</code></td>
+      <td class="fw-semibold">${i.descripcion}</td>
+      <td><span class="badge bg-secondary bg-opacity-10 text-secondary"><i class="fas fa-map-marker-alt me-1"></i>${i.ubicacion}</span></td>
+      <td>${badgeStock(i.stock)}</td>
+      <td class="text-muted">${i.fecha}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary me-1" title="Editar ubicación"
+                data-bs-toggle="modal" data-bs-target="#modalEditar"
+                onclick="prepEditar('${i.sku}','${i.descripcion}','${i.ubicacion}')">
+          <i class="fas fa-edit"></i>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+
+  document.getElementById('contadorInv').textContent = `Mostrando ${filtrado.length} piezas`;
+  actualizarKPIs();
+}
+
+function actualizarKPIs() {
+  document.getElementById('kpiTotal').textContent    = inventario.length;
+  document.getElementById('kpiStockBajo').textContent = inventario.filter(i => i.stock < 10).length;
+  document.getElementById('kpiMermas').textContent   = totalMermas;
+}
+
+/* ─── Tab Entrada / Merma ─── */
+function cambiarTab(panel, btn) {
+  tabActiva = panel;
+  document.getElementById('panelEntrada').classList.toggle('d-none', panel !== 'entrada');
+  document.getElementById('panelMerma').classList.toggle('d-none',   panel !== 'merma');
+  document.querySelectorAll('#tabsAjuste .nav-link').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ─── Guardar Ajuste ─── */
+function guardarAjuste() {
+  const hoy = new Date();
+  const fecha = `${String(hoy.getDate()).padStart(2,'0')}/${String(hoy.getMonth()+1).padStart(2,'0')}/${hoy.getFullYear()}`;
+
+  if (tabActiva === 'entrada') {
+    const sku      = document.getElementById('entradaSKU').value;
+    const cantidad = parseInt(document.getElementById('entradaCantidad').value);
+    const ubicacion = document.getElementById('entradaUbicacion').value;
+    if (!sku || !cantidad || cantidad < 1) { mostrarToast('Completa el SKU y la cantidad', 'warning'); return; }
+
+    const idx = inventario.findIndex(i => i.sku === sku);
+    if (idx !== -1) {
+      inventario[idx].stock     += cantidad;
+      inventario[idx].ubicacion  = ubicacion;
+      inventario[idx].fecha      = fecha;
+    }
+    document.getElementById('entradaSKU').value      = '';
+    document.getElementById('entradaCantidad').value = '';
+    document.getElementById('entradaDocumento').value = '';
+    mostrarToast(`Entrada registrada: +${cantidad} unidades de ${sku}`, 'success');
+
+  } else {
+    const sku      = document.getElementById('mermaSKU').value;
+    const cantidad = parseInt(document.getElementById('mermaCantidad').value);
+    if (!sku || !cantidad || cantidad < 1) { mostrarToast('Completa el SKU y la cantidad', 'warning'); return; }
+
+    const idx = inventario.findIndex(i => i.sku === sku);
+    if (idx !== -1) {
+      if (inventario[idx].stock < cantidad) { mostrarToast('No hay suficiente stock para registrar esa merma', 'danger'); return; }
+      inventario[idx].stock  -= cantidad;
+      inventario[idx].mermas += cantidad;
+      inventario[idx].fecha   = fecha;
+    }
+    totalMermas += cantidad;
+    document.getElementById('mermaSKU').value           = '';
+    document.getElementById('mermaCantidad').value      = '';
+    document.getElementById('mermaObservaciones').value = '';
+    mostrarToast(`Merma registrada: -${cantidad} unidades de ${sku}`, 'warning');
+  }
+
+  bootstrap.Modal.getInstance(document.getElementById('modalAjuste')).hide();
+  renderTabla();
+}
+
+/* ─── Editar ubicación ─── */
+function prepEditar(sku, descripcion, ubicacion) {
+  itemActivo = sku;
+  document.getElementById('editSKU').textContent  = sku;
+  document.getElementById('editDesc').textContent = descripcion;
+  const sel = document.getElementById('editUbicacion');
+  [...sel.options].forEach(o => { o.selected = o.value === ubicacion; });
+  document.getElementById('editNotas').value = '';
+}
+
+function guardarEdicion() {
+  const nuevaUbi = document.getElementById('editUbicacion').value;
+  const idx = inventario.findIndex(i => i.sku === itemActivo);
+  if (idx !== -1) inventario[idx].ubicacion = nuevaUbi;
+
+  bootstrap.Modal.getInstance(document.getElementById('modalEditar')).hide();
+  renderTabla();
+  mostrarToast('Información de la pieza actualizada', 'success');
+  itemActivo = null;
+}
+
+/* ─── Toast ─── */
+function mostrarToast(msg, tipo) {
+  const icons = {success:'fa-check-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle',danger:'fa-times-circle'};
+  const t = document.createElement('div');
+  t.className = `alert alert-${tipo} position-fixed shadow d-flex align-items-center gap-2`;
+  t.style.cssText = 'bottom:30px;right:30px;z-index:9999;min-width:300px;transition:opacity .4s;';
+  t.innerHTML = `<i class="fas ${icons[tipo]||'fa-info-circle'}"></i>${msg}`;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3000);
+}
+
+document.addEventListener('DOMContentLoaded', renderTabla);
+</script>
+{% endblock %}

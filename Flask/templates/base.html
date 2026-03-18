@@ -35,44 +35,109 @@ Módulo: {{ session.get('user_role','General') }}
 </small>
 
 
-<a href="{{ url_for('index') }}" 
-class="nav-item {% if request.endpoint == 'index' %}active{% endif %}">
-<i class="fas fa-th-large"></i>
-Dashboard Overview
-</a>
 
 {% if session.get('user_role') == 'Administrador' %}
-<a href="{{ url_for('administrador') }}" 
-class="nav-item {% if request.endpoint == 'administrador' %}active{% endif %}">
-<i class="fas fa-user-shield"></i>
-Administración
+<a href="{{ url_for('admin_dashboard') }}"
+   class="nav-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+  <i class="fas fa-user-shield"></i>
+  Admin Overview
+</a>
+<a href="{{ url_for('admin_usuarios') }}"
+   class="nav-item {% if request.endpoint in ['admin_usuarios'] %}active{% endif %}">
+  <i class="fas fa-users"></i>
+  Usuarios Internos
+</a>
+<a href="{{ url_for('admin_catalogo') }}"
+   class="nav-item {% if request.endpoint in ['admin_catalogo'] %}active{% endif %}">
+  <i class="fas fa-cogs"></i>
+  Catálogo Maestro
+</a>
+<a href="{{ url_for('admin_configuracion') }}"
+   class="nav-item {% if request.endpoint in ['admin_configuracion'] %}active{% endif %}">
+  <i class="fas fa-sliders-h"></i>
+  Configuración
+</a>
+<a href="{{ url_for('admin_pedidos') }}"
+   class="nav-item {% if request.endpoint in ['admin_pedidos'] %}active{% endif %}">
+  <i class="fas fa-clipboard-list"></i>
+  Pedidos
 </a>
 {% endif %}
 
 
 {% if session.get('user_role') == 'Almacén' %}
-<a href="{{ url_for('inventory') }}" 
-class="nav-item {% if request.endpoint == 'inventory' %}active{% endif %}">
-<i class="fas fa-cube"></i>
-Inventory Management
+<a href="{{ url_for('almacen_dashboard') }}"
+   class="nav-item {% if request.endpoint in ['almacen_dashboard'] %}active{% endif %}">
+  <i class="fas fa-warehouse"></i>
+  Almacén Overview
+</a>
+<a href="{{ url_for('almacen_inventario') }}"
+   class="nav-item {% if request.endpoint in ['almacen_inventario','almacen_inventario_ajustar'] %}active{% endif %}">
+  <i class="fas fa-cubes"></i>
+  Inventario
+</a>
+<a href="{{ url_for('almacen_ubicaciones') }}"
+   class="nav-item {% if request.endpoint in ['almacen_ubicaciones','almacen_ubicaciones_nueva','almacen_ubicaciones_editar','almacen_ubicaciones_eliminar'] %}active{% endif %}">
+  <i class="fas fa-map-signs"></i>
+  Ubicaciones
+</a>
+<a href="{{ url_for('almacen_pedidos') }}"
+   class="nav-item {% if request.endpoint in ['almacen_pedidos','almacen_pedidos_estatus'] %}active{% endif %}">
+  <i class="fas fa-dolly"></i>
+  Pedidos a Surtir
+</a>
+<a href="{{ url_for('almacen_autopartes') }}"
+   class="nav-item {% if request.endpoint == 'almacen_autopartes' %}active{% endif %}">
+  <i class="fas fa-cogs"></i>
+  Autopartes
 </a>
 {% endif %}
 
 
 {% if session.get('user_role') == 'Ventas' %}
-<a href="{{ url_for('users') }}" 
-class="nav-item {% if request.endpoint == 'users' %}active{% endif %}">
-<i class="fas fa-users"></i>
-User Directory
+<a href="{{ url_for('ventas_dashboard') }}"
+   class="nav-item {% if request.endpoint == 'ventas_dashboard' %}active{% endif %}">
+  <i class="fas fa-chart-line"></i>
+  Ventas Overview
+</a>
+<a href="{{ url_for('ventas_clientes') }}"
+   class="nav-item {% if request.endpoint in ['ventas_clientes','ventas_clientes_editar','ventas_clientes_baja'] %}active{% endif %}">
+  <i class="fas fa-users"></i>
+  Clientes
+</a>
+<a href="{{ url_for('ventas_pedidos') }}"
+   class="nav-item {% if request.endpoint in ['ventas_pedidos','ventas_pedido_nuevo','ventas_pedido_editar'] %}active{% endif %}">
+  <i class="fas fa-shopping-cart"></i>
+  Pedidos
+</a>
+<a href="{{ url_for('ventas_catalogo') }}"
+   class="nav-item {% if request.endpoint == 'ventas_catalogo' %}active{% endif %}">
+  <i class="fas fa-tags"></i>
+  Catálogo
 </a>
 {% endif %}
 
 
 {% if session.get('user_role') == 'Logística' %}
-<a href="{{ url_for('catalog') }}" 
-class="nav-item {% if request.endpoint == 'catalog' %}active{% endif %}">
-<i class="fas fa-tags"></i>
-Product Catalog
+<a href="{{ url_for('logistica_dashboard') }}"
+   class="nav-item {% if request.endpoint == 'logistica_dashboard' %}active{% endif %}">
+  <i class="fas fa-chart-pie"></i>
+  Panel Principal
+</a>
+<a href="{{ url_for('logistica_envios') }}"
+   class="nav-item {% if request.endpoint in ['logistica_envios', 'logistica_envios_estatus'] %}active{% endif %}">
+  <i class="fas fa-box-open"></i>
+  Pedidos a Enviar
+</a>
+<a href="{{ url_for('logistica_direcciones') }}"
+   class="nav-item {% if request.endpoint == 'logistica_direcciones' %}active{% endif %}">
+  <i class="fas fa-map-marked-alt"></i>
+  Direcciones
+</a>
+<a href="{{ url_for('logistica_guias') }}"
+   class="nav-item {% if request.endpoint in ['logistica_guias', 'logistica_guias_nueva', 'logistica_guias_editar', 'logistica_guias_eliminar'] %}active{% endif %}">
+  <i class="fas fa-file-signature"></i>
+  Documentos (Guías)
 </a>
 {% endif %}
 

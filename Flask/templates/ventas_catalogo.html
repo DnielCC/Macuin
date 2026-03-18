@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+  <!-- HEADER -->
+  <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h2 class="fw-bold" style="color:#111827;">Catálogo de Autopartes</h2>
+      <p class="text-muted mb-0">
+        <i class="fas fa-eye me-1 text-primary"></i>
+        Vista de solo lectura · Consulta precios y stock disponible para vender
+      </p>
+    </div>
+    <span class="badge rounded-pill fs-6 px-3 py-2" style="background:#eff6ff;color:#3b82f6;font-weight:600;">
+      <i class="fas fa-lock me-2"></i>Solo Lectura
+    </span>
+  </div>
+
+  <!-- FILTROS BUSQUEDA -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label fw-semibold text-muted" style="font-size:0.82rem;">BUSCAR PIEZA</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0">
+            <i class="fas fa-search text-muted"></i>
+          </span>
+          <input type="text" class="form-control border-start-0" id="searchCatalogo"
+                 placeholder="Código, nombre, marca…" oninput="filtrarCatalogo()">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold text-muted" style="font-size:0.82rem;">CATEGORÍA</label>
+        <select class="form-select" id="filtroCategoria" onchange="filtrarCatalogo()">
+          <option value="">Todas las categorías</option>
+          <option>Frenos</option>
+          <option>Motor</option>
+          <option>Suspensión</option>
+          <option>Lubricantes</option>
+          <option>Eléctrico</option>
+          <option>Carrocería</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold text-muted" style="font-size:0.82rem;">DISPONIBILIDAD</label>
+        <select class="form-select" id="filtroStock" onchange="filtrarCatalogo()">
+          <option value="">Todo el stock</option>
+          <option value="disponible">Disponible (&gt;10)</option>
+          <option value="bajo">Bajo stock (1-10)</option>
+          <option value="agotado">Agotado</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-outline-secondary w-100" onclick="limpiarFiltros()">
+          <i class="fas fa-times me-1"></i>Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA CATALOGO -->
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+
+    <div class="d-flex justify-content-between mb-3 align-items-center">
+      <h6 class="fw-bold mb-0">Autopartes Disponibles</h6>
+      <small class="text-muted" id="contadorResultados">Mostrando 12 piezas</small>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle" id="tablaCatalogo">
+        <thead class="table-light">
+          <tr>
+            <th>Código</th>
+            <th>Pieza</th>
+            <th>Categoría</th>
+            <th>Marca</th>
+            <th>Precio Unitario</th>
+            <th>Stock</th>
+            <th>Disponibilidad</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set piezas = [
+            {codigo:"FR-001", nombre:"Balatas Delanteras Premium", cat:"Frenos", marca:"Brembo", precio:"$450.00", stock:85, nivel:"disponible"},
+            {codigo:"FR-002", nombre:"Disco de Freno Ventilado", cat:"Frenos", marca:"Brembo", precio:"$1,200.00", stock:42, nivel:"disponible"},
+            {codigo:"FR-003", nombre:"Líquido de Frenos DOT4 1L", cat:"Frenos", marca:"Castrol", precio:"$180.00", stock:7, nivel:"bajo"},
+            {codigo:"MT-001", nombre:"Filtro de Aceite Universal", cat:"Motor", marca:"Fram", precio:"$95.00", stock:150, nivel:"disponible"},
+            {codigo:"MT-002", nombre:"Bujía Iridium NGK", cat:"Motor", marca:"NGK", precio:"$320.00", stock:64, nivel:"disponible"},
+            {codigo:"MT-003", nombre:"Correa de Distribución", cat:"Motor", marca:"Gates", precio:"$850.00", stock:3, nivel:"bajo"},
+            {codigo:"MT-004", nombre:"Empaque de Cabeza Motor", cat:"Motor", marca:"Fel-Pro", precio:"$1,450.00", stock:0, nivel:"agotado"},
+            {codigo:"SS-001", nombre:"Amortiguador Delantero", cat:"Suspensión", marca:"Monroe", precio:"$980.00", stock:24, nivel:"disponible"},
+            {codigo:"SS-002", nombre:"Resorte Espiral", cat:"Suspensión", marca:"Moog", precio:"$650.00", stock:9, nivel:"bajo"},
+            {codigo:"LB-001", nombre:"Aceite Motor 5W-40 4L", cat:"Lubricantes", marca:"Mobil 1", precio:"$560.00", stock:200, nivel:"disponible"},
+            {codigo:"EL-001", nombre:"Batería 12V 60Ah", cat:"Eléctrico", marca:"Bosch", precio:"$2,100.00", stock:18, nivel:"disponible"},
+            {codigo:"CB-001", nombre:"Capó Delantero Sedan", cat:"Carrocería", marca:"Genérico", precio:"$3,800.00", stock:0, nivel:"agotado"}
+          ] %}
+          {% for p in piezas %}
+          <tr class="fila-pieza">
+            <td>
+              <code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">{{ p.codigo }}</code>
+            </td>
+            <td><strong>{{ p.nombre }}</strong></td>
+            <td>
+              {% if p.cat == 'Frenos' %}
+              <span class="badge bg-danger bg-opacity-10 text-danger">{{ p.cat }}</span>
+              {% elif p.cat == 'Motor' %}
+              <span class="badge bg-primary bg-opacity-10 text-primary">{{ p.cat }}</span>
+              {% elif p.cat == 'Suspensión' %}
+              <span class="badge bg-warning bg-opacity-10 text-warning">{{ p.cat }}</span>
+              {% elif p.cat == 'Lubricantes' %}
+              <span class="badge bg-success bg-opacity-10 text-success">{{ p.cat }}</span>
+              {% elif p.cat == 'Eléctrico' %}
+              <span class="badge bg-info bg-opacity-10 text-info">{{ p.cat }}</span>
+              {% else %}
+              <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ p.cat }}</span>
+              {% endif %}
+            </td>
+            <td class="text-muted">{{ p.marca }}</td>
+            <td class="fw-bold" style="color:#1f2937;">{{ p.precio }}</td>
+            <td class="text-center fw-bold">{{ p.stock }}</td>
+            <td>
+              {% if p.nivel == 'disponible' %}
+              <span class="badge bg-success bg-opacity-10 text-success">
+                <i class="fas fa-check-circle me-1"></i>Disponible
+              </span>
+              {% elif p.nivel == 'bajo' %}
+              <span class="badge bg-warning bg-opacity-10 text-warning">
+                <i class="fas fa-exclamation-circle me-1"></i>Bajo Stock
+              </span>
+              {% else %}
+              <span class="badge bg-danger bg-opacity-10 text-danger">
+                <i class="fas fa-times-circle me-1"></i>Agotado
+              </span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="d-flex align-items-center gap-2 mt-3 p-3 rounded-3" style="background:#fefce8;border:1px solid #fef08a;">
+      <i class="fas fa-info-circle" style="color:#ca8a04;"></i>
+      <small style="color:#854d0e;">
+        Los precios y el inventario son administrados por el área de Almacén. Si necesitas un ajuste, contacta al responsable de inventario.
+      </small>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filtrarCatalogo() {
+  const q = document.getElementById('searchCatalogo').value.toLowerCase();
+  const cat = document.getElementById('filtroCategoria').value.toLowerCase();
+  const stk = document.getElementById('filtroStock').value;
+
+  let count = 0;
+  document.querySelectorAll('.fila-pieza').forEach(fila => {
+    const texto = fila.textContent.toLowerCase();
+    const matchQ = q === '' || texto.includes(q);
+    const matchC = cat === '' || texto.includes(cat);
+    
+    // Stock filter
+    const stockCell = fila.querySelectorAll('td')[5];
+    const stockVal = parseInt(stockCell ? stockCell.textContent.trim() : '0');
+    let matchS = true;
+    if (stk === 'disponible') matchS = stockVal > 10;
+    else if (stk === 'bajo') matchS = stockVal >= 1 && stockVal <= 10;
+    else if (stk === 'agotado') matchS = stockVal === 0;
+
+    const show = matchQ && matchC && matchS;
+    fila.style.display = show ? '' : 'none';
+    if (show) count++;
+  });
+
+  document.getElementById('contadorResultados').textContent = `Mostrando ${count} piezas`;
+}
+
+function limpiarFiltros() {
+  document.getElementById('searchCatalogo').value = '';
+  document.getElementById('filtroCategoria').value = '';
+  document.getElementById('filtroStock').value = '';
+  filtrarCatalogo();
+}
+</script>
+{% endblock %}

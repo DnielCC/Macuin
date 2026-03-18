@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+  <!-- HEADER -->
+  <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h2 class="fw-bold" style="color:#111827;">Configuración del Sistema</h2>
+      <p class="text-muted mb-0">Roles, estatus y parámetros del sistema &mdash; <strong>CRUD completo</strong></p>
+    </div>
+    <button class="btn btn-primary" style="background:#8b5cf6;border-color:#8b5cf6;"
+            data-bs-toggle="modal" data-bs-target="#modalConfig" onclick="prepNuevo()">
+      <i class="fas fa-plus me-1"></i>Nueva Configuración
+    </button>
+  </div>
+
+  <!-- NAV TABS -->
+  <ul class="nav nav-pills mb-4 gap-2" id="configTab">
+    <li class="nav-item">
+      <button class="nav-link active" id="tab-roles" onclick="mostrarTab('roles')">
+        <i class="fas fa-id-badge me-2"></i>Roles
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="tab-estatus" onclick="mostrarTab('estatus')">
+        <i class="fas fa-traffic-light me-2"></i>Estatus
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="tab-parametros" onclick="mostrarTab('parametros')">
+        <i class="fas fa-sliders-h me-2"></i>Parámetros
+      </button>
+    </li>
+  </ul>
+
+  <!-- PANEL ROLES -->
+  <div id="panel-roles" class="card border-0 shadow-sm rounded-4 p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h6 class="fw-bold mb-0"><i class="fas fa-id-badge text-purple me-2" style="color:#8b5cf6;"></i>Roles del Sistema</h6>
+      <button class="btn btn-sm btn-outline-secondary" style="border-color:#8b5cf6;color:#8b5cf6;"
+              data-bs-toggle="modal" data-bs-target="#modalConfig" onclick="prepNuevoRol()">
+        <i class="fas fa-plus me-1"></i>Nuevo Rol
+      </button>
+    </div>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead class="table-light">
+          <tr><th>Rol</th><th>Descripción</th><th>Permisos</th><th>Usuarios</th><th>Acciones</th></tr>
+        </thead>
+        <tbody id="bodyRoles"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PANEL ESTATUS -->
+  <div id="panel-estatus" class="card border-0 shadow-sm rounded-4 p-4" style="display:none;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h6 class="fw-bold mb-0"><i class="fas fa-traffic-light me-2 text-warning"></i>Catálogo de Estatus</h6>
+      <button class="btn btn-sm btn-outline-warning"
+              data-bs-toggle="modal" data-bs-target="#modalEstatus" onclick="prepNuevoEstatus()">
+        <i class="fas fa-plus me-1"></i>Nuevo Estatus
+      </button>
+    </div>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead class="table-light">
+          <tr><th>ID</th><th>Nombre</th><th>Módulo</th><th>Color</th><th>Activo</th><th>Acciones</th></tr>
+        </thead>
+        <tbody id="bodyEstatus"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PANEL PARÁMETROS -->
+  <div id="panel-parametros" class="card border-0 shadow-sm rounded-4 p-4" style="display:none;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h6 class="fw-bold mb-0"><i class="fas fa-sliders-h me-2" style="color:#8b5cf6;"></i>Parámetros Generales</h6>
+      <button class="btn btn-sm btn-outline-secondary"
+              data-bs-toggle="modal" data-bs-target="#modalParam" onclick="prepNuevoParam()">
+        <i class="fas fa-plus me-1"></i>Nuevo Parámetro
+      </button>
+    </div>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead class="table-light">
+          <tr><th>Clave</th><th>Valor</th><th>Descripción</th><th>Última Modificación</th><th>Acciones</th></tr>
+        </thead>
+        <tbody id="bodyParams"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL: ROL CRUD -->
+<div class="modal fade" id="modalConfig" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="modalRolTitulo">
+          <i class="fas fa-id-badge me-2" style="color:#8b5cf6;"></i>Nuevo Rol
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nombre del Rol <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="rNombre" placeholder="Ej. Supervisor">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Descripción</label>
+          <textarea class="form-control" id="rDesc" rows="2" placeholder="Funciones de este rol"></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Permisos (separados por coma)</label>
+          <input type="text" class="form-control" id="rPermisos" placeholder="Ej. R, RU, CRUD">
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" style="background:#8b5cf6;border-color:#8b5cf6;"
+                onclick="guardarRol()">
+          <i class="fas fa-save me-1"></i>Guardar Rol
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ESTATUS CRUD -->
+<div class="modal fade" id="modalEstatus" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="modalEstatusTitulo" style="font-size:1rem;">
+          <i class="fas fa-traffic-light me-2 text-warning"></i>Nuevo Estatus
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="eNombre" placeholder="Ej. En Revisión">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Módulo</label>
+          <select class="form-select" id="eModulo">
+            <option>Pedidos</option><option>Envíos</option><option>Inventario</option><option>General</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Color</label>
+          <select class="form-select" id="eColor">
+            <option value="success">Verde (Completado)</option>
+            <option value="warning">Amarillo (En proceso)</option>
+            <option value="danger">Rojo (Error/Baja)</option>
+            <option value="primary">Azul (Enviado)</option>
+            <option value="secondary">Gris (Inactivo)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning btn-sm" onclick="guardarEstatus()">
+          <i class="fas fa-save me-1"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PARÁMETRO CRUD -->
+<div class="modal fade" id="modalParam" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="modalParamTitulo" style="font-size:1rem;">
+          <i class="fas fa-sliders-h me-2" style="color:#8b5cf6;"></i>Nuevo Parámetro
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Clave <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="pClave" placeholder="Ej. MAX_PEDIDOS_DIA">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Valor <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="pValor" placeholder="Ej. 50">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Descripción</label>
+          <input type="text" class="form-control" id="pDesc" placeholder="Descripción breve">
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-sm" style="background:#8b5cf6;color:white;border:none;"
+                onclick="guardarParam()">
+          <i class="fas fa-save me-1"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ELIMINAR -->
+<div class="modal fade" id="modalDel" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-danger" style="font-size:1rem;">
+          <i class="fas fa-trash me-2"></i>Eliminar
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted">¿Eliminar <strong id="delNombre"></strong>? Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger btn-sm" onclick="confirmarDel()">
+          <i class="fas fa-trash me-1"></i>Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ─── Datos ─── */
+let roles = [
+  {id:1, nombre:"Administrador", desc:"Control total del sistema", permisos:"CRUD", usuarios:1},
+  {id:2, nombre:"Ventas",        desc:"Gestión de clientes y pedidos", permisos:"CRUD / CRU / R", usuarios:2},
+  {id:3, nombre:"Almacén",       desc:"Inventario, ubicaciones y pedidos", permisos:"CRU / CRUD / RU / R", usuarios:2},
+  {id:4, nombre:"Logística",     desc:"Envíos, direcciones y guías", permisos:"RU / R / CRUD", usuarios:2}
+];
+let estatuses = [
+  {id:1, nombre:"Pendiente",     modulo:"Pedidos",    color:"warning",   activo:true},
+  {id:2, nombre:"Surtiendo",     modulo:"Pedidos",    color:"primary",   activo:true},
+  {id:3, nombre:"Empacado",      modulo:"Pedidos",    color:"success",   activo:true},
+  {id:4, nombre:"Enviado",       modulo:"Envíos",     color:"primary",   activo:true},
+  {id:5, nombre:"Entregado",     modulo:"Envíos",     color:"success",   activo:true},
+  {id:6, nombre:"Cancelado",     modulo:"General",    color:"danger",    activo:true}
+];
+let params = [
+  {id:1, clave:"EMPRESA_NOMBRE",    valor:"MACUIN",           desc:"Nombre comercial de la empresa",           fecha:"01/01/2026"},
+  {id:2, clave:"MAX_PEDIDOS_DIA",   valor:"100",              desc:"Máximo de pedidos permitidos por día",     fecha:"10/02/2026"},
+  {id:3, clave:"MONEDA",            valor:"MXN",              desc:"Moneda base del sistema",                  fecha:"01/01/2026"},
+  {id:4, clave:"IVA_PORCENTAJE",    valor:"16",               desc:"Porcentaje de IVA aplicado",               fecha:"15/01/2026"},
+  {id:5, clave:"CORREO_SOPORTE",    valor:"soporte@macuin.com",desc:"Correo para notificaciones de soporte",  fecha:"01/01/2026"}
+];
+let nextRId=5, nextEId=7, nextPId=6;
+let activoId=null, activoTipo=null;
+
+/* ─── Tabs ─── */
+function mostrarTab(tab) {
+  ['roles','estatus','parametros'].forEach(t=>{
+    document.getElementById(`panel-${t}`).style.display = t===tab?'':'none';
+    document.getElementById(`tab-${t}`).classList.toggle('active', t===tab);
+  });
+}
+
+/* ─── Render Roles ─── */
+function renderRoles() {
+  document.getElementById('bodyRoles').innerHTML = roles.map(r=>`
+    <tr>
+      <td><span class="badge rounded-pill px-3 py-2" style="background:#ede9fe;color:#6366f1;">${r.nombre}</span></td>
+      <td class="text-muted">${r.desc}</td>
+      <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.8rem;">${r.permisos}</code></td>
+      <td><span class="badge bg-secondary bg-opacity-10 text-secondary">${r.usuarios} usuarios</span></td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#modalConfig"
+          onclick="prepEditarRol(${r.id})"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalDel"
+          onclick="prepDel(${r.id},'rol','${r.nombre}')"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ─── Render Estatus ─── */
+function renderEstatus() {
+  document.getElementById('bodyEstatus').innerHTML = estatuses.map(e=>`
+    <tr>
+      <td><span class="badge bg-secondary bg-opacity-10 text-secondary">EST-${e.id}</span></td>
+      <td class="fw-bold">${e.nombre}</td>
+      <td class="text-muted">${e.modulo}</td>
+      <td><span class="badge bg-${e.color} bg-opacity-10 text-${e.color}">${e.color}</span></td>
+      <td>${e.activo?'<span class="badge bg-success bg-opacity-10 text-success">Activo</span>':'<span class="badge bg-danger bg-opacity-10 text-danger">Inactivo</span>'}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#modalEstatus"
+          onclick="prepEditarEstatus(${e.id})"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalDel"
+          onclick="prepDel(${e.id},'estatus','${e.nombre}')"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ─── Render Params ─── */
+function renderParams() {
+  document.getElementById('bodyParams').innerHTML = params.map(p=>`
+    <tr>
+      <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">${p.clave}</code></td>
+      <td class="fw-bold">${p.valor}</td>
+      <td class="text-muted">${p.desc}</td>
+      <td class="text-muted">${p.fecha}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#modalParam"
+          onclick="prepEditarParam(${p.id})"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalDel"
+          onclick="prepDel(${p.id},'param','${p.clave}')"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ─── Nuevo / Editar Roles ─── */
+function prepNuevo() { prepNuevoRol(); }
+function prepNuevoRol() {
+  activoId=null; activoTipo='rol';
+  document.getElementById('modalRolTitulo').innerHTML='<i class="fas fa-id-badge me-2" style="color:#8b5cf6;"></i>Nuevo Rol';
+  ['rNombre','rDesc','rPermisos'].forEach(id=>document.getElementById(id).value='');
+}
+function prepEditarRol(id) {
+  activoId=id; activoTipo='rol';
+  const r=roles.find(x=>x.id===id);
+  document.getElementById('modalRolTitulo').innerHTML='<i class="fas fa-edit me-2" style="color:#8b5cf6;"></i>Editar Rol';
+  document.getElementById('rNombre').value=r.nombre;
+  document.getElementById('rDesc').value=r.desc;
+  document.getElementById('rPermisos').value=r.permisos;
+}
+function guardarRol() {
+  const nombre=document.getElementById('rNombre').value.trim();
+  const desc=document.getElementById('rDesc').value.trim();
+  const permisos=document.getElementById('rPermisos').value.trim();
+  if (!nombre) { mostrarToast('El nombre del rol es requerido','warning'); return; }
+  if (activoId===null) {
+    roles.push({id:nextRId++,nombre,desc,permisos,usuarios:0});
+    mostrarToast(`Rol ${nombre} creado`,'success');
+  } else {
+    const idx=roles.findIndex(r=>r.id===activoId);
+    if(idx!==-1) Object.assign(roles[idx],{nombre,desc,permisos});
+    mostrarToast(`Rol ${nombre} actualizado`,'success');
+  }
+  bootstrap.Modal.getInstance(document.getElementById('modalConfig')).hide();
+  renderRoles();
+}
+
+/* ─── Nuevo / Editar Estatus ─── */
+function prepNuevoEstatus() {
+  activoId=null; activoTipo='estatus';
+  document.getElementById('modalEstatusTitulo').innerHTML='<i class="fas fa-traffic-light me-2 text-warning"></i>Nuevo Estatus';
+  document.getElementById('eNombre').value='';
+}
+function prepEditarEstatus(id) {
+  activoId=id; activoTipo='estatus';
+  const e=estatuses.find(x=>x.id===id);
+  document.getElementById('modalEstatusTitulo').innerHTML='<i class="fas fa-edit me-2 text-warning"></i>Editar Estatus';
+  document.getElementById('eNombre').value=e.nombre;
+  document.getElementById('eModulo').value=e.modulo;
+  document.getElementById('eColor').value=e.color;
+}
+function guardarEstatus() {
+  const nombre=document.getElementById('eNombre').value.trim();
+  const modulo=document.getElementById('eModulo').value;
+  const color=document.getElementById('eColor').value;
+  if (!nombre) { mostrarToast('El nombre del estatus es requerido','warning'); return; }
+  if (activoId===null) {
+    estatuses.push({id:nextEId++,nombre,modulo,color,activo:true});
+    mostrarToast(`Estatus ${nombre} creado`,'success');
+  } else {
+    const idx=estatuses.findIndex(e=>e.id===activoId);
+    if(idx!==-1) Object.assign(estatuses[idx],{nombre,modulo,color});
+    mostrarToast(`Estatus ${nombre} actualizado`,'success');
+  }
+  bootstrap.Modal.getInstance(document.getElementById('modalEstatus')).hide();
+  renderEstatus();
+}
+
+/* ─── Nuevo / Editar Params ─── */
+function prepNuevoParam() {
+  activoId=null; activoTipo='param';
+  document.getElementById('modalParamTitulo').innerHTML='<i class="fas fa-sliders-h me-2" style="color:#8b5cf6;"></i>Nuevo Parámetro';
+  ['pClave','pValor','pDesc'].forEach(id=>document.getElementById(id).value='');
+}
+function prepEditarParam(id) {
+  activoId=id; activoTipo='param';
+  const p=params.find(x=>x.id===id);
+  document.getElementById('modalParamTitulo').innerHTML='<i class="fas fa-edit me-2" style="color:#8b5cf6;"></i>Editar Parámetro';
+  document.getElementById('pClave').value=p.clave;
+  document.getElementById('pValor').value=p.valor;
+  document.getElementById('pDesc').value=p.desc;
+}
+function guardarParam() {
+  const clave=document.getElementById('pClave').value.trim().toUpperCase();
+  const valor=document.getElementById('pValor').value.trim();
+  const desc=document.getElementById('pDesc').value.trim();
+  if (!clave||!valor) { mostrarToast('Clave y valor son requeridos','warning'); return; }
+  const fecha=new Date().toLocaleDateString('es-MX');
+  if (activoId===null) {
+    params.push({id:nextPId++,clave,valor,desc,fecha});
+    mostrarToast(`Parámetro ${clave} creado`,'success');
+  } else {
+    const idx=params.findIndex(p=>p.id===activoId);
+    if(idx!==-1) Object.assign(params[idx],{clave,valor,desc,fecha});
+    mostrarToast(`Parámetro ${clave} actualizado`,'success');
+  }
+  bootstrap.Modal.getInstance(document.getElementById('modalParam')).hide();
+  renderParams();
+}
+
+/* ─── Eliminar ─── */
+function prepDel(id, tipo, nombre) {
+  activoId=id; activoTipo=tipo;
+  document.getElementById('delNombre').textContent=nombre;
+}
+function confirmarDel() {
+  if (activoTipo==='rol')     { roles=roles.filter(r=>r.id!==activoId); renderRoles(); }
+  if (activoTipo==='estatus') { estatuses=estatuses.filter(e=>e.id!==activoId); renderEstatus(); }
+  if (activoTipo==='param')   { params=params.filter(p=>p.id!==activoId); renderParams(); }
+  bootstrap.Modal.getInstance(document.getElementById('modalDel')).hide();
+  mostrarToast('Registro eliminado','danger');
+}
+
+/* ─── Toast ─── */
+function mostrarToast(msg,tipo){
+  const icons={success:'fa-check-circle',warning:'fa-exclamation-triangle',danger:'fa-times-circle'};
+  const t=document.createElement('div');
+  t.className=`alert alert-${tipo} position-fixed shadow d-flex align-items-center gap-2`;
+  t.style.cssText='bottom:30px;right:30px;z-index:9999;min-width:300px;';
+  t.innerHTML=`<i class="fas ${icons[tipo]||'fa-info-circle'}"></i>${msg}`;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .4s';setTimeout(()=>t.remove(),400);},3000);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{ renderRoles(); renderEstatus(); renderParams(); });
+</script>
+{% endblock %}

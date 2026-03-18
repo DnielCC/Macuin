@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+  <!-- HEADER -->
+  <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h2 class="fw-bold" style="color:#111827;">Pedidos / Envíos</h2>
+      <p class="text-muted mb-0">Pedidos listos · Solo puedes actualizar estatus a <strong>Enviado</strong> o <strong>Entregado</strong></p>
+    </div>
+    <span class="badge rounded-pill fs-6 px-3 py-2" style="background:#ecfdf5;color:#10b981;font-weight:600;">
+      <i class="fas fa-truck me-2"></i>Módulo Logística
+    </span>
+  </div>
+
+  <!-- KPI MINI -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold" id="kpiTotal" style="font-size:1.5rem;color:#10b981;">6</div>
+        <small class="text-muted">Total Envíos</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold text-success" id="kpiEntregados" style="font-size:1.5rem;">2</div>
+        <small class="text-muted">Entregados</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold text-primary" id="kpiEnviados" style="font-size:1.5rem;">2</div>
+        <small class="text-muted">En Tránsito</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold text-warning" id="kpiListos" style="font-size:1.5rem;">2</div>
+        <small class="text-muted">Listos para Enviar</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA ENVÍOS -->
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+
+    <!-- Filtros -->
+    <div class="d-flex gap-3 mb-4 flex-wrap align-items-center">
+      <input class="form-control" style="max-width:250px;" id="searchEnvios"
+             placeholder="Buscar pedido o cliente..." oninput="filtrarEnvios()">
+      <select class="form-select w-auto" id="filtroEstado" onchange="filtrarEnvios()">
+        <option value="">Todos los estados</option>
+        <option>Listo para Enviar</option>
+        <option>Enviado</option>
+        <option>Entregado</option>
+      </select>
+      <small class="text-muted ms-auto" id="contadorEnvios">Mostrando 6 pedidos</small>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle" id="tablaEnvios">
+        <thead class="table-light">
+          <tr>
+            <th>ID Pedido</th>
+            <th>Cliente</th>
+            <th>Destino</th>
+            <th>Piezas</th>
+            <th>Estatus</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="bodyEnvios">
+          <!-- filas generadas dinámicamente por JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <small class="text-muted mt-2 d-block">
+      <i class="fas fa-info-circle me-1 text-success"></i>
+      Logística solo puede actualizar el estatus a <strong>Enviado</strong> o <strong>Entregado</strong>. No se pueden crear ni eliminar pedidos.
+    </small>
+
+  </div>
+
+</div>
+
+<!-- MODAL: ACTUALIZAR ESTATUS -->
+<div class="modal fade" id="modalActualizarEstatus" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-truck text-success me-2"></i>Actualizar Estatus de Envío</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-3">Pedido: <strong id="estatusPedidoId"></strong> — <span id="estatusPedidoCliente"></span></p>
+
+        <div class="alert alert-info d-flex gap-2 align-items-start" style="font-size:0.85rem;">
+          <i class="fas fa-info-circle mt-1"></i>
+          <span>Solo puedes cambiar el estatus a <strong>Enviado</strong> (paquete salió de MACUIN) o <strong>Entregado</strong> (paquete recibido por el cliente).</span>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nuevo Estatus</label>
+          <select class="form-select" id="nuevoEstatus">
+            <option value="">Seleccionar estatus…</option>
+            <option value="Enviado">Enviado — Paquete en camino</option>
+            <option value="Entregado">Entregado — Cliente recibió el paquete</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Notas (opcional)</label>
+          <textarea class="form-control" id="notasEstatus" rows="2" placeholder="Ej. Entregado a recepcionista, firma obtenida…"></textarea>
+        </div>
+
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success" onclick="guardarEstatus()">
+          <i class="fas fa-save me-1"></i>Guardar Estatus
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ─── Estado de datos en memoria ─── */
+let envios = [
+  {id:"ORD-2401", cliente:"Autopartes González",     destino:"CDMX",         piezas:8,  estado:"Entregado",        fecha:"31/01/2026"},
+  {id:"ORD-2402", cliente:"Taller Mecánico Express", destino:"Guadalajara",   piezas:3,  estado:"Enviado",          fecha:"31/01/2026"},
+  {id:"ORD-2403", cliente:"Distribuidora del Norte", destino:"Monterrey",     piezas:15, estado:"Enviado",          fecha:"01/02/2026"},
+  {id:"ORD-2405", cliente:"Servicio Rápido SA",      destino:"Puebla",        piezas:6,  estado:"Listo para Enviar",fecha:"03/02/2026"},
+  {id:"ORD-2406", cliente:"Grupo Automotriz MX",     destino:"Querétaro",     piezas:11, estado:"Entregado",        fecha:"05/02/2026"},
+  {id:"ORD-2407", cliente:"Refaccionaria Omega",     destino:"León",          piezas:4,  estado:"Listo para Enviar",fecha:"06/02/2026"}
+];
+
+let pedidoActivo = null; // id del pedido que se está editando
+
+/* ─── Render ─── */
+function badgeEstado(estado) {
+  if (estado === 'Entregado')
+    return `<span class="badge bg-success bg-opacity-10 text-success">Entregado</span>`;
+  if (estado === 'Enviado')
+    return `<span class="badge bg-primary bg-opacity-10 text-primary">Enviado</span>`;
+  return `<span class="badge bg-warning bg-opacity-10 text-warning">Listo para Enviar</span>`;
+}
+
+function accionesEstado(e) {
+  if (e.estado !== 'Entregado') {
+    return `<button class="btn btn-sm btn-outline-success" title="Actualizar estatus"
+              data-bs-toggle="modal" data-bs-target="#modalActualizarEstatus"
+              onclick="prepActualizarEstatus('${e.id}','${e.cliente}','${e.estado}')">
+              <i class="fas fa-edit me-1"></i>Estatus
+            </button>`;
+  }
+  return `<button class="btn btn-sm btn-outline-secondary" title="Ya entregado" disabled>
+            <i class="fas fa-check"></i>
+          </button>`;
+}
+
+function renderTabla() {
+  const q   = document.getElementById('searchEnvios').value.toLowerCase();
+  const est = document.getElementById('filtroEstado').value.toLowerCase();
+
+  const filtrados = envios.filter(e => {
+    const txt = `${e.id} ${e.cliente} ${e.destino} ${e.estado}`.toLowerCase();
+    return (q === '' || txt.includes(q)) && (est === '' || e.estado.toLowerCase() === est || (est !== '' && e.estado.toLowerCase().includes(est)));
+  });
+
+  document.getElementById('bodyEnvios').innerHTML = filtrados.map(e => `
+    <tr class="fila-envio" data-id="${e.id}">
+      <td class="fw-bold">${e.id}</td>
+      <td>${e.cliente}</td>
+      <td><i class="fas fa-map-marker-alt text-muted me-1" style="font-size:0.8rem;"></i>${e.destino}</td>
+      <td class="text-center">${e.piezas}</td>
+      <td>${badgeEstado(e.estado)}</td>
+      <td class="text-muted">${e.fecha}</td>
+      <td>${accionesEstado(e)}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('contadorEnvios').textContent = `Mostrando ${filtrados.length} pedidos`;
+  actualizarKPIs();
+}
+
+function actualizarKPIs() {
+  document.getElementById('kpiTotal').textContent     = envios.length;
+  document.getElementById('kpiEntregados').textContent = envios.filter(e=>e.estado==='Entregado').length;
+  document.getElementById('kpiEnviados').textContent   = envios.filter(e=>e.estado==='Enviado').length;
+  document.getElementById('kpiListos').textContent     = envios.filter(e=>e.estado==='Listo para Enviar').length;
+}
+
+function filtrarEnvios() { renderTabla(); }
+
+/* ─── Modal Estatus ─── */
+function prepActualizarEstatus(id, cliente, estadoActual) {
+  pedidoActivo = id;
+  document.getElementById('estatusPedidoId').textContent     = id;
+  document.getElementById('estatusPedidoCliente').textContent = cliente;
+  document.getElementById('notasEstatus').value = '';
+  // Pre-seleccionar siguiente estatus lógico
+  const sel = document.getElementById('nuevoEstatus');
+  if (estadoActual === 'Listo para Enviar') sel.value = 'Enviado';
+  else if (estadoActual === 'Enviado') sel.value = 'Entregado';
+  else sel.value = '';
+}
+
+function guardarEstatus() {
+  const nuevoEstatus = document.getElementById('nuevoEstatus').value;
+  if (!nuevoEstatus) { mostrarToast('Selecciona un estatus', 'warning'); return; }
+
+  // Actualizar el arreglo en memoria
+  const idx = envios.findIndex(e => e.id === pedidoActivo);
+  if (idx !== -1) {
+    envios[idx].estado = nuevoEstatus;
+  }
+
+  bootstrap.Modal.getInstance(document.getElementById('modalActualizarEstatus')).hide();
+  renderTabla();
+  mostrarToast(`Estatus de ${pedidoActivo} actualizado a: ${nuevoEstatus}`, 'success');
+  pedidoActivo = null;
+}
+
+/* ─── Toast ─── */
+function mostrarToast(msg, tipo) {
+  const icons = {success:'fa-check-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle',danger:'fa-times-circle'};
+  const t = document.createElement('div');
+  t.className = `alert alert-${tipo} position-fixed shadow d-flex align-items-center gap-2`;
+  t.style.cssText = 'bottom:30px;right:30px;z-index:9999;min-width:300px;animation:slideIn .3s ease;';
+  t.innerHTML = `<i class="fas ${icons[tipo]||'fa-info-circle'}"></i>${msg}`;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(()=>t.remove(),400); }, 3000);
+}
+
+// Inicializar
+document.addEventListener('DOMContentLoaded', renderTabla);
+</script>
+{% endblock %}

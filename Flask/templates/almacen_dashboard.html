@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="container-fluid py-4">
+
+  <!-- HEADER -->
+  <div class="mb-4 d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="fw-bold" style="color:#111827;">Panel de Almacén</h2>
+      <p class="text-muted mb-0">Bienvenido, {{ session.get('user_name') }} &mdash; <span style="color:#f59e0b;">Módulo Almacén</span></p>
+    </div>
+    <select class="form-select w-auto" id="filtro-tiempo">
+      <option>Hoy</option>
+      <option>Semana</option>
+      <option selected>Mes</option>
+      <option>Año</option>
+    </select>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="row g-4 mb-4">
+
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="rounded-3 p-3 d-flex align-items-center justify-content-center"
+               style="background:#f59e0b;width:45px;height:45px;">
+            <i class="fas fa-cubes text-white"></i>
+          </div>
+          <span class="badge rounded-pill text-success" style="background:#d1fae5;">+3.2%</span>
+        </div>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">SKUs en Stock</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">1,248</h3>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="rounded-3 p-3 d-flex align-items-center justify-content-center"
+               style="background:#10b981;width:45px;height:45px;">
+            <i class="fas fa-map-signs text-white"></i>
+          </div>
+          <span class="badge rounded-pill text-success" style="background:#d1fae5;">Activas</span>
+        </div>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Ubicaciones Activas</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">84</h3>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="rounded-3 p-3 d-flex align-items-center justify-content-center"
+               style="background:#3b82f6;width:45px;height:45px;">
+            <i class="fas fa-dolly text-white"></i>
+          </div>
+          <span class="badge rounded-pill text-warning" style="background:#fef3c7;">Pendientes</span>
+        </div>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Pedidos por Surtir</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">23</h3>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="rounded-3 p-3 d-flex align-items-center justify-content-center"
+               style="background:#ef4444;width:45px;height:45px;">
+            <i class="fas fa-exclamation-triangle text-white"></i>
+          </div>
+          <span class="badge rounded-pill text-danger" style="background:#fee2e2;">Este mes</span>
+        </div>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Mermas Registradas</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">7</h3>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CHARTS -->
+  <div class="row g-4 mb-4">
+
+    <div class="col-md-7">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+        <h6 class="fw-bold mb-4">Movimientos de Inventario</h6>
+        <div style="position:relative;height:250px;">
+          <canvas id="inventarioChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-5">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+        <h6 class="fw-bold mb-4">Estado de Pedidos en Almacén</h6>
+        <div style="position:relative;height:250px;">
+          <canvas id="pedidosChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ACCESOS RÁPIDOS + ACTIVIDAD RECIENTE -->
+  <div class="row g-4">
+
+    <!-- Accesos rápidos -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+        <h6 class="fw-bold mb-4"><i class="fas fa-bolt text-warning me-2"></i>Accesos Rápidos</h6>
+
+        <a href="{{ url_for('almacen_inventario') }}"
+           class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
+           style="background:#fef3c7;color:#d97706;transition:background 0.2s;"
+           onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'">
+          <i class="fas fa-cubes fa-lg"></i>
+          <div>
+            <div class="fw-bold" style="font-size:0.9rem;">Gestionar Inventario</div>
+            <small class="text-muted">Ajustar stock y registrar mermas</small>
+          </div>
+        </a>
+
+        <a href="{{ url_for('almacen_ubicaciones') }}"
+           class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
+           style="background:#ecfdf5;color:#10b981;transition:background 0.2s;"
+           onmouseover="this.style.background='#d1fae5'" onmouseout="this.style.background='#ecfdf5'">
+          <i class="fas fa-map-signs fa-lg"></i>
+          <div>
+            <div class="fw-bold" style="font-size:0.9rem;">Ubicaciones</div>
+            <small class="text-muted">Administrar pasillos y estantes</small>
+          </div>
+        </a>
+
+        <a href="{{ url_for('almacen_pedidos') }}"
+           class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
+           style="background:#eff6ff;color:#3b82f6;transition:background 0.2s;"
+           onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+          <i class="fas fa-dolly fa-lg"></i>
+          <div>
+            <div class="fw-bold" style="font-size:0.9rem;">Pedidos a Surtir</div>
+            <small class="text-muted">Ver y actualizar estatus de surtido</small>
+          </div>
+        </a>
+
+        <a href="{{ url_for('almacen_autopartes') }}"
+           class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
+           style="background:#f5f3ff;color:#8b5cf6;transition:background 0.2s;"
+           onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">
+          <i class="fas fa-cogs fa-lg"></i>
+          <div>
+            <div class="fw-bold" style="font-size:0.9rem;">Autopartes</div>
+            <small class="text-muted">Consultar especificaciones de piezas</small>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- Actividad reciente -->
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h6 class="fw-bold mb-0"><i class="fas fa-history text-warning me-2"></i>Actividad Reciente</h6>
+          <a href="{{ url_for('almacen_inventario') }}" class="btn btn-sm btn-outline-warning">Ver inventario</a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-borderless align-middle">
+            <thead class="text-muted" style="font-size:0.82rem;">
+              <tr>
+                <th>SKU</th>
+                <th>Descripción</th>
+                <th>Movimiento</th>
+                <th>Cantidad</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">FRE-001</code></td>
+                <td>Disco de Freno Delantero</td>
+                <td><span class="badge bg-success bg-opacity-10 text-success">Entrada</span></td>
+                <td class="fw-bold">+50</td>
+                <td class="text-muted">14/03/2026</td>
+              </tr>
+              <tr>
+                <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">SUS-014</code></td>
+                <td>Amortiguador Trasero</td>
+                <td><span class="badge bg-warning bg-opacity-10 text-warning">Salida</span></td>
+                <td class="fw-bold text-warning">-12</td>
+                <td class="text-muted">14/03/2026</td>
+              </tr>
+              <tr>
+                <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">MOT-088</code></td>
+                <td>Filtro de Aceite</td>
+                <td><span class="badge bg-success bg-opacity-10 text-success">Entrada</span></td>
+                <td class="fw-bold">+200</td>
+                <td class="text-muted">13/03/2026</td>
+              </tr>
+              <tr>
+                <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">FRE-009</code></td>
+                <td>Pastilla de Freno</td>
+                <td><span class="badge bg-danger bg-opacity-10 text-danger">Merma</span></td>
+                <td class="fw-bold text-danger">-3</td>
+                <td class="text-muted">12/03/2026</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// Inventario chart
+new Chart(document.getElementById('inventarioChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Ene','Feb','Mar','Abr','May','Jun'],
+    datasets: [
+      {
+        label: 'Entradas',
+        data: [320, 410, 375, 490, 460, 520],
+        backgroundColor: 'rgba(16,185,129,0.75)',
+        borderRadius: 6
+      },
+      {
+        label: 'Salidas',
+        data: [280, 360, 310, 420, 400, 470],
+        backgroundColor: 'rgba(245,158,11,0.75)',
+        borderRadius: 6
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { padding: 15, font: { size: 12 } } } },
+    scales: {
+      y: { grid: { color: 'rgba(0,0,0,0.04)' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// Pedidos chart
+new Chart(document.getElementById('pedidosChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Pendiente','Surtiendo','Empacado','Enviado'],
+    datasets: [{
+      data: [23, 14, 9, 112],
+      backgroundColor: ['#3b82f6','#f59e0b','#10b981','#9ca3af'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } }
+    },
+    cutout: '65%'
+  }
+});
+</script>
+
+{% endblock %}

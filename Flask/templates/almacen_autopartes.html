@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+  <!-- HEADER -->
+  <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h2 class="fw-bold" style="color:#111827;">Autopartes <span style="font-size:1rem;font-weight:400;color:#6b7280;">(Solo lectura)</span></h2>
+      <p class="text-muted mb-0">Consulta las especificaciones técnicas de cada pieza para no confundirte al surtir pedidos</p>
+    </div>
+    <span class="badge rounded-pill d-flex align-items-center gap-2 px-3 py-2"
+          style="background:#f3f4f6;color:#6b7280;font-size:0.82rem;">
+      <i class="fas fa-lock"></i> Solo lectura — Almacén no puede modificar precios ni datos
+    </span>
+  </div>
+
+  <!-- STATS -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="d-flex justify-content-between">
+          <div>
+            <small class="text-muted">Total Piezas</small>
+            <h3 class="fw-bold" id="kpiTotal">8</h3>
+          </div>
+          <div class="p-3 rounded-3 d-flex align-items-center" style="background:#f5f3ff;">
+            <i class="fas fa-cogs" style="color:#8b5cf6;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="d-flex justify-content-between">
+          <div>
+            <small class="text-muted">Categorías</small>
+            <h3 class="fw-bold" id="kpiCategorias">4</h3>
+          </div>
+          <div class="p-3 rounded-3 d-flex align-items-center" style="background:#ecfdf5;">
+            <i class="fas fa-layer-group" style="color:#10b981;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="d-flex justify-content-between">
+          <div>
+            <small class="text-muted">Mostrando</small>
+            <h3 class="fw-bold" id="kpiMostrando">8</h3>
+          </div>
+          <div class="p-3 rounded-3 d-flex align-items-center" style="background:#fef3c7;">
+            <i class="fas fa-search" style="color:#d97706;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA AUTOPARTES -->
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+
+    <div class="d-flex justify-content-between mb-3 flex-wrap gap-2 align-items-center">
+      <div class="d-flex gap-2 flex-wrap">
+        <input class="form-control" style="max-width:280px;" id="searchParts"
+               placeholder="Buscar SKU o descripción..." oninput="renderTabla()">
+        <select class="form-select w-auto" id="filtroCategoria" onchange="renderTabla()">
+          <option value="">Todas las categorías</option>
+          <option>Frenos</option>
+          <option>Suspensión</option>
+          <option>Motor</option>
+          <option>Electricidad</option>
+          <option>Lubricantes</option>
+        </select>
+      </div>
+      <small class="text-muted" id="contadorParts">Mostrando 8 piezas</small>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle table-hover" id="tablaParts">
+        <thead class="table-light">
+          <tr>
+            <th>SKU (código_pieza)</th>
+            <th>Descripción</th>
+            <th>Categoría</th>
+            <th>Peso</th>
+            <th>Compatibilidad</th>
+            <th>Notas Técnicas</th>
+          </tr>
+        </thead>
+        <tbody id="bodyParts">
+          <!-- generado por JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <small class="text-muted mt-2 d-block">
+      <i class="fas fa-eye me-1 text-purple"></i>
+      Vista de solo lectura. Los precios no se muestran aquí — consulta con el equipo de Ventas si los necesitas.
+    </small>
+
+  </div>
+
+</div>
+
+<!-- MODAL: VER DETALLE -->
+<div class="modal fade" id="modalDetalle" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-cog text-purple me-2" style="color:#8b5cf6;"></i>Detalle de Pieza</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <table class="table table-borderless" style="font-size:0.9rem;">
+              <tr><td class="text-muted fw-semibold" style="width:40%;">SKU</td><td><strong id="dSKU"></strong></td></tr>
+              <tr><td class="text-muted fw-semibold">Descripción</td><td id="dDesc"></td></tr>
+              <tr><td class="text-muted fw-semibold">Categoría</td><td id="dCat"></td></tr>
+              <tr><td class="text-muted fw-semibold">Peso</td><td id="dPeso"></td></tr>
+              <tr><td class="text-muted fw-semibold">Compatibilidad</td><td id="dCompat"></td></tr>
+            </table>
+          </div>
+          <div class="col-md-6">
+            <div class="rounded-4 p-4 h-100 d-flex flex-column justify-content-center align-items-center"
+                 style="background:#f8fafc;">
+              <i class="fas fa-cogs fa-4x mb-3" style="color:#8b5cf6;opacity:0.4;"></i>
+              <p class="text-muted text-center mb-0" style="font-size:0.85rem;" id="dNotas"></p>
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-warning d-flex gap-2 align-items-start mt-4" style="font-size:0.83rem;">
+          <i class="fas fa-lock mt-1"></i>
+          <span>El precio de esta pieza no se muestra en Almacén. Si necesitas esa información, contacta al equipo de <strong>Ventas</strong>.</span>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ─── Catálogo de piezas (solo lectura — sin precios) ─── */
+const autopartes = [
+  {sku:"FRE-001", descripcion:"Disco de Freno Delantero",   categoria:"Frenos",       peso:"3.8 kg", compat:"Nissan Sentra, Toyota Corolla, VW Jetta",     notas:"No exponer a humedad extrema. Revisar espesor mínimo de 22mm."},
+  {sku:"FRE-009", descripcion:"Pastilla de Freno (juego)",  categoria:"Frenos",       peso:"0.9 kg", compat:"Universal — verificar catálogo de medidas",    notas:"Incluye 4 piezas. Cambiar en pares (eje completo)."},
+  {sku:"SUS-014", descripcion:"Amortiguador Trasero",       categoria:"Suspensión",   peso:"4.2 kg", compat:"Chevrolet Aveo, Spark, Sail",                  notas:"Almacenamiento vertical obligatorio. No colocar en altura."},
+  {sku:"MOT-088", descripcion:"Filtro de Aceite",           categoria:"Motor",        peso:"0.3 kg", compat:"Motores 1.6L, 1.8L, 2.0L gasolina",           notas:"Rosca M20x1.5. Compatible con aceite mineral y sintético."},
+  {sku:"MOT-032", descripcion:"Bujía de Encendido",         categoria:"Motor",        peso:"0.08 kg",compat:"Motores DOHC 4 cilindros",                     notas:"Iridio. Espacio entre electrodos: 1.1mm. No usar en diesél."},
+  {sku:"ELE-005", descripcion:"Batería 12V 60Ah",           categoria:"Electricidad", peso:"15.2 kg",compat:"Vehículos sedán y compactos — verificar CCA",  notas:"Frágil. No invertir polaridad. Almacenar en área ventilada."},
+  {sku:"LUB-021", descripcion:"Aceite Motor 5W-30 (1L)",    categoria:"Lubricantes",  peso:"0.87 kg",compat:"Motores nafteros con norma API SN o superior",  notas:"Sintético. Rotación FIFO obligatoria. Vence: ver etiqueta."},
+  {sku:"SUS-007", descripcion:"Rótula de Dirección",        categoria:"Suspensión",   peso:"0.6 kg", compat:"Ford Fiesta, Focus, Ecosport 2010–2020",        notas:"Aplicar grasa al montar. No superar 120 Nm de torque."},
+];
+
+/* ─── Render ─── */
+function badgeCategoria(cat) {
+  const map = {
+    'Frenos':       { bg:'#fee2e2', color:'#dc2626' },
+    'Suspensión':   { bg:'#dbeafe', color:'#2563eb' },
+    'Motor':        { bg:'#d1fae5', color:'#059669' },
+    'Electricidad': { bg:'#fef3c7', color:'#d97706' },
+    'Lubricantes':  { bg:'#ede9fe', color:'#7c3aed' },
+  };
+  const s = map[cat] || { bg:'#f3f4f6', color:'#6b7280' };
+  return `<span class="badge" style="background:${s.bg};color:${s.color};">${cat}</span>`;
+}
+
+function renderTabla() {
+  const q   = document.getElementById('searchParts').value.toLowerCase();
+  const cat = document.getElementById('filtroCategoria').value;
+
+  const filtrado = autopartes.filter(p => {
+    const txt    = `${p.sku} ${p.descripcion} ${p.compat}`.toLowerCase();
+    const matchQ = q   === '' || txt.includes(q);
+    const matchC = cat === '' || p.categoria === cat;
+    return matchQ && matchC;
+  });
+
+  document.getElementById('bodyParts').innerHTML = filtrado.map(p => `
+    <tr style="cursor:pointer;" onclick="verDetalle('${p.sku}')"
+        data-bs-toggle="modal" data-bs-target="#modalDetalle">
+      <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">${p.sku}</code></td>
+      <td class="fw-semibold">${p.descripcion}</td>
+      <td>${badgeCategoria(p.categoria)}</td>
+      <td class="text-muted">${p.peso}</td>
+      <td class="text-muted" style="font-size:0.85rem;max-width:220px;">${p.compat}</td>
+      <td class="text-muted" style="font-size:0.82rem;max-width:200px;">${p.notas.substring(0,60)}…</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('contadorParts').textContent = `Mostrando ${filtrado.length} piezas`;
+  document.getElementById('kpiMostrando').textContent = filtrado.length;
+
+  const cats = new Set(autopartes.map(p => p.categoria));
+  document.getElementById('kpiCategorias').textContent = cats.size;
+  document.getElementById('kpiTotal').textContent = autopartes.length;
+}
+
+/* ─── Ver detalle ─── */
+function verDetalle(sku) {
+  const p = autopartes.find(x => x.sku === sku);
+  if (!p) return;
+  document.getElementById('dSKU').textContent    = p.sku;
+  document.getElementById('dDesc').textContent   = p.descripcion;
+  document.getElementById('dCat').textContent    = p.categoria;
+  document.getElementById('dPeso').textContent   = p.peso;
+  document.getElementById('dCompat').textContent = p.compat;
+  document.getElementById('dNotas').textContent  = p.notas;
+}
+
+document.addEventListener('DOMContentLoaded', renderTabla);
+</script>
+{% endblock %}

@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+  <!-- HEADER -->
+  <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h2 class="fw-bold" style="color:#111827;">Pedidos / Ventas</h2>
+      <p class="text-muted mb-0">Historial de pedidos · Crear y modificar antes del envío</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoPedido">
+      <i class="fas fa-plus me-2"></i>Nuevo Pedido
+    </button>
+  </div>
+
+  <!-- KPI MINI -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold" style="font-size:1.5rem;color:#3b82f6;">182</div>
+        <small class="text-muted">Total Pedidos</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold text-success" style="font-size:1.5rem;">124</div>
+        <small class="text-muted">Enviados</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold text-warning" style="font-size:1.5rem;">47</div>
+        <small class="text-muted">En Proceso</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold text-danger" style="font-size:1.5rem;">11</div>
+        <small class="text-muted">Cancelados</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA PEDIDOS -->
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+
+    <!-- Filtros -->
+    <div class="d-flex gap-3 mb-4 flex-wrap">
+      <input class="form-control" style="max-width:250px;" id="searchPedidos"
+             placeholder="Buscar pedido o cliente..." oninput="filtrarPedidos()">
+      <select class="form-select w-auto" id="filtroEstado" onchange="filtrarPedidos()">
+        <option value="">Todos los estados</option>
+        <option>Procesando</option>
+        <option>Enviado</option>
+        <option>Recibido</option>
+        <option>Cancelado</option>
+      </select>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle" id="tablaPedidos">
+        <thead class="table-light">
+          <tr>
+            <th>ID Pedido</th>
+            <th>Cliente</th>
+            <th>Piezas</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set pedidos = [
+            {id:"ORD-2401", cliente:"Autopartes González", piezas:8, total:"$12,450", estado:"Enviado", fecha:"31/01/2026"},
+            {id:"ORD-2402", cliente:"Taller Mecánico Express", piezas:3, total:"$8,900", estado:"Procesando", fecha:"31/01/2026"},
+            {id:"ORD-2403", cliente:"Distribuidora del Norte", piezas:15, total:"$24,500", estado:"Recibido", fecha:"01/02/2026"},
+            {id:"ORD-2404", cliente:"Refaccionaria Omega", piezas:2, total:"$5,250", estado:"Cancelado", fecha:"02/02/2026"},
+            {id:"ORD-2405", cliente:"Servicio Rápido SA", piezas:6, total:"$9,100", estado:"Procesando", fecha:"03/02/2026"},
+            {id:"ORD-2406", cliente:"Grupo Automotriz MX", piezas:11, total:"$18,700", estado:"Enviado", fecha:"05/02/2026"}
+          ] %}
+          {% for p in pedidos %}
+          <tr class="fila-pedido">
+            <td class="fw-bold">{{ p.id }}</td>
+            <td>{{ p.cliente }}</td>
+            <td class="text-center">{{ p.piezas }}</td>
+            <td class="fw-bold" style="color:#3b82f6;">{{ p.total }}</td>
+            <td>
+              {% if p.estado == 'Enviado' %}
+              <span class="badge bg-success bg-opacity-10 text-success">Enviado</span>
+              {% elif p.estado == 'Procesando' %}
+              <span class="badge bg-primary bg-opacity-10 text-primary">Procesando</span>
+              {% elif p.estado == 'Recibido' %}
+              <span class="badge bg-warning bg-opacity-10 text-warning">Recibido</span>
+              {% else %}
+              <span class="badge bg-danger bg-opacity-10 text-danger">Cancelado</span>
+              {% endif %}
+            </td>
+            <td class="text-muted">{{ p.fecha }}</td>
+            <td>
+              {% if p.estado != 'Enviado' and p.estado != 'Cancelado' %}
+              <!-- Solo puede editar si no ha sido enviado ni cancelado -->
+              <button class="btn btn-sm btn-outline-primary me-1" title="Modificar pedido"
+                      data-bs-toggle="modal" data-bs-target="#modalEditarPedido"
+                      onclick="prepEditarPedido('{{ p.id }}','{{ p.cliente }}')">
+                <i class="fas fa-edit"></i>
+              </button>
+              {% else %}
+              <button class="btn btn-sm btn-outline-secondary me-1" title="Ver detalle">
+                <i class="fas fa-eye"></i>
+              </button>
+              {% endif %}
+              {# NUNCA se muestra botón de borrar — auditoría fiscal #}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <small class="text-muted mt-2 d-block">
+      <i class="fas fa-lock me-1 text-warning"></i>
+      Los pedidos no pueden eliminarse por política de auditoría fiscal. Solo se permite cancelar o modificar dirección antes del envío.
+    </small>
+
+  </div>
+
+</div>
+
+<!-- MODAL: NUEVO PEDIDO -->
+<div class="modal fade" id="modalNuevoPedido" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle text-primary me-2"></i>Nuevo Pedido Manual</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Cliente</label>
+            <select class="form-select">
+              <option value="">Seleccionar cliente…</option>
+              <option>Autopartes González</option>
+              <option>Taller Mecánico Express</option>
+              <option>Distribuidora del Norte</option>
+              <option>Servicio Rápido SA</option>
+              <option>Grupo Automotriz MX</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Dirección de Entrega</label>
+            <input type="text" class="form-control" placeholder="Calle, Ciudad, CP">
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Piezas del Pedido</label>
+            <div class="border rounded-3 p-3" style="background:#f8f9fe;">
+              <div class="row g-2 mb-2 fila-pieza">
+                <div class="col-md-5">
+                  <input type="text" class="form-control" placeholder="Código de pieza">
+                </div>
+                <div class="col-md-4">
+                  <input type="text" class="form-control" placeholder="Descripción">
+                </div>
+                <div class="col-md-3">
+                  <input type="number" class="form-control" placeholder="Cant." min="1">
+                </div>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="agregarFilaPieza()">
+                <i class="fas fa-plus me-1"></i>Agregar pieza
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Notas adicionales</label>
+            <textarea class="form-control" rows="2" placeholder="Instrucciones especiales…"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Método de pago</label>
+            <select class="form-select">
+              <option>Transferencia</option>
+              <option>Crédito 30 días</option>
+              <option>Pago contra entrega</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="guardarNuevoPedido()">
+          <i class="fas fa-save me-1"></i>Crear Pedido
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDITAR PEDIDO (cancelar / cambiar dirección) -->
+<div class="modal fade" id="modalEditarPedido" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-edit text-primary me-2"></i>Modificar Pedido</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-3">Pedido: <strong id="editPedidoId"></strong> — <span id="editPedidoCliente"></span></p>
+
+        <div class="alert alert-info d-flex gap-2 align-items-start" style="font-size:0.85rem;">
+          <i class="fas fa-info-circle mt-1"></i>
+          <span>Solo puedes modificar la <strong>dirección de entrega</strong> o <strong>cancelar</strong> el pedido antes de que sea enviado.</span>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nueva Dirección de Entrega</label>
+          <input type="text" class="form-control" id="editDireccion" placeholder="Calle, Ciudad, CP">
+        </div>
+
+        <hr>
+
+        <div>
+          <label class="form-label fw-semibold text-danger">Cancelar Pedido</label>
+          <div class="mb-2">
+            <select class="form-select" id="motivoCancelacion">
+              <option value="">Seleccionar motivo…</option>
+              <option>Cliente solicitó cancelación</option>
+              <option>Error en el pedido</option>
+              <option>Producto sin stock</option>
+              <option>Otro</option>
+            </select>
+          </div>
+          <button class="btn btn-outline-danger btn-sm" onclick="cancelarPedido()">
+            <i class="fas fa-ban me-1"></i>Cancelar Pedido
+          </button>
+        </div>
+
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary" onclick="guardarCambiosPedido()">
+          <i class="fas fa-save me-1"></i>Guardar Dirección
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filtrarPedidos() {
+  const q = document.getElementById('searchPedidos').value.toLowerCase();
+  const est = document.getElementById('filtroEstado').value.toLowerCase();
+  document.querySelectorAll('.fila-pedido').forEach(fila => {
+    const texto = fila.textContent.toLowerCase();
+    const matchQ = q === '' || texto.includes(q);
+    const matchE = est === '' || texto.includes(est);
+    fila.style.display = matchQ && matchE ? '' : 'none';
+  });
+}
+
+function prepEditarPedido(id, cliente) {
+  document.getElementById('editPedidoId').textContent = id;
+  document.getElementById('editPedidoCliente').textContent = cliente;
+}
+
+function guardarCambiosPedido() {
+  const dir = document.getElementById('editDireccion').value;
+  if (!dir.trim()) { mostrarToast('Ingresa la nueva dirección', 'warning'); return; }
+  bootstrap.Modal.getInstance(document.getElementById('modalEditarPedido')).hide();
+  mostrarToast('Dirección de entrega actualizada', 'success');
+}
+
+function cancelarPedido() {
+  const motivo = document.getElementById('motivoCancelacion').value;
+  if (!motivo) { mostrarToast('Selecciona un motivo de cancelación', 'warning'); return; }
+  bootstrap.Modal.getInstance(document.getElementById('modalEditarPedido')).hide();
+  mostrarToast('Pedido cancelado (el registro se conserva en auditoría)', 'warning');
+}
+
+function agregarFilaPieza() {
+  const cont = document.querySelector('.border.rounded-3.p-3');
+  const fila = document.createElement('div');
+  fila.className = 'row g-2 mb-2 fila-pieza';
+  fila.innerHTML = `
+    <div class="col-md-5"><input type="text" class="form-control" placeholder="Código de pieza"></div>
+    <div class="col-md-4"><input type="text" class="form-control" placeholder="Descripción"></div>
+    <div class="col-md-3"><input type="number" class="form-control" placeholder="Cant." min="1"></div>`;
+  cont.insertBefore(fila, cont.lastElementChild);
+}
+
+function guardarNuevoPedido() {
+  bootstrap.Modal.getInstance(document.getElementById('modalNuevoPedido')).hide();
+  mostrarToast('Pedido creado exitosamente', 'success');
+}
+
+function mostrarToast(msg, tipo) {
+  const t = document.createElement('div');
+  t.className = `alert alert-${tipo} position-fixed shadow`;
+  t.style.cssText = 'bottom:30px;right:30px;z-index:9999;min-width:280px;';
+  t.innerHTML = `<i class="fas fa-info-circle me-2"></i>${msg}`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+</script>
+{% endblock %}

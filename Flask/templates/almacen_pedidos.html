@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+  <!-- HEADER -->
+  <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h2 class="fw-bold" style="color:#111827;">Pedidos a Surtir <span style="font-size:1rem;font-weight:400;color:#6b7280;">(Cola de Almacén)</span></h2>
+      <p class="text-muted mb-0">Lista de pedidos pendientes · Solo puedes actualizar el estatus a <strong>Surtiendo</strong> o <strong>Empacado</strong></p>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="d-flex justify-content-between">
+          <div>
+            <small class="text-muted">Pendientes</small>
+            <h3 class="fw-bold" id="kpiPendiente">0</h3>
+          </div>
+          <div class="p-3 rounded-3 d-flex align-items-center" style="background:#eff6ff;">
+            <i class="fas fa-clock" style="color:#3b82f6;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="d-flex justify-content-between">
+          <div>
+            <small class="text-muted">Surtiendo</small>
+            <h3 class="fw-bold" id="kpiSurtiendo">0</h3>
+          </div>
+          <div class="p-3 rounded-3 d-flex align-items-center" style="background:#fef3c7;">
+            <i class="fas fa-dolly" style="color:#d97706;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="d-flex justify-content-between">
+          <div>
+            <small class="text-muted">Empacados</small>
+            <h3 class="fw-bold" id="kpiEmpacado">0</h3>
+          </div>
+          <div class="p-3 rounded-3 d-flex align-items-center" style="background:#ecfdf5;">
+            <i class="fas fa-box" style="color:#10b981;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="d-flex justify-content-between">
+          <div>
+            <small class="text-muted">Enviados hoy</small>
+            <h3 class="fw-bold" id="kpiEnviado">0</h3>
+          </div>
+          <div class="p-3 rounded-3 d-flex align-items-center" style="background:#f5f3ff;">
+            <i class="fas fa-truck" style="color:#8b5cf6;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA PEDIDOS -->
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+
+    <div class="d-flex justify-content-between mb-3 flex-wrap gap-2 align-items-center">
+      <div class="d-flex gap-2 flex-wrap">
+        <input class="form-control" style="max-width:280px;" id="searchPed"
+               placeholder="Buscar pedido o SKU..." oninput="renderTabla()">
+        <select class="form-select w-auto" id="filtroEstatus" onchange="renderTabla()">
+          <option value="">Todos los estatus</option>
+          <option>Pendiente</option>
+          <option>Surtiendo</option>
+          <option>Empacado</option>
+          <option>Enviado</option>
+        </select>
+      </div>
+      <small class="text-muted" id="contadorPed">Mostrando 7 pedidos</small>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle table-hover" id="tablaPed">
+        <thead class="table-light">
+          <tr>
+            <th>ID Pedido</th>
+            <th>SKUs / Piezas</th>
+            <th>Ubicaciones</th>
+            <th>Fecha Pedido</th>
+            <th>Estatus Almacén</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="bodyPed">
+          <!-- generado por JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <small class="text-muted mt-2 d-block">
+      <i class="fas fa-lock me-1 text-warning"></i>
+      Almacén solo puede actualizar el estatus a <strong>Surtiendo</strong> o <strong>Empacado</strong>. El pase a <em>Enviado</em> lo gestiona Logística.
+    </small>
+
+  </div>
+
+</div>
+
+<!-- ═══════════════ MODAL: CAMBIAR ESTATUS ═══════════════ -->
+<div class="modal fade" id="modalEstatus" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-dolly text-warning me-2"></i>Actualizar Estatus</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-3">Pedido: <strong id="estatusPedidoId"></strong></p>
+        <div class="alert alert-info d-flex gap-2 align-items-start" style="font-size:0.85rem;">
+          <i class="fas fa-info-circle mt-1"></i>
+          <span>Solo puedes avanzar el estatus a <strong>Surtiendo</strong> (estás recolectando las piezas del pasillo) o <strong>Empacado</strong> (listo para que Logística lo retire).</span>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nuevo Estatus</label>
+          <select class="form-select" id="nuevoEstatus">
+            <option value="Surtiendo">Surtiendo</option>
+            <option value="Empacado">Empacado</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Notas (opcional)</label>
+          <textarea class="form-control" id="estatusNotas" rows="2" placeholder="Ej. Falta pieza FRE-009, se notificó a ventas…"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning" onclick="guardarEstatus()">
+          <i class="fas fa-check me-1"></i>Actualizar Estatus
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ─── Estado en memoria ─── */
+let pedidos = [
+  {id:"ORD-2408", skus:["FRE-001 x2","SUS-014 x1"], ubicaciones:["A-01","A-02"], fecha:"15/03/2026", estatus:"Pendiente"},
+  {id:"ORD-2409", skus:["MOT-088 x5","MOT-032 x10"], ubicaciones:["B-01","B-02"], fecha:"15/03/2026", estatus:"Surtiendo"},
+  {id:"ORD-2410", skus:["FRE-009 x4"], ubicaciones:["A-01"], fecha:"14/03/2026", estatus:"Empacado"},
+  {id:"ORD-2411", skus:["ELE-005 x2","LUB-021 x3"], ubicaciones:["C-01","B-01"], fecha:"14/03/2026", estatus:"Enviado"},
+  {id:"ORD-2412", skus:["SUS-007 x1","FRE-001 x3"], ubicaciones:["A-02","A-01"], fecha:"13/03/2026", estatus:"Pendiente"},
+  {id:"ORD-2413", skus:["MOT-088 x2"], ubicaciones:["B-01"], fecha:"13/03/2026", estatus:"Surtiendo"},
+  {id:"ORD-2414", skus:["LUB-021 x6","FRE-009 x2"], ubicaciones:["B-01","A-01"], fecha:"12/03/2026", estatus:"Enviado"},
+];
+
+let pedidoActivo = null;
+
+/* ─── Badges ─── */
+function badgeEstatus(estatus) {
+  const map = {
+    'Pendiente': 'bg-primary bg-opacity-10 text-primary',
+    'Surtiendo': 'bg-warning bg-opacity-10 text-warning',
+    'Empacado':  'bg-success bg-opacity-10 text-success',
+    'Enviado':   'bg-secondary bg-opacity-10 text-secondary',
+  };
+  const icons = {
+    'Pendiente': 'fa-clock',
+    'Surtiendo': 'fa-dolly',
+    'Empacado':  'fa-box',
+    'Enviado':   'fa-truck',
+  };
+  return `<span class="badge ${map[estatus]||'bg-secondary'}"><i class="fas ${icons[estatus]||'fa-circle'} me-1"></i>${estatus}</span>`;
+}
+
+/* ─── Render ─── */
+function renderTabla() {
+  const q   = document.getElementById('searchPed').value.toLowerCase();
+  const est = document.getElementById('filtroEstatus').value;
+
+  const filtrado = pedidos.filter(p => {
+    const txt    = `${p.id} ${p.skus.join(' ')}`.toLowerCase();
+    const matchQ = q   === '' || txt.includes(q);
+    const matchE = est === '' || p.estatus === est;
+    return matchQ && matchE;
+  });
+
+  document.getElementById('bodyPed').innerHTML = filtrado.map(p => {
+    const puedeCambiar = p.estatus === 'Pendiente' || p.estatus === 'Surtiendo';
+    return `
+    <tr>
+      <td class="fw-bold">${p.id}</td>
+      <td>
+        ${p.skus.map(s => `<code style="background:#f1f5f9;padding:1px 6px;border-radius:4px;font-size:0.8rem;display:inline-block;margin:1px;">${s}</code>`).join('')}
+      </td>
+      <td>
+        ${p.ubicaciones.map(u => `<span class="badge" style="background:#e0e7ff;color:#4338ca;font-size:0.78rem;margin:1px;">${u}</span>`).join('')}
+      </td>
+      <td class="text-muted">${p.fecha}</td>
+      <td>${badgeEstatus(p.estatus)}</td>
+      <td>
+        ${puedeCambiar
+          ? `<button class="btn btn-sm btn-outline-warning" title="Cambiar estatus"
+                     data-bs-toggle="modal" data-bs-target="#modalEstatus"
+                     onclick="prepEstatus('${p.id}','${p.estatus}')">
+               <i class="fas fa-dolly me-1"></i>Actualizar
+             </button>`
+          : `<button class="btn btn-sm btn-outline-secondary" disabled title="Ya no se puede modificar">
+               <i class="fas fa-lock"></i>
+             </button>`
+        }
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('contadorPed').textContent = `Mostrando ${filtrado.length} pedidos`;
+  actualizarKPIs();
+}
+
+function actualizarKPIs() {
+  const cuenta = (e) => pedidos.filter(p => p.estatus === e).length;
+  document.getElementById('kpiPendiente').textContent = cuenta('Pendiente');
+  document.getElementById('kpiSurtiendo').textContent = cuenta('Surtiendo');
+  document.getElementById('kpiEmpacado').textContent  = cuenta('Empacado');
+  document.getElementById('kpiEnviado').textContent   = cuenta('Enviado');
+}
+
+/* ─── Cambiar estatus ─── */
+function prepEstatus(id, estatusActual) {
+  pedidoActivo = id;
+  document.getElementById('estatusPedidoId').textContent = id;
+  // Si ya está surtiendo, solo puede pasar a Empacado
+  const sel = document.getElementById('nuevoEstatus');
+  if (estatusActual === 'Surtiendo') {
+    [...sel.options].forEach(o => { o.disabled = o.value === 'Surtiendo'; });
+    sel.value = 'Empacado';
+  } else {
+    [...sel.options].forEach(o => { o.disabled = false; });
+    sel.value = 'Surtiendo';
+  }
+  document.getElementById('estatusNotas').value = '';
+}
+
+function guardarEstatus() {
+  const nuevoEstatus = document.getElementById('nuevoEstatus').value;
+  const idx = pedidos.findIndex(p => p.id === pedidoActivo);
+  if (idx !== -1) pedidos[idx].estatus = nuevoEstatus;
+
+  bootstrap.Modal.getInstance(document.getElementById('modalEstatus')).hide();
+  renderTabla();
+  mostrarToast(`Pedido ${pedidoActivo} actualizado a "${nuevoEstatus}"`, 'success');
+  pedidoActivo = null;
+}
+
+/* ─── Toast ─── */
+function mostrarToast(msg, tipo) {
+  const icons = {success:'fa-check-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle',danger:'fa-times-circle'};
+  const t = document.createElement('div');
+  t.className = `alert alert-${tipo} position-fixed shadow d-flex align-items-center gap-2`;
+  t.style.cssText = 'bottom:30px;right:30px;z-index:9999;min-width:300px;transition:opacity .4s;';
+  t.innerHTML = `<i class="fas ${icons[tipo]||'fa-info-circle'}"></i>${msg}`;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3000);
+}
+
+document.addEventListener('DOMContentLoaded', renderTabla);
+</script>
+{% endblock %}
