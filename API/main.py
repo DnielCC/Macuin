@@ -1,6 +1,6 @@
 # IMPORTACIONES
 from fastapi import FastAPI
-from router import usuarios, autopartes, pedidos
+from router import usuarios, autopartes, pedidos, redireccion
 
 app = FastAPI(
     title="API MACUIN AUTOPARTES",
@@ -12,3 +12,4 @@ app = FastAPI(
 app.include_router(usuarios.routerusu)
 app.include_router(autopartes.routerauto)
 app.include_router(pedidos.routerped)
+app.include_router(redireccion.routerRedi)
