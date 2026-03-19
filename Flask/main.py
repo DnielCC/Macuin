@@ -13,6 +13,10 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     app.config['DEBUG'] = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
     
+    if not app.config['DEBUG']:
+        app.config['TEMPLATES_AUTO_RELOAD'] = False 
+        app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000 
+    
     CORS(app)
     
     register_routes(app)

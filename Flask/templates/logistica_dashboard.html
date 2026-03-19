@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="container-fluid py-4">
+
+  <!-- HEADER -->
+  <div class="mb-4 d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="fw-bold" style="color:#111827;">Panel de Logística</h2>
+      <p class="text-muted mb-0">Bienvenida, {{ session.get('user_name') }} &mdash; <span style="color:#10b981;">Módulo Logística</span></p>
+    </div>
+    <select class="form-select w-auto" id="filtro-tiempo">
+      <option>Hoy</option>
+      <option>Semana</option>
+      <option selected>Mes</option>
+      <option>Año</option>
+    </select>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="row g-4 mb-4">
+
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="rounded-3 p-3 d-flex align-items-center justify-content-center"
+               style="background:#10b981;width:45px;height:45px;">
+            <i class="fas fa-truck text-white"></i>
+          </div>
+          <span class="badge rounded-pill text-success" style="background:#d1fae5;">+9.4%</span>
+        </div>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Envíos del Mes</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">158</h3>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="rounded-3 p-3 d-flex align-items-center justify-content-center"
+               style="background:#3b82f6;width:45px;height:45px;">
+            <i class="fas fa-check-circle text-white"></i>
+          </div>
+          <span class="badge rounded-pill text-success" style="background:#d1fae5;">+11.2%</span>
+        </div>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Entregados</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">134</h3>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="rounded-3 p-3 d-flex align-items-center justify-content-center"
+               style="background:#f59e0b;width:45px;height:45px;">
+            <i class="fas fa-shipping-fast text-white"></i>
+          </div>
+          <span class="badge rounded-pill text-warning" style="background:#fef3c7;">En tránsito</span>
+        </div>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">En Tránsito</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">18</h3>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="rounded-3 p-3 d-flex align-items-center justify-content-center"
+               style="background:#8b5cf6;width:45px;height:45px;">
+            <i class="fas fa-file-alt text-white"></i>
+          </div>
+          <span class="badge rounded-pill text-info" style="background:#e0e7ff;">6 nuevas</span>
+        </div>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Guías Generadas</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">158</h3>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CHARTS -->
+  <div class="row g-4 mb-4">
+
+    <div class="col-md-7">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+        <h6 class="fw-bold mb-4">Tendencia de Envíos</h6>
+        <div style="position:relative;height:250px;">
+          <canvas id="enviosChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-5">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+        <h6 class="fw-bold mb-4">Estatus de Paquetes</h6>
+        <div style="position:relative;height:250px;">
+          <canvas id="estatusChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ACCESOS RÁPIDOS + ENVÍOS RECIENTES -->
+  <div class="row g-4">
+
+    <!-- Accesos rápidos -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+        <h6 class="fw-bold mb-4"><i class="fas fa-bolt text-warning me-2"></i>Accesos Rápidos</h6>
+
+        <a href="{{ url_for('logistica_envios') }}"
+           class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
+           style="background:#ecfdf5;color:#10b981;transition:background 0.2s;"
+           onmouseover="this.style.background='#d1fae5'" onmouseout="this.style.background='#ecfdf5'">
+          <i class="fas fa-box-open fa-lg"></i>
+          <div>
+            <div class="fw-bold" style="font-size:0.9rem;">Ver Envíos</div>
+            <small class="text-muted">Actualizar estatus de pedidos</small>
+          </div>
+        </a>
+
+        <a href="{{ url_for('logistica_direcciones') }}"
+           class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
+           style="background:#eff6ff;color:#3b82f6;transition:background 0.2s;"
+           onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+          <i class="fas fa-map-marker-alt fa-lg"></i>
+          <div>
+            <div class="fw-bold" style="font-size:0.9rem;">Direcciones</div>
+            <small class="text-muted">Consultar destinos de entrega</small>
+          </div>
+        </a>
+
+        <a href="{{ url_for('logistica_guias') }}"
+           class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
+           style="background:#f5f3ff;color:#8b5cf6;transition:background 0.2s;"
+           onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">
+          <i class="fas fa-file-pdf fa-lg"></i>
+          <div>
+            <div class="fw-bold" style="font-size:0.9rem;">Documentos de Envío</div>
+            <small class="text-muted">Subir guías y etiquetas</small>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- Envíos recientes -->
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h6 class="fw-bold mb-0"><i class="fas fa-truck text-success me-2"></i>Envíos Recientes</h6>
+          <a href="{{ url_for('logistica_envios') }}" class="btn btn-sm btn-outline-success">Ver todos</a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-borderless align-middle">
+            <thead class="text-muted" style="font-size:0.82rem;">
+              <tr>
+                <th>ID Pedido</th>
+                <th>Cliente</th>
+                <th>Destino</th>
+                <th>Estatus</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="fw-bold">ORD-2401</td>
+                <td>Autopartes González</td>
+                <td class="text-muted">CDMX</td>
+                <td><span class="badge bg-success bg-opacity-10 text-success">Entregado</span></td>
+                <td class="text-muted">31/01/2026</td>
+              </tr>
+              <tr>
+                <td class="fw-bold">ORD-2402</td>
+                <td>Taller Mecánico Express</td>
+                <td class="text-muted">Guadalajara</td>
+                <td><span class="badge bg-warning bg-opacity-10 text-warning">Enviado</span></td>
+                <td class="text-muted">31/01/2026</td>
+              </tr>
+              <tr>
+                <td class="fw-bold">ORD-2403</td>
+                <td>Distribuidora del Norte</td>
+                <td class="text-muted">Monterrey</td>
+                <td><span class="badge bg-primary bg-opacity-10 text-primary">Enviado</span></td>
+                <td class="text-muted">01/02/2026</td>
+              </tr>
+              <tr>
+                <td class="fw-bold">ORD-2406</td>
+                <td>Grupo Automotriz MX</td>
+                <td class="text-muted">Puebla</td>
+                <td><span class="badge bg-success bg-opacity-10 text-success">Entregado</span></td>
+                <td class="text-muted">05/02/2026</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// Envíos chart
+new Chart(document.getElementById('enviosChart'), {
+  type: 'line',
+  data: {
+    labels: ['Ene','Feb','Mar','Abr','May','Jun'],
+    datasets: [{
+      label: 'Envíos',
+      data: [98, 112, 105, 130, 145, 158],
+      borderColor: '#10b981',
+      backgroundColor: 'rgba(16,185,129,0.1)',
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#10b981'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { grid: { color: 'rgba(0,0,0,0.04)' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// Estatus chart
+new Chart(document.getElementById('estatusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Entregados','Enviados','En Tránsito','Pendientes'],
+    datasets: [{
+      data: [134, 12, 18, 6],
+      backgroundColor: ['#10b981','#3b82f6','#f59e0b','#9ca3af'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } }
+    },
+    cutout: '65%'
+  }
+});
+</script>
+
+{% endblock %}

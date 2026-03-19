@@ -12,18 +12,35 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libzip-dev \
     nginx \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath zip
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath zip opcache
+
+# Enable and configure OPcache for maximum performance
+RUN docker-php-ext-enable opcache \
+    && echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.memory_consumption=256" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.interned_strings_buffer=16" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.max_accelerated_files=20000" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.revalidate_freq=0" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.validate_timestamps=0" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.save_comments=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.fast_shutdown=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Leverage Docker layer caching for Composer
+COPY composer.json composer.lock* ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader
+RUN composer dump-autoload --optimize
 
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache \
-    && chmod -R 755 /var/www/html/resources/views
+    && chmod -R 755 /var/www/html/bootstrap/cache || true \
+    && chmod -R 755 /var/www/html/storage || true
 
 # Create PHP-FPM pool directory and configuration
 RUN mkdir -p /etc/php/8.4/fpm/pool.d

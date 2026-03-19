@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+  <!-- HEADER -->
+  <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h2 class="fw-bold" style="color:#111827;">Catálogo Maestro</h2>
+      <p class="text-muted mb-0">Autopartes, marcas y categorías &mdash; <strong>CRUD completo</strong></p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalCategoria"
+        onclick="prepNuevaCat()">
+        <i class="fas fa-tag me-1"></i>Nueva Categoría
+      </button>
+      <button class="btn btn-primary" style="background:#10b981;border-color:#10b981;" data-bs-toggle="modal"
+        data-bs-target="#modalAutoparte" onclick="prepNueva()">
+        <i class="fas fa-plus me-1"></i>Nueva Autoparte
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI MINI -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold" id="kpiTotal" style="font-size:1.5rem;color:#10b981;">8</div>
+        <small class="text-muted">Total IDs</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold text-primary" id="kpiCategorias" style="font-size:1.5rem;">4</div>
+        <small class="text-muted">Categorías</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold text-warning" id="kpiMarcas" style="font-size:1.5rem;">5</div>
+        <small class="text-muted">Marcas</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold text-success" id="kpiActivos" style="font-size:1.5rem;">7</div>
+        <small class="text-muted">Activos</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV TABS -->
+  <ul class="nav nav-pills mb-4 gap-2" id="catTab">
+    <li class="nav-item">
+      <button class="nav-link active" id="tab-autopartes" onclick="mostrarTab('autopartes')">
+        <i class="fas fa-cogs me-2"></i>Autopartes
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="tab-categorias" onclick="mostrarTab('categorias')">
+        <i class="fas fa-tags me-2"></i>Categorías
+      </button>
+    </li>
+  </ul>
+
+  <!-- TABLA AUTOPARTES -->
+  <div id="panel-autopartes" class="card border-0 shadow-sm rounded-4 p-4">
+
+    <div class="d-flex gap-3 mb-4 flex-wrap align-items-center">
+      <input class="form-control" style="max-width:260px;" id="searchAutopartes"
+        placeholder="Buscar ID, nombre o marca..." oninput="filtrarAutopartes()">
+      <select class="form-select w-auto" id="filtroCategoria" onchange="filtrarAutopartes()">
+        <option value="">Todas las categorías</option>
+        <option>Frenos</option>
+        <option>Suspensión</option>
+        <option>Motor</option>
+        <option>Transmisión</option>
+      </select>
+      <small class="text-muted ms-auto" id="contadorAutopartes">Mostrando 8 autopartes</small>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Marca</th>
+            <th>Precio</th>
+            <th>Estatus</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="bodyAutopartes"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- TABLA CATEGORÍAS -->
+  <div id="panel-categorias" class="card border-0 shadow-sm rounded-4 p-4" style="display:none;">
+
+    <div class="d-flex gap-3 mb-4 flex-wrap align-items-center">
+      <input class="form-control" style="max-width:260px;" id="searchCategorias" placeholder="Buscar categoría..."
+        oninput="filtrarCategorias()">
+      <small class="text-muted ms-auto" id="contadorCategorias">Mostrando 4 categorías</small>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Autopartes</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="bodyCategorias"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODAL: AUTOPARTE CRUD -->
+<div class="modal fade" id="modalAutoparte" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="modalAutoparteTitulo">
+          <i class="fas fa-cogs me-2 text-success"></i>Nueva Autoparte
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label fw-semibold">ID <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="aID" placeholder="Ej. FRE-015">
+          </div>
+          <div class="col-6">
+            <label class="form-label fw-semibold">Marca <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="aMarca" placeholder="Ej. Brembo">
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="aNombre" placeholder="Ej. Disco de Freno Delantero">
+          </div>
+          <div class="col-6">
+            <label class="form-label fw-semibold">Categoría <span class="text-danger">*</span></label>
+            <select class="form-select" id="aCategoria">
+              <option value="">Seleccionar…</option>
+              <option>Frenos</option>
+              <option>Suspensión</option>
+              <option>Motor</option>
+              <option>Transmisión</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label fw-semibold">Precio (MXN)</label>
+            <input type="number" class="form-control" id="aPrecio" placeholder="0.00">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success" onclick="guardarautoparte()">
+          <i class="fas fa-save me-1"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CATEGORÍA CRUD -->
+<div class="modal fade" id="modalCategoria" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="modalCategoriaTitulo">
+          <i class="fas fa-tag me-2 text-primary"></i>Nueva Categoría
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="cNombre" placeholder="Ej. Eléctrico">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Descripción</label>
+          <textarea class="form-control" id="cDesc" rows="2" placeholder="Descripción breve"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="guardarCategoria()">
+          <i class="fas fa-save me-1"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ELIMINAR CONFIRMACIÓN -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-danger" style="font-size:1rem;">
+          <i class="fas fa-trash me-2"></i>Eliminar
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted">¿Deseas eliminar <strong id="eliminarNombre"></strong>? Esta acción no se puede deshacer.
+        </p>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger btn-sm" onclick="confirmarEliminar()">
+          <i class="fas fa-trash me-1"></i>Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  /* ─── Datos ─── */
+  let autopartes = [
+    { id: 1, id: "FRE-001", nombre: "Disco de Freno Delantero", categoria: "Frenos", marca: "Brembo", precio: 850, estatus: "Activo" },
+    { id: 2, id: "FRE-009", nombre: "Pastilla de Freno", categoria: "Frenos", marca: "TRW", precio: 320, estatus: "Activo" },
+    { id: 3, id: "SUS-014", nombre: "Amortiguador Trasero", categoria: "Suspensión", marca: "Monroe", precio: 1200, estatus: "Activo" },
+    { id: 4, id: "MOT-088", nombre: "Filtro de Aceite", categoria: "Motor", marca: "Bosch", precio: 95, estatus: "Activo" },
+    { id: 5, id: "MOT-023", nombre: "Bujías de Encendido x4", categoria: "Motor", marca: "NGK", precio: 480, estatus: "Activo" },
+    { id: 6, id: "TRA-007", nombre: "Banda de Distribución", categoria: "Transmisión", marca: "Gates", precio: 650, estatus: "Activo" },
+    { id: 7, id: "SUS-031", nombre: "Rótula de Dirección", categoria: "Suspensión", marca: "Moog", precio: 275, estatus: "Activo" },
+    { id: 8, id: "FRE-022", nombre: "Líquido de Frenos DOT4", categoria: "Frenos", marca: "Castrol", precio: 130, estatus: "Inactivo" }
+  ];
+  let categorias = [
+    { id: 1, nombre: "Frenos", desc: "Sistemas de frenado y componentes", count: 3 },
+    { id: 2, nombre: "Suspensión", desc: "Amortiguadores, rótulas y soportes", count: 2 },
+    { id: 3, nombre: "Motor", desc: "Filtros, bujías y componentes del motor", count: 2 },
+    { id: 4, nombre: "Transmisión", desc: "Bandas, embragues y elementos de transmisión", count: 1 }
+  ];
+  let nextAId = 9, nextCId = 5;
+  let activoId = null, activoTipo = null;
+
+  /* ─── Tabs ─── */
+  function mostrarTab(tab) {
+    document.getElementById('panel-autopartes').style.display = tab === 'autopartes' ? '' : 'none';
+    document.getElementById('panel-categorias').style.display = tab === 'categorias' ? '' : 'none';
+    document.getElementById('tab-autopartes').classList.toggle('active', tab === 'autopartes');
+    document.getElementById('tab-categorias').classList.toggle('active', tab === 'categorias');
+  }
+
+  /* ─── Render Autopartes ─── */
+  function renderAutopartes() {
+    const q = document.getElementById('searchAutopartes').value.toLowerCase();
+    const cat = document.getElementById('filtroCategoria').value;
+    const fil = autopartes.filter(a => {
+      const t = `${a.id} ${a.nombre} ${a.marca}`.toLowerCase();
+      return (q === '' || t.includes(q)) && (cat === '' || a.categoria === cat);
+    });
+    document.getElementById('bodyAutopartes').innerHTML = fil.map(a => `
+    <tr>
+      <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">${a.id}</code></td>
+      <td class="fw-bold">${a.nombre}</td>
+      <td>${a.categoria}</td>
+      <td>${a.marca}</td>
+      <td class="text-success fw-bold">$${a.precio.toLocaleString()}</td>
+      <td>${a.estatus === 'Activo' ? '<span class="badge bg-success bg-opacity-10 text-success">Activo</span>' : '<span class="badge bg-danger bg-opacity-10 text-danger">Inactivo</span>'}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#modalAutoparte"
+          onclick="prepEditar(${a.id},'autoparte')"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar"
+          onclick="prepEliminar(${a.id},'autoparte','${a.nombre}')"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+    document.getElementById('contadorAutopartes').textContent = `Mostrando ${fil.length} autopartes`;
+    actualizarKPIs();
+  }
+
+  /* ─── Render Categorias ─── */
+  function renderCategorias() {
+    const q = document.getElementById('searchCategorias').value.toLowerCase();
+    const fil = categorias.filter(c => `${c.nombre} ${c.desc}`.toLowerCase().includes(q));
+    document.getElementById('bodyCategorias').innerHTML = fil.map(c => `
+    <tr>
+      <td><span class="badge bg-secondary bg-opacity-10 text-secondary">CAT-${c.id}</span></td>
+      <td class="fw-bold">${c.nombre}</td>
+      <td class="text-muted">${c.desc}</td>
+      <td><span class="badge rounded-pill" style="background:#ede9fe;color:#6366f1;">${c.count} piezas</span></td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#modalCategoria"
+          onclick="prepEditar(${c.id},'categoria')"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar"
+          onclick="prepEliminar(${c.id},'categoria','${c.nombre}')"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+    document.getElementById('contadorCategorias').textContent = `Mostrando ${fil.length} categorías`;
+  }
+
+  function actualizarKPIs() {
+    document.getElementById('kpiTotal').textContent = autopartes.length;
+    document.getElementById('kpiCategorias').textContent = categorias.length;
+    const marcas = new Set(autopartes.map(a => a.marca));
+    document.getElementById('kpiMarcas').textContent = marcas.size;
+    document.getElementById('kpiActivos').textContent = autopartes.filter(a => a.estatus === 'Activo').length;
+  }
+
+  function filtrarAutopartes() { renderAutopartes(); }
+  function filtrarCategorias() { renderCategorias(); }
+
+  /* ─── Nuevo / Editar ─── */
+  function prepNueva() {
+    activoId = null; activoTipo = 'autoparte';
+    document.getElementById('modalAutoparteTitulo').innerHTML = '<i class="fas fa-cogs me-2 text-success"></i>Nueva Autoparte';
+    ['aID', 'aMarca', 'aNombre', 'aCategoria', 'aPrecio'].forEach(id => document.getElementById(id).value = '');
+  }
+  function prepNuevaCat() {
+    activoId = null; activoTipo = 'categoria';
+    document.getElementById('modalCategoriaTitulo').innerHTML = '<i class="fas fa-tag me-2 text-primary"></i>Nueva Categoría';
+    document.getElementById('cNombre').value = ''; document.getElementById('cDesc').value = '';
+  }
+  function prepEditar(id, tipo) {
+    activoId = id; activoTipo = tipo;
+    if (tipo === 'autoparte') {
+      const a = autopartes.find(x => x.id === id);
+      document.getElementById('modalAutoparteTitulo').innerHTML = '<i class="fas fa-edit me-2 text-success"></i>Editar Autoparte';
+      document.getElementById('aID').value = a.id; document.getElementById('aMarca').value = a.marca;
+      document.getElementById('aNombre').value = a.nombre; document.getElementById('aCategoria').value = a.categoria;
+      document.getElementById('aPrecio').value = a.precio;
+    } else {
+      const c = categorias.find(x => x.id === id);
+      document.getElementById('modalCategoriaTitulo').innerHTML = '<i class="fas fa-edit me-2 text-primary"></i>Editar Categoría';
+      document.getElementById('cNombre').value = c.nombre; document.getElementById('cDesc').value = c.desc;
+    }
+  }
+
+  function guardarautoparte() {
+    const id = document.getElementById('aID').value.trim();
+    const nombre = document.getElementById('aNombre').value.trim();
+    const marca = document.getElementById('aMarca').value.trim();
+    const cat = document.getElementById('aCategoria').value;
+    const precio = parseFloat(document.getElementById('aPrecio').value) || 0;
+    if (!id || !nombre || !marca || !cat) { mostrarToast('Completa todos los campos requeridos', 'warning'); return; }
+    if (activoId === null) {
+      autopartes.push({ id: nextAId++, id, nombre, categoria: cat, marca, precio, estatus: 'Activo' });
+      mostrarToast(`${nombre} agregada al catálogo`, 'success');
+    } else {
+      const idx = autopartes.findIndex(a => a.id === activoId);
+      if (idx !== -1) Object.assign(autopartes[idx], { id, nombre, categoria: cat, marca, precio });
+      mostrarToast(`${nombre} actualizada`, 'success');
+    }
+    bootstrap.Modal.getInstance(document.getElementById('modalAutoparte')).hide();
+    renderAutopartes();
+  }
+
+  function guardarCategoria() {
+    const nombre = document.getElementById('cNombre').value.trim();
+    const desc = document.getElementById('cDesc').value.trim();
+    if (!nombre) { mostrarToast('El nombre de la categoría es requerido', 'warning'); return; }
+    if (activoId === null) {
+      categorias.push({ id: nextCId++, nombre, desc, count: 0 });
+      // Agregar al filtro
+      const sel = document.getElementById('filtroCategoria');
+      const opt = document.createElement('option'); opt.textContent = nombre; sel.appendChild(opt);
+      mostrarToast(`Categoría ${nombre} creada`, 'success');
+    } else {
+      const idx = categorias.findIndex(c => c.id === activoId);
+      if (idx !== -1) Object.assign(categorias[idx], { nombre, desc });
+      mostrarToast(`Categoría ${nombre} actualizada`, 'success');
+    }
+    bootstrap.Modal.getInstance(document.getElementById('modalCategoria')).hide();
+    renderCategorias(); actualizarKPIs();
+  }
+
+  /* ─── Eliminar ─── */
+  function prepEliminar(id, tipo, nombre) {
+    activoId = id; activoTipo = tipo;
+    document.getElementById('eliminarNombre').textContent = nombre;
+  }
+  function confirmarEliminar() {
+    if (activoTipo === 'autoparte') {
+      autopartes = autopartes.filter(a => a.id !== activoId);
+      renderAutopartes();
+    } else {
+      categorias = categorias.filter(c => c.id !== activoId);
+      renderCategorias(); actualizarKPIs();
+    }
+    bootstrap.Modal.getInstance(document.getElementById('modalEliminar')).hide();
+    mostrarToast('Registro eliminado', 'danger');
+  }
+
+  /* ─── Toast ─── */
+  function mostrarToast(msg, tipo) {
+    const icons = { success: 'fa-check-circle', warning: 'fa-exclamation-triangle', danger: 'fa-times-circle' };
+    const t = document.createElement('div');
+    t.className = `alert alert-${tipo} position-fixed shadow d-flex align-items-center gap-2`;
+    t.style.cssText = 'bottom:30px;right:30px;z-index:9999;min-width:300px;';
+    t.innerHTML = `<i class="fas ${icons[tipo] || 'fa-info-circle'}"></i>${msg}`;
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .4s'; setTimeout(() => t.remove(), 400); }, 3000);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => { renderAutopartes(); renderCategorias(); });
+</script>
+{% endblock %}
