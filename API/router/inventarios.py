@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 routerinv = APIRouter(
     prefix = "/v1/inventarios",
-    tags = ["HTTP CRUD"]
+    tags = ["CRUD INVENTARIOS"]
 )
 
 @routerinv.get("/")

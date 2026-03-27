@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 routercat = APIRouter(
     prefix = "/v1/categorias",
-    tags = ["HTTP CRUD"]
+    tags = ["CRUD CATEGORIAS"]
 )
 
 @routercat.get("/")

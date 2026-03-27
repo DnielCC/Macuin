@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 routerusu = APIRouter(
     prefix = "/v1/usuarios",
-    tags = ["HTTP CRUD"]
+    tags = ["CRUD USUARIOS"]
 )
 
 #1- todos los usuarios

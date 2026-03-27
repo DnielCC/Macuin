@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 routermarca = APIRouter(
     prefix = "/v1/marcas",
-    tags = ["HTTP CRUD"]
+    tags = ["CRUD MARCAS"]
 )
 
 @routermarca.get("/")

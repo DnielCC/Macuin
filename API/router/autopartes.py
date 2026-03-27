@@ -10,7 +10,7 @@ from models.autoparte import AutoparteBase
 
 routerauto = APIRouter(
     prefix = "/v1/autopartes",
-    tags = ["HTTP CRUD"]
+    tags = ["CRUD AUTOPARTES"]
 )
 
 #ENDPOINT AUTOPARTES

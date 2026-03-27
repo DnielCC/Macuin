@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 routerrol = APIRouter(
     prefix = "/v1/roles",
-    tags = ["HTTP CRUD"]
+    tags = ["CRUD ROLES"]
 )
 
 @routerrol.get("/")

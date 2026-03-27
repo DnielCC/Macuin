@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 routerped = APIRouter(
     prefix = "/v1/pedidos",
-    tags = ["HTTP CRUD"]
+    tags = ["CRUD PEDIDOS"]
 )
 
 #1- obtener todos los pedidos

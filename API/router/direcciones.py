@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 routerdir = APIRouter(
     prefix = "/v1/direcciones",
-    tags = ["HTTP CRUD"]
+    tags = ["CRUD DIRECCIONES"]
 )
 
 @routerdir.get("/")
