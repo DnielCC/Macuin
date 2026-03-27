@@ -1,44 +1,56 @@
-from sys import prefix
-from fastapi import FastAPI, status, HTTPException, Depends, APIRouter
+from fastapi import status, HTTPException, Depends, APIRouter
 from typing import List
-from models.usuario import UsuarioBase
-from database.db import usuarios_db
+from models.pedido import PedidoBase
 from security.auth import varificar_peticion
+from database.db import get_db
+from database.pedido import Pedido
+from sqlalchemy.orm import Session
 
 routerped = APIRouter(
     prefix = "/v1/pedidos",
     tags = ["HTTP CRUD"]
 )
 
-#ENDPOINT PEDIDOS
 #1- obtener todos los pedidos
 @routerped.get("/")
-def obtener_pedidos():
-    return pedidos_db
+def obtener_pedidos(db: Session = Depends(get_db)):
+    return db.query(Pedido).all()
 
 #2- obtener pedido por id
 @routerped.get("/{pedido_id}")
-def obtener_pedido_por_id(pedido_id: int):
-    pedido = next((p for p in pedidos_db if p["id"] == pedido_id), None)
-    
+def obtener_pedido_por_id(pedido_id: int, db: Session = Depends(get_db)):
+    pedido = db.query(Pedido).filter(Pedido.id == pedido_id).first()
     if not pedido:
         raise HTTPException(status_code=404, detail="Pedido no encontrado")
-    
     return pedido
 
 #3- crear nuevo pedido
 @routerped.post("/")
-def crear_pedido(pedido: PedidoBase):
-    nuevo_id = max(p["id"] for p in pedidos_db) + 1 if pedidos_db else 1
-    nuevo_pedido = {"id": nuevo_id, **pedido.model_dump()}
-    pedidos_db.append(nuevo_pedido)
-    return nuevo_pedido
+def crear_pedido(pedido: PedidoBase, db: Session = Depends(get_db)):
+    nuevo_pedido = Pedido(**pedido.model_dump())
+    db.add(nuevo_pedido)
+    db.commit()
+    db.refresh(nuevo_pedido)
+    return {"mensaje": "Pedido creado", "pedido": nuevo_pedido}
 
-#4- cambiar estatus pedido
-@routerped.put("/{pedido_id}/estatus", dependencies=[Depends(varificar_peticion)])
-def cambiar_estatus_pedido(pedido_id: int, nuevo_estatus: str):
-    for index, p in enumerate(pedidos_db):
-        if p["id"] == pedido_id:
-            pedidos_db[index]["estatus"] = nuevo_estatus
-            return {"mensaje": "Estatus actualizado", "pedido": pedidos_db[index]}
-    raise HTTPException(status_code=404, detail="Pedido no encontrado")
+#4- cambiar pedido completo
+@routerped.put("/{pedido_id}", dependencies=[Depends(varificar_peticion)])
+def actualizar_pedido(pedido_id: int, pedido_actualizado: PedidoBase, db: Session = Depends(get_db)):
+    pedido = db.query(Pedido).filter(Pedido.id == pedido_id).first()
+    if not pedido:
+        raise HTTPException(status_code=404, detail="Pedido no encontrado")
+    for key, value in pedido_actualizado.model_dump().items():
+        setattr(pedido, key, value)
+    db.commit()
+    db.refresh(pedido)
+    return {"mensaje": "Pedido actualizado", "pedido": pedido}
+
+#5- eliminar pedido
+@routerped.delete("/{pedido_id}", dependencies=[Depends(varificar_peticion)])
+def borrar_pedido(pedido_id: int, db: Session = Depends(get_db)):
+    pedido = db.query(Pedido).filter(Pedido.id == pedido_id).first()
+    if not pedido:
+        raise HTTPException(status_code=404, detail="Pedido no encontrado")
+    db.delete(pedido)
+    db.commit()
+    return {"mensaje": "Pedido eliminado"}

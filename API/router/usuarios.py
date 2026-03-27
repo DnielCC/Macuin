@@ -1,55 +1,61 @@
-from sys import prefix
-from fastapi import FastAPI, status, HTTPException, Depends, APIRouter
+from fastapi import status, HTTPException, Depends, APIRouter
 from typing import List
 from models.usuario import UsuarioBase
-from database.db import usuarios_db
 from security.auth import varificar_peticion
+from database.db import get_db
+from database.usuario import Usuario
+from sqlalchemy.orm import Session
 
 routerusu = APIRouter(
     prefix = "/v1/usuarios",
     tags = ["HTTP CRUD"]
 )
 
-#ENDPOINT USUARIOS
 #1- todos los usuarios
 @routerusu.get("/")
-async def leer_usuarios():
+def leer_usuarios(db: Session = Depends(get_db)):
+    usuarios = db.query(Usuario).all()
     return {
-        "total":len(usuarios_db),
-        "usuarios":usuarios_db,
+        "total": len(usuarios),
+        "usuarios": usuarios,
         "status":"200"
     }
 
 #2- usuario por id
 @routerusu.get("/{usuario_id}")
-def obtener_usuario(usuario_id: int):
-    usuario = next((u for u in usuarios_db if u["id"] == usuario_id), None)
+def obtener_usuario(usuario_id: int, db: Session = Depends(get_db)):
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return usuario
 
 #3- crear usuario
 @routerusu.post("/")
-def crear_usuario(usuario: UsuarioBase):
-    nuevo_id = max(u["id"] for u in usuarios_db) + 1 if usuarios_db else 1
-    nuevo_usuario = {"id": nuevo_id, **usuario.model_dump()}
-    usuarios_db.append(nuevo_usuario)
+def crear_usuario(usuario: UsuarioBase, db: Session = Depends(get_db)):
+    nuevo_usuario = Usuario(**usuario.model_dump())
+    db.add(nuevo_usuario)
+    db.commit()
+    db.refresh(nuevo_usuario)
     return {"mensaje": "Usuario creado", "usuario": nuevo_usuario}
 
 #4- Modificar usuario
-@routerusu.put("/{usuario_id}")
-def actualizar_usuario(usuario_id: int, usuario_actualizado: UsuarioBase):
-    for index, u in enumerate(usuarios_db):
-        if u["id"] == usuario_id:
-            usuarios_db[index].update(usuario_actualizado.model_dump())
-            return {"mensaje": "Usuario actualizado", "usuario": usuarios_db[index]}
-    raise HTTPException(status_code=404, detail="Usuario no encontrado")
+@routerusu.put("/{usuario_id}", dependencies=[Depends(varificar_peticion)])
+def actualizar_usuario(usuario_id: int, usuario_actualizado: UsuarioBase, db: Session = Depends(get_db)):
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    for key, value in usuario_actualizado.model_dump().items():
+        setattr(usuario, key, value)
+    db.commit()
+    db.refresh(usuario)
+    return {"mensaje": "Usuario actualizado", "usuario": usuario}
 
 #5- eliminar usuario
 @routerusu.delete("/{usuario_id}", dependencies=[Depends(varificar_peticion)])
-def borrar_usuario(usuario_id: int):
-    for index, u in enumerate(usuarios_db):
-        if u["id"] == usuario_id:
-            del usuarios_db[index]
-            return {"mensaje": "Usuario eliminado correctamente"}
-    raise HTTPException(status_code=404, detail="Usuario no encontrado")
+def borrar_usuario(usuario_id: int, db: Session = Depends(get_db)):
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    db.delete(usuario)
+    db.commit()
+    return {"mensaje": "Usuario eliminado correctamente"}
