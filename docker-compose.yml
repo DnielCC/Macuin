@@ -27,7 +27,7 @@ services:
     build: ./API
     container_name: macuin_api
     ports:
-      - "8001:8000"
+      - "8000:8000"
     environment:
       - ENV=development
       - DATABASE_URL=postgresql://macuin:123456@postgres:5432/DB_macuin
@@ -45,13 +45,13 @@ services:
     build: ./Flask
     container_name: macuin_flask
     ports:
-      - "5001:5000"
+      - "5001:5001"
     environment:
       - FLASK_ENV=development
-      - FLASK_PORT=5000
+      - FLASK_PORT=5001
     volumes:
       - ./Flask:/app
-    command: gunicorn --reload -w 4 --threads 2 -b 0.0.0.0:5000 "main:create_app()"
+    command: gunicorn --reload -w 4 --threads 2 -b 0.0.0.0:5001 "main:create_app()"
     depends_on:
       postgres:
         condition: service_healthy
