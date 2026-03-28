@@ -1,26 +1,20 @@
-# 🚗 Macuin Autopartes — Plataforma Integral
-
-Bienvenido al repositorio oficial de **Macuin Autopartes**. Este es un proyecto multi-servicio diseñado para la gestión y venta de autopartes, utilizando una arquitectura moderna de micro-servicios basada en contenedores.
-
----
-
-## 🏛️ Arquitectura del Proyecto
+## Arquitectura del Proyecto
 
 El sistema está dividido en componentes especializados que trabajan en conjunto bajo una red interna de Docker:
 
 ```mermaid
 graph TD
     subgraph Client_Layer [Capa de Cliente]
-        Flask["🌐 Frontend (Flask) :5001"]
-        Laravel["🔷 Admin Panel (Laravel) :8003"]
+        Flask["Frontend (Flask) :5001"]
+        Laravel["Admin Panel (Laravel) :8003"]
     end
 
     subgraph Logic_Layer [Capa de Lógica]
-        API["⚡ API FastAPI :8000"]
+        API["API FastAPI :8000"]
     end
 
     subgraph Data_Layer [Capa de Datos]
-        DB[("📦 PostgreSQL :5433")]
+        DB[("PostgreSQL :5433")]
     end
 
     Flask --> API
@@ -30,7 +24,7 @@ graph TD
 
 ---
 
-## 🚀 Instalación Rápida (Recomendado)
+## Instalación Rápida
 
 Si tienes **Docker Desktop** instalado y corriendo, puedes tener todo el proyecto funcionando con un solo comando:
 
@@ -45,11 +39,10 @@ cd Macuin
 bash setup.sh
 ```
 
-> **¿Qué hace `setup.sh`?** Verifica tu entorno, levanta los contenedores, crea automáticamente las tablas en la base de datos, configura las dependencias de Laravel y limpia el caché. ¡Todo en uno!
+> **¿Qué hace `setup.sh`?** Verifica tu entorno, levanta los contenedores, crea automáticamente las tablas en la base de datos, configura las dependencias de Laravel y limpia el caché.
 
----
 
-## 🛠️ Stack Tecnológico
+## Stack Tecnológico
 
 | Servicio | Tecnología | Versión | Propósito |
 | :--- | :--- | :--- | :--- |
@@ -61,23 +54,19 @@ bash setup.sh
 
 ---
 
-## 📖 Documentación Detallada
+## Documentación Detallada
 
 Para guías específicas, consulta los siguientes manuales técnicos incluidos en este repositorio:
 
-*   [🐳 **Guía de Docker**](./README_DOCKER.md) - Configuración de puertos, red y solución de problemas.
-*   [🐍 **Documentación de la API**](./API/README.md) - Rutas, modelos y lógica de FastAPI.
-*   [🌐 **Frontend Flask**](./Flask/README.md) - Desarrollo de la interfaz web.
-*   [🔷 **Configuración Laravel**](./Laravel/README.md) - Gestión de Nginx y PHP.
+*   [**Guía de Docker**](./README_DOCKER.md) - Configuración de puertos, red y solución de problemas.
+*   [**Documentación de la API**](./API/README.md) - Rutas, modelos y lógica de FastAPI.
+*   [**Frontend Flask**](./Flask/README.md) - Desarrollo de la interfaz web.
+*   [**Configuración Laravel**](./Laravel/README.md) - Gestión de Nginx y PHP.
 
 ---
 
-## 📬 Notas para Colaboradores
+## Notas para Colaboradores
 
-1. **Puertos:** Asegúrate de que los puertos `8000`, `5001`, `8003` y `5433` estén libres en tu máquina local.
+1. **Puertos:** Asegúrate de que los puertos `8000`, `5001`, `8003` y `5433` estén libres en tu equipo.
 2. **Entornos:** Los archivos `.env` se generan automáticamente con `setup.sh`, pero puedes personalizarlos si es necesario.
-3. **Issues:** Si encuentras un bug o necesitas una funcionalidad, abre un Issue para discutirlo con el equipo.
-
----
-
-Desarrollado con ❤️ por el equipo de **Macuin Autopartes**.
+3. **Issues:** Si encuentras un bug o necesitas una funcionalidad, comentalo.
