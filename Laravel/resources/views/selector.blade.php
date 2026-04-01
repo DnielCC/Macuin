@@ -34,7 +34,7 @@
             <div class="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
                 <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
             </div>
-            <h2 class="text-xl font-semibold text-gray-900 mb-2">Cliente Externo</h2>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Cliente Externo - cambio dentro de la rama de Antonio</h2>
             <p class="text-gray-600 text-sm mb-4 flex-1">Acceso al catálogo de productos, carrito de compras, seguimiento de pedidos y gestión de cuenta personal.</p>
             <ul class="space-y-2 mb-6 text-sm text-gray-600">
                 <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Ver catálogo de productos</li>
