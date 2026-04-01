@@ -11,24 +11,48 @@
                 <span class="font-bold text-gray-900">MACUIN</span>
             </div>
             <h1 class="text-2xl font-semibold text-gray-900 mb-6">Acceso al Portal de Clientes</h1>
-            <form action="#" method="post" class="space-y-4">
+            @if (session('status'))
+                <div class="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                    {{ session('status') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {{ $errors->first() }}
+                </div>
+            @endif
+
+            <form action="{{ route('login.store') }}" method="post" class="space-y-4">
                 @csrf
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
                     <input type="email" id="email" name="email" placeholder="usuario@ejemplo.com" required
-                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                        value="{{ old('email') }}"
+                        maxlength="255"
+                        autocomplete="email"
+                        class="w-full rounded-lg border {{ $errors->has('email') ? 'border-red-400' : 'border-gray-300' }} px-4 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                    @error('email')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
                     <input type="password" id="password" name="password" required
+                        minlength="8"
+                        maxlength="72"
+                        autocomplete="current-password"
                         class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                    @error('password')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
                 <div class="flex items-center justify-between text-sm">
                     <label class="flex items-center gap-2">
-                        <input type="checkbox" name="remember" class="rounded border-gray-300 text-amber-600 focus:ring-amber-500">
+                        <input type="checkbox" name="remember" class="rounded border-gray-300 text-amber-600 focus:ring-amber-500" {{ old('remember') ? 'checked' : '' }}>
                         <span class="text-gray-600">Recordarme</span>
                     </label>
-                    <a href="#" class="text-amber-600 hover:underline">¿Olvidaste tu contraseña?</a>
+                    <span class="text-gray-400 cursor-not-allowed" title="Funcionalidad disponible en una siguiente fase">¿Olvidaste tu contraseña?</span>
                 </div>
                 <button type="submit" class="w-full bg-[var(--color-macuin-yellow)] hover:bg-amber-500 text-black font-semibold py-3 rounded-lg uppercase text-sm tracking-wide transition">
                     Iniciar sesión

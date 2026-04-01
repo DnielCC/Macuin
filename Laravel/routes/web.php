@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Http;
 
@@ -39,13 +41,18 @@ Route::get('/inicio', function () {
     return view('home');
 })->name('inicio');
 
-Route::get('/ingresar', function () {
-    return view('auth.login');
-})->name('login');
+Route::middleware('guest')->group(function () {
+    Route::get('/ingresar', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::post('/ingresar', [AuthenticatedSessionController::class, 'store'])->name('login.store');
 
-Route::get('/registro', function () {
-    return view('auth.register');
-})->name('registro');
+    Route::get('/registro', [RegisteredUserController::class, 'create'])->name('registro');
+    Route::post('/registro', [RegisteredUserController::class, 'store'])->name('registro.store');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::view('/mi-cuenta', 'auth.account')->name('cuenta');
+    Route::post('/salir', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+});
 
 Route::get('/catalogo', function () {
     return view('catalogo');

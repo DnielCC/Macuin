@@ -16,8 +16,18 @@
             <a href="{{ route('carrito') }}" class="p-1.5 rounded hover:bg-white/10" title="Carrito">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             </a>
-            <a href="{{ route('login') }}" class="bg-[var(--color-macuin-yellow)] text-black font-medium px-4 py-2 rounded hover:opacity-90">Ingresar</a>
-            <a href="{{ route('registro') }}" class="border border-[var(--color-macuin-yellow)] text-white px-4 py-2 rounded hover:bg-white/5">Unirme</a>
+            @auth
+                <a href="{{ route('cuenta') }}" class="hover:text-[var(--color-macuin-yellow)] transition {{ $current === 'cuenta' ? 'text-[var(--color-macuin-yellow)]' : '' }}">Mi cuenta</a>
+                <form action="{{ route('logout') }}" method="post">
+                    @csrf
+                    <button type="submit" class="bg-[var(--color-macuin-yellow)] text-black font-medium px-4 py-2 rounded hover:opacity-90">
+                        Salir
+                    </button>
+                </form>
+            @else
+                <a href="{{ route('login') }}" class="bg-[var(--color-macuin-yellow)] text-black font-medium px-4 py-2 rounded hover:opacity-90">Ingresar</a>
+                <a href="{{ route('registro') }}" class="border border-[var(--color-macuin-yellow)] text-white px-4 py-2 rounded hover:bg-white/5">Unirme</a>
+            @endauth
         </nav>
     </div>
 </header>
