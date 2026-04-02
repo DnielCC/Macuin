@@ -12,9 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('phone')->nullable()->after('email');
-            $table->string('company')->nullable()->after('phone');
-            $table->string('address')->nullable()->after('company');
+            // Sin ->after(): compatible con PostgreSQL (after() solo aplica bien en MySQL/SQLite).
+            $table->string('phone')->nullable();
+            $table->string('company')->nullable();
+            $table->string('address')->nullable();
         });
     }
 

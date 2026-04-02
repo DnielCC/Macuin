@@ -69,6 +69,12 @@ services:
       - APP_ENV=local
       - APP_DEBUG=true
       - APP_URL=http://localhost:8003
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=DB_macuin
+      - DB_USERNAME=macuin
+      - DB_PASSWORD=123456
     volumes:
       - ./Laravel:/var/www/html
       - ./Laravel/php-dev.ini:/usr/local/etc/php/conf.d/docker-php-ext-opcache-dev.ini
