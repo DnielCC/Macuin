@@ -2,8 +2,6 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-
-  <!-- HEADER -->
   <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
       <h2 class="fw-bold" style="color:#111827;">Autopartes <span style="font-size:1rem;font-weight:400;color:#6b7280;">(Solo lectura)</span></h2>
@@ -14,8 +12,6 @@
       <i class="fas fa-lock"></i> Solo lectura — Almacén no puede modificar precios ni datos
     </span>
   </div>
-
-  <!-- STATS -->
   <div class="row g-4 mb-4">
     <div class="col-md-4">
       <div class="card border-0 shadow-sm rounded-4 p-3">
@@ -58,7 +54,6 @@
     </div>
   </div>
 
-  <!-- TABLA AUTOPARTES -->
   <div class="card border-0 shadow-sm rounded-4 p-4">
 
     <div class="d-flex justify-content-between mb-3 flex-wrap gap-2 align-items-center">
@@ -98,7 +93,6 @@
 
 </div>
 
-<!-- MODAL: VER DETALLE -->
 <div class="modal fade" id="modalDetalle" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content border-0 shadow rounded-4">
@@ -140,106 +134,98 @@
 
 {% block scripts %}
 <script>
-/* ─── Estado ─── */
-let autopartes  = [];
-let categorias  = {};   // id → nombre
-let marcas      = {};   // id → nombre
+    let autopartes = [];
+    let categorias = {};   
+    let marcas = {};  
+    async function cargarDatos() {
+      try {
+        const [resAuto, resCat, resMarca] = await Promise.all([
+          fetch('/api/autopartes'),
+          fetch('/api/categorias'),
+          fetch('/api/marcas'),
+        ]);
 
-/* ─── Carga inicial ─── */
-async function cargarDatos() {
-  try {
-    const [resAuto, resCat, resMarca] = await Promise.all([
-      fetch('/api/autopartes'),
-      fetch('/api/categorias'),
-      fetch('/api/marcas'),
-    ]);
+        if (!resAuto.ok || !resCat.ok || !resMarca.ok) throw new Error('Error al obtener datos');
 
-    if (!resAuto.ok || !resCat.ok || !resMarca.ok) throw new Error('Error al obtener datos');
+        const dataAuto = await resAuto.json();
+        const dataCat = await resCat.json();
+        const dataMarca = await resMarca.json();
 
-    const dataAuto  = await resAuto.json();
-    const dataCat   = await resCat.json();
-    const dataMarca = await resMarca.json();
+        autopartes = dataAuto;
+        dataCat.forEach(c => { categorias[c.id] = c.nombre; });
+        dataMarca.forEach(m => { marcas[m.id] = m.nombre; });
 
-    autopartes = dataAuto;
+        const sel = document.getElementById('filtroCategoria');
+        dataCat.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.nombre;
+          opt.textContent = c.nombre;
+          sel.appendChild(opt);
+        });
 
-    // Mapas id → nombre
-    dataCat.forEach(c => { categorias[c.id] = c.nombre; });
-    dataMarca.forEach(m => { marcas[m.id] = m.nombre; });
+        renderTabla();
+      } catch (e) {
+        document.getElementById('bodyParts').innerHTML =
+          `<tr><td colspan="5" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle me-2"></i>No se pudo conectar con la API: ${e.message}</td></tr>`;
+      }
+    }
 
-    // Poblar filtro de categorías
-    const sel = document.getElementById('filtroCategoria');
-    dataCat.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.nombre;
-      opt.textContent = c.nombre;
-      sel.appendChild(opt);
-    });
+    function badgeCategoria(nombre) {
+      const map = {
+        'Frenos': { bg:'#fee2e2', color:'#dc2626'},
+        'Suspensión': { bg:'#dbeafe', color:'#2563eb'},
+        'Motor': { bg:'#d1fae5', color:'#059669'},
+        'Electricidad': { bg:'#fef3c7', color:'#d97706'},
+        'Lubricantes': { bg:'#ede9fe', color:'#7c3aed'},
+      };
+      const s = map[nombre] || { bg:'#f3f4f6', color:'#6b7280' };
+      return `<span class="badge" style="background:${s.bg};color:${s.color};">${nombre}</span>`;
+    }
 
-    renderTabla();
-  } catch (e) {
-    document.getElementById('bodyParts').innerHTML =
-      `<tr><td colspan="5" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle me-2"></i>No se pudo conectar con la API: ${e.message}</td></tr>`;
-  }
-}
+    function renderTabla() {
+      const q = document.getElementById('searchParts').value.toLowerCase();
+      const cat = document.getElementById('filtroCategoria').value;
 
-/* ─── Render ─── */
-function badgeCategoria(nombre) {
-  const map = {
-    'Frenos':       { bg:'#fee2e2', color:'#dc2626' },
-    'Suspensión':   { bg:'#dbeafe', color:'#2563eb' },
-    'Motor':        { bg:'#d1fae5', color:'#059669' },
-    'Electricidad': { bg:'#fef3c7', color:'#d97706' },
-    'Lubricantes':  { bg:'#ede9fe', color:'#7c3aed' },
-  };
-  const s = map[nombre] || { bg:'#f3f4f6', color:'#6b7280' };
-  return `<span class="badge" style="background:${s.bg};color:${s.color};">${nombre}</span>`;
-}
+      const filtrado = autopartes.filter(p => {
+        const catNombre = categorias[p.categoria_id] || '';
+        const txt = `${p.sku_codigo} ${p.nombre} ${catNombre}`.toLowerCase();
+        const matchQ = q === '' || txt.includes(q);
+        const matchC = cat === '' || catNombre === cat;
+        return matchQ && matchC;
+      });
 
-function renderTabla() {
-  const q   = document.getElementById('searchParts').value.toLowerCase();
-  const cat = document.getElementById('filtroCategoria').value;
+      document.getElementById('bodyParts').innerHTML = filtrado.map(p => {
+        const catNombre = categorias[p.categoria_id] || `Cat. ${p.categoria_id}`;
+        const marcaNombre = marcas[p.marca_id] || `Marca ${p.marca_id}`;
+        return `
+        <tr style="cursor:pointer;" onclick="verDetalle(${p.id})"
+            data-bs-toggle="modal" data-bs-target="#modalDetalle">
+          <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">${p.sku_codigo}</code></td>
+          <td class="fw-semibold">${p.nombre}</td>
+          <td>${badgeCategoria(catNombre)}</td>
+          <td class="text-muted">${marcaNombre}</td>
+          <td class="text-muted" style="font-size:0.85rem;">${p.descripcion ? p.descripcion.substring(0,60) + '…' : '—'}</td>
+        </tr>`;
+      }).join('');
 
-  const filtrado = autopartes.filter(p => {
-    const catNombre = categorias[p.categoria_id] || '';
-    const txt       = `${p.sku_codigo} ${p.nombre} ${catNombre}`.toLowerCase();
-    const matchQ    = q   === '' || txt.includes(q);
-    const matchC    = cat === '' || catNombre === cat;
-    return matchQ && matchC;
-  });
+      document.getElementById('contadorParts').textContent = `Mostrando ${filtrado.length} piezas`;
+      document.getElementById('kpiMostrando').textContent = filtrado.length;
 
-  document.getElementById('bodyParts').innerHTML = filtrado.map(p => {
-    const catNombre   = categorias[p.categoria_id] || `Cat. ${p.categoria_id}`;
-    const marcaNombre = marcas[p.marca_id]         || `Marca ${p.marca_id}`;
-    return `
-    <tr style="cursor:pointer;" onclick="verDetalle(${p.id})"
-        data-bs-toggle="modal" data-bs-target="#modalDetalle">
-      <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">${p.sku_codigo}</code></td>
-      <td class="fw-semibold">${p.nombre}</td>
-      <td>${badgeCategoria(catNombre)}</td>
-      <td class="text-muted">${marcaNombre}</td>
-      <td class="text-muted" style="font-size:0.85rem;">${p.descripcion ? p.descripcion.substring(0,60) + '…' : '—'}</td>
-    </tr>`;
-  }).join('');
+      const cats = new Set(autopartes.map(p => p.categoria_id));
+      document.getElementById('kpiCategorias').textContent = cats.size;
+      document.getElementById('kpiTotal').textContent = autopartes.length;
+    }
 
-  document.getElementById('contadorParts').textContent = `Mostrando ${filtrado.length} piezas`;
-  document.getElementById('kpiMostrando').textContent  = filtrado.length;
+    function verDetalle(id) {
+      const p = autopartes.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('dSKU').textContent = p.sku_codigo;
+      document.getElementById('dDesc').textContent = p.nombre;
+      document.getElementById('dCat').textContent = categorias[p.categoria_id] || `Cat. ${p.categoria_id}`;
+      document.getElementById('dMarca').textContent = marcas[p.marca_id] || `Marca ${p.marca_id}`;
+      document.getElementById('dNotas').textContent = p.descripcion || 'Sin descripción registrada.';
+    }
 
-  const cats = new Set(autopartes.map(p => p.categoria_id));
-  document.getElementById('kpiCategorias').textContent = cats.size;
-  document.getElementById('kpiTotal').textContent      = autopartes.length;
-}
-
-/* ─── Ver detalle ─── */
-function verDetalle(id) {
-  const p = autopartes.find(x => x.id === id);
-  if (!p) return;
-  document.getElementById('dSKU').textContent   = p.sku_codigo;
-  document.getElementById('dDesc').textContent  = p.nombre;
-  document.getElementById('dCat').textContent   = categorias[p.categoria_id] || `Cat. ${p.categoria_id}`;
-  document.getElementById('dMarca').textContent = marcas[p.marca_id]         || `Marca ${p.marca_id}`;
-  document.getElementById('dNotas').textContent = p.descripcion || 'Sin descripción registrada.';
-}
-
-document.addEventListener('DOMContentLoaded', cargarDatos);
+    document.addEventListener('DOMContentLoaded', cargarDatos);
 </script>
 {% endblock %}

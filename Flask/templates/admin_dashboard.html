@@ -4,8 +4,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <div class="container-fluid py-4">
-
-  <!-- HEADER -->
   <div class="mb-4 d-flex justify-content-between align-items-center">
     <div>
       <h2 class="fw-bold" style="color:#111827;">Panel de Almacén</h2>
@@ -13,7 +11,6 @@
     </div>
   </div>
 
-  <!-- KPI CARDS -->
   <div class="row g-4 mb-4">
 
     <div class="col-md-3">
@@ -74,7 +71,6 @@
 
   </div>
 
-  <!-- CHARTS -->
   <div class="row g-4 mb-4">
 
     <div class="col-md-7">
@@ -97,10 +93,8 @@
 
   </div>
 
-  <!-- ACCESOS RÁPIDOS + ACTIVIDAD RECIENTE -->
   <div class="row g-4">
 
-    <!-- Accesos rápidos -->
     <div class="col-md-4">
       <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
         <h6 class="fw-bold mb-4"><i class="fas fa-bolt text-warning me-2"></i>Accesos Rápidos</h6>
@@ -152,7 +146,6 @@
       </div>
     </div>
 
-    <!-- Inventario con stock bajo -->
     <div class="col-md-8">
       <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -197,33 +190,30 @@ async function cargarDashboard() {
       fetch('/api/estatus_pedido'),
     ]);
 
-    const inventario = resInv.ok  ? await resInv.json()  : [];
-    const pedidos    = resPed.ok  ? await resPed.json()  : [];
+    const inventario = resInv.ok  ? await resInv.json() : [];
+    const pedidos = resPed.ok  ? await resPed.json() : [];
     const autopartesArr = resAuto.ok ? await resAuto.json() : [];
-    const estatuses  = resEst.ok  ? await resEst.json()  : [];
+    const estatuses = resEst.ok  ? await resEst.json() : [];
 
-    // Mapas
-    const autoMap   = {};
+    const autoMap = {};
     autopartesArr.forEach(a => { autoMap[a.id] = {sku: a.sku_codigo, nombre: a.nombre}; });
     const estatusMap = {};
     estatuses.forEach(e => { estatusMap[e.id] = e.nombre; });
 
-    // ── KPIs ──────────────────────────────────────────────────────
-    document.getElementById('kpiSKUs').textContent       = inventario.length;
+    document.getElementById('kpiSKUs').textContent = inventario.length;
     document.getElementById('kpiUbicaciones').textContent = inventario.filter(i => i.pasillo).length;
-    document.getElementById('kpiStockBajo').textContent  = inventario.filter(i => i.stock_actual < i.stock_minimo).length;
+    document.getElementById('kpiStockBajo').textContent = inventario.filter(i => i.stock_actual < i.stock_minimo).length;
 
     const pendienteId = estatuses.find(e => e.nombre === 'Pendiente')?.id;
-    const surtId      = estatuses.find(e => e.nombre === 'Surtiendo')?.id;
+    const surtId = estatuses.find(e => e.nombre === 'Surtiendo')?.id;
     const pPendientes = pedidos.filter(p => p.estatus_id === pendienteId || p.estatus_id === surtId).length;
     document.getElementById('kpiPedidos').textContent = pPendientes;
 
-    // ── Tabla stock bajo ─────────────────────────────────────────
     const stockBajo = inventario.filter(i => i.stock_actual < i.stock_minimo);
     document.getElementById('bodyStockBajo').innerHTML = stockBajo.length === 0
       ? '<tr><td colspan="5" class="text-center text-success py-3"><i class="fas fa-check me-2"></i>Sin alertas de stock por ahora</td></tr>'
       : stockBajo.map(i => {
-          const a   = autoMap[i.autoparte_id] || {};
+          const a = autoMap[i.autoparte_id] || {};
           const ubi = [i.pasillo, i.estante, i.nivel].filter(Boolean).join('-') || '—';
           return `<tr>
             <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">${a.sku || i.autoparte_id}</code></td>
@@ -234,12 +224,11 @@ async function cargarDashboard() {
           </tr>`;
         }).join('');
 
-    // ── Chart: stock por pieza (top 10) ─────────────────────────
     const top10 = [...inventario]
       .sort((a, b) => b.stock_actual - a.stock_actual)
       .slice(0, 10);
     const labelsInv = top10.map(i => (autoMap[i.autoparte_id]?.sku || `ID${i.autoparte_id}`));
-    const dataInv   = top10.map(i => i.stock_actual);
+    const dataInv = top10.map(i => i.stock_actual);
 
     if (inventarioChart) inventarioChart.destroy();
     inventarioChart = new Chart(document.getElementById('inventarioChart'), {
@@ -264,7 +253,6 @@ async function cargarDashboard() {
       }
     });
 
-    // ── Chart: pedidos por estatus ───────────────────────────────
     const conteoPedidos = {};
     estatuses.forEach(e => { conteoPedidos[e.nombre] = 0; });
     pedidos.forEach(p => {

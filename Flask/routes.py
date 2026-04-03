@@ -2,7 +2,6 @@ from flask import render_template, redirect, url_for, request, session, jsonify
 import requests
 import os
 
-# ─── Configuración de la API ────────────────────────────────────────────────
 API_BASE = os.getenv("API_BASE_URL", "http://localhost:8000")
 API_USER = os.getenv("API_USER", "alidaniel")
 API_PASS = os.getenv("API_PASS", "123456")
@@ -57,8 +56,6 @@ def api_delete(path):
 
 
 def register_routes(app):
-
-    # Base de datos simulada de empleados (login local — no es parte del CRUD de la API)
     USUARIOS = {
         "admin": {
             "nombre": "Frank Contreras",
@@ -92,7 +89,6 @@ def register_routes(app):
     def requiere_rol(rol):
         return session.get('user_role') != rol
 
-    # -------- LOGIN --------
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         if request.method == 'POST':
@@ -127,13 +123,11 @@ def register_routes(app):
 
         return render_template("login.html")
 
-    # -------- LOGOUT --------
     @app.route('/logout')
     def logout():
         session.clear()
         return redirect(url_for('login'))
 
-    # -------- DASHBOARD GENERAL --------
     @app.route('/')
     @app.route('/dashboard')
     def index():
@@ -148,8 +142,7 @@ def register_routes(app):
         if session.get('user_role') == 'Administrador':
             return redirect(url_for('admin_dashboard'))
         return render_template('index.html')
-
-    # -------- INVENTORY (SOLO ALMACEN) --------
+    
     @app.route('/inventory')
     def inventory():
         if requiere_login():
@@ -158,7 +151,6 @@ def register_routes(app):
             return redirect(url_for('index'))
         return render_template('inventory.html')
 
-    # -------- USUARIOS INTERNOS (legacy) --------
     @app.route('/users')
     def users():
         if requiere_login():
@@ -167,7 +159,6 @@ def register_routes(app):
             return redirect(url_for('index'))
         return redirect(url_for('ventas_clientes'))
 
-    # -------- ADMINISTRADOR (legacy redirect) --------
     @app.route('/administrador')
     def administrador():
         if requiere_login():
@@ -176,9 +167,6 @@ def register_routes(app):
             return redirect(url_for('index'))
         return redirect(url_for('admin_dashboard'))
 
-    # ==============================================================
-    # MÓDULO ADMINISTRADOR
-    # ==============================================================
 
     def solo_admin():
         if requiere_login():
@@ -226,12 +214,12 @@ def register_routes(app):
             return redir
         if request.method == 'POST':
             data = {
-                "nombre":       request.form.get('nombre', '').strip(),
-                "apellidos":    request.form.get('apellidos', '').strip(),
-                "email":        request.form.get('correo', '').strip(),
+                "nombre": request.form.get('nombre', '').strip(),
+                "apellidos": request.form.get('apellidos', '').strip(),
+                "email": request.form.get('correo', '').strip(),
                 "password_hash": request.form.get('password', '').strip(),
-                "rol_id":       int(request.form.get('rol_id', 1)),
-                "activo":       True,
+                "rol_id": int(request.form.get('rol_id', 1)),
+                "activo": True,
             }
             api_put(f"/v1/usuarios/{usuario_id}", data)
             return redirect(url_for('admin_usuarios'))
@@ -277,10 +265,10 @@ def register_routes(app):
             return redir
         if request.method == 'POST':
             data = {
-                "nombre":          request.form.get('nombre', '').strip(),
-                "categoria_id":    int(request.form.get('categoria_id', 1)),
-                "marca_id":        int(request.form.get('marca_id', 1)),
-                "precio_unitario": float(request.form.get('precio', 0)),
+                "nombre": request.form.get('nombre', '').strip(),
+                "categoria_id": int(request.form.get('categoria_id', 1)),
+                "marca_id": int(request.form.get('marca_id', 1)),
+                "precio_unitario":float(request.form.get('precio', 0)),
             }
             api_put(f"/v1/autopartes/{autoparte_id}", data)
             return redirect(url_for('admin_catalogo'))
@@ -352,9 +340,6 @@ def register_routes(app):
             return redirect(url_for('index'))
         return render_template('catalog.html')
 
-    # ==============================================================
-    # MÓDULO VENTAS
-    # ==============================================================
 
     def solo_ventas():
         if requiere_login():
@@ -378,13 +363,13 @@ def register_routes(app):
             return redir
         if request.method == 'POST':
             data = {
-                "nombre":        request.form.get('nombre', '').strip(),
-                "apellidos":     request.form.get('apellidos', '').strip(),
-                "email":         request.form.get('correo', '').strip(),
-                "telefono":      request.form.get('telefono', '').strip() or None,
+                "nombre": request.form.get('nombre', '').strip(),
+                "apellidos": request.form.get('apellidos', '').strip(),
+                "email": request.form.get('correo', '').strip(),
+                "telefono": request.form.get('telefono', '').strip() or None,
                 "password_hash": "temporal",
-                "rol_id":        3,
-                "activo":        True,
+                "rol_id": 3,
+                "activo": True,
             }
             api_post("/v1/usuarios/", data)
             return redirect(url_for('ventas_clientes'))
@@ -428,9 +413,9 @@ def register_routes(app):
             return redir
         if request.method == 'POST':
             data = {
-                "usuario_id":       int(request.form.get('cliente_id', 1)),
-                "estatus_id":       1,
-                "total":            0.00,
+                "usuario_id": int(request.form.get('cliente_id', 1)),
+                "estatus_id": 1,
+                "total": 0.00,
                 "direccion_envio_id": int(request.form.get('direccion_id', 1)),
             }
             api_post("/v1/pedidos/", data)
@@ -447,7 +432,6 @@ def register_routes(app):
             if pedido:
                 accion = request.form.get('accion')
                 if accion == 'cancelar':
-                    # Estatus de cancelado — buscar el id correspondiente en tu catálogo
                     pedido['estatus_id'] = int(request.form.get('estatus_cancelado_id', pedido['estatus_id']))
                 elif accion == 'direccion':
                     pedido['direccion_envio_id'] = int(request.form.get('direccion_id', pedido['direccion_envio_id']))
@@ -462,9 +446,6 @@ def register_routes(app):
             return redir
         return render_template('ventas_catalogo.html')
 
-    # ==============================================================
-    # MÓDULO LOGÍSTICA
-    # ==============================================================
 
     def solo_logistica():
         if requiere_login():
@@ -521,7 +502,6 @@ def register_routes(app):
         redir = solo_logistica()
         if redir:
             return redir
-        # Guías no tienen endpoint propio en la API — lógica futura
         return redirect(url_for('logistica_guias'))
 
     @app.route('/logistica/guias/<guia_id>/editar', methods=['GET', 'POST'])
@@ -539,10 +519,6 @@ def register_routes(app):
         if redir:
             return redir
         return redirect(url_for('logistica_guias'))
-
-    # ==============================================================
-    # MÓDULO ALMACÉN
-    # ==============================================================
 
     def solo_almacen():
         if requiere_login():
@@ -572,8 +548,8 @@ def register_routes(app):
         if redir:
             return redir
         inventario_id = int(request.form.get('id', 0))
-        tipo          = request.form.get('tipo', '').strip()   # 'entrada' | 'merma'
-        cantidad      = int(request.form.get('cantidad', 0))
+        tipo = request.form.get('tipo', '').strip()  
+        cantidad = int(request.form.get('cantidad', 0))
 
         inv, _ = api_get(f"/v1/inventarios/{inventario_id}")
         if inv and cantidad > 0:
@@ -597,8 +573,6 @@ def register_routes(app):
         redir = solo_almacen()
         if redir:
             return redir
-        # Las ubicaciones se gestionan como campos en Inventario (pasillo/estante/nivel)
-        # Este endpoint actualiza un inventario existente con nueva ubicación
         inventario_id = int(request.form.get('inventario_id', 0))
         inv, _ = api_get(f"/v1/inventarios/{inventario_id}")
         if inv:
@@ -659,17 +633,11 @@ def register_routes(app):
             return redir
         return render_template('almacen_autopartes.html')
 
-    # ==============================================================
-    # API PROXY — los templates consumen estos endpoints via fetch()
-    # Evita exponer la URL interna de la API ni las credenciales al browser
-    # ==============================================================
-
     def _check_session():
         if 'user_id' not in session:
             return jsonify({"error": "No autenticado"}), 401
         return None
 
-    # ── Autopartes ──────────────────────────────────────────────
     @app.route('/api/autopartes')
     def proxy_autopartes():
         err = _check_session()
@@ -691,7 +659,6 @@ def register_routes(app):
             return jsonify({"error": error}), 502
         return jsonify(data)
 
-    # ── Inventarios ─────────────────────────────────────────────
     @app.route('/api/inventarios')
     def proxy_inventarios():
         err = _check_session()
@@ -722,7 +689,6 @@ def register_routes(app):
             return jsonify({"error": error}), 502
         return jsonify(data)
 
-    # ── Pedidos ─────────────────────────────────────────────────
     @app.route('/api/pedidos')
     def proxy_pedidos():
         err = _check_session()
@@ -753,7 +719,6 @@ def register_routes(app):
             return jsonify({"error": error}), 502
         return jsonify(data)
 
-    # ── Categorías ──────────────────────────────────────────────
     @app.route('/api/categorias')
     def proxy_categorias():
         err = _check_session()
@@ -764,7 +729,6 @@ def register_routes(app):
             return jsonify({"error": error}), 502
         return jsonify(data)
 
-    # ── Marcas ──────────────────────────────────────────────────
     @app.route('/api/marcas')
     def proxy_marcas():
         err = _check_session()
@@ -775,7 +739,6 @@ def register_routes(app):
             return jsonify({"error": error}), 502
         return jsonify(data)
 
-    # ── Usuarios ────────────────────────────────────────────────
     @app.route('/api/usuarios')
     def proxy_usuarios():
         err = _check_session()
@@ -786,7 +749,6 @@ def register_routes(app):
             return jsonify({"error": error}), 502
         return jsonify(data)
 
-    # ── Estatus de pedido ────────────────────────────────────────
     @app.route('/api/estatus_pedido')
     def proxy_estatus_pedido():
         err = _check_session()
@@ -797,7 +759,6 @@ def register_routes(app):
             return jsonify({"error": error}), 502
         return jsonify(data)
 
-    # ── Direcciones ─────────────────────────────────────────────
     @app.route('/api/direcciones')
     def proxy_direcciones():
         err = _check_session()
