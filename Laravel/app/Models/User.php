@@ -12,6 +12,9 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    /** @var string Tabla por defecto de usuarios del portal (PostgreSQL `public.users`). */
+    protected $table = 'users';
+
     /**
      * The attributes that are mass assignable.
      *

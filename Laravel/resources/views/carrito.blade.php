@@ -5,7 +5,11 @@
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-end mb-6">
-        <a href="{{ route('catalogo') }}" class="text-amber-600 hover:underline font-medium">Continuar Comprando</a>
+        <a href="/catalogo" class="text-amber-600 hover:underline font-medium">Continuar Comprando</a>
+    </div>
+
+    <div class="mb-6 max-w-3xl mx-auto rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 text-center">
+        Vista estática de demostración: sin carrito real ni checkout.
     </div>
 
     <div class="grid lg:grid-cols-3 gap-8">
@@ -30,15 +34,13 @@
                                     <h3 class="font-medium text-gray-900">{{ $item['nombre'] }}</h3>
                                     <p class="text-sm text-gray-500">{{ $item['categoria'] }}</p>
                                 </div>
-                                <button type="button" class="text-red-500 hover:text-red-600 p-1" title="Eliminar">
+                                <span class="text-gray-300 p-1 inline-flex" title="Solo maquetación" aria-hidden="true">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                </button>
+                                </span>
                             </div>
                             <div class="flex items-center gap-4 mt-2 sm:mt-0 sm:flex-1 sm:justify-end">
-                                <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-                                    <button type="button" class="px-3 py-1.5 hover:bg-gray-100">−</button>
-                                    <input type="number" value="{{ $item['cantidad'] }}" min="1" class="w-12 text-center border-0 border-x border-gray-300 py-1.5 text-sm">
-                                    <button type="button" class="px-3 py-1.5 hover:bg-gray-100">+</button>
+                                <div class="flex items-center border border-gray-200 rounded-lg bg-gray-50 px-3 py-1.5 text-sm text-gray-600">
+                                    Cantidad: <span class="ml-1 font-medium text-gray-900">{{ $item['cantidad'] }}</span>
                                 </div>
                                 <span class="font-semibold text-gray-900">${{ number_format($item['precio'] * $item['cantidad'], 0, ',', '.') }}</span>
                             </div>
@@ -64,9 +66,9 @@
                         <span class="text-amber-600">${{ number_format($total, 0, ',', '.') }}</span>
                     </div>
                 </div>
-                <a href="{{ route('pago') }}" class="block w-full bg-[var(--color-macuin-yellow)] hover:bg-amber-500 text-black font-semibold py-3 rounded-lg text-center uppercase text-sm tracking-wide transition">
+                <span class="block w-full bg-gray-200 text-gray-500 font-semibold py-3 rounded-lg text-center uppercase text-sm tracking-wide cursor-default">
                     Proceder al pago
-                </a>
+                </span>
             </div>
         </div>
     </div>

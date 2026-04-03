@@ -10,8 +10,8 @@
             <h1 class="text-4xl lg:text-5xl font-bold mb-4">Componentes Automotrices de Alta Calidad</h1>
             <p class="text-gray-300 text-lg mb-8">Encuentra las mejores piezas para tu vehículo. Calidad, precios competitivos y entrega rápida.</p>
             <div class="flex flex-wrap gap-4">
-                <a href="{{ route('catalogo') }}" class="bg-[var(--color-macuin-yellow)] text-black font-semibold px-6 py-3 rounded-lg hover:opacity-90 transition">Ver Catálogo</a>
-                <a href="{{ route('contacto') }}" class="border border-gray-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-white/10 transition">Contactar</a>
+                <a href="/catalogo" class="bg-[var(--color-macuin-yellow)] text-black font-semibold px-6 py-3 rounded-lg hover:opacity-90 transition">Ver Catálogo</a>
+                <a href="/contacto" class="border border-gray-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-white/10 transition">Contactar</a>
             </div>
         </div>
         <div class="flex-1 flex justify-center lg:justify-end">
@@ -64,28 +64,28 @@
     <div class="container mx-auto px-4">
         <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">Explora Nuestras Categorías</h2>
         <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <a href="{{ route('catalogo', ['categoria' => 'frenos']) }}" class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition text-center">
+            <a href="/catalogo?categoria=frenos" class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition text-center">
                 <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-3">
                     <span class="text-2xl">🛞</span>
                 </div>
                 <h3 class="font-semibold text-gray-900">Frenos</h3>
                 <p class="text-sm text-gray-500 mt-1">300+ productos</p>
             </a>
-            <a href="{{ route('catalogo', ['categoria' => 'suspension']) }}" class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition text-center">
+            <a href="/catalogo?categoria=suspension" class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition text-center">
                 <div class="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-3">
                     <span class="text-2xl">🔩</span>
                 </div>
                 <h3 class="font-semibold text-gray-900">Suspensión</h3>
                 <p class="text-sm text-gray-500 mt-1">200+ productos</p>
             </a>
-            <a href="{{ route('catalogo', ['categoria' => 'motor']) }}" class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition text-center">
+            <a href="/catalogo?categoria=motor" class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition text-center">
                 <div class="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-3">
                     <span class="text-2xl">⚙️</span>
                 </div>
                 <h3 class="font-semibold text-gray-900">Motor</h3>
                 <p class="text-sm text-gray-500 mt-1">250+ productos</p>
             </a>
-            <a href="{{ route('catalogo', ['categoria' => 'transmision']) }}" class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition text-center">
+            <a href="/catalogo?categoria=transmision" class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition text-center">
                 <div class="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-3">
                     <span class="text-2xl">⚡</span>
                 </div>
@@ -101,7 +101,7 @@
     <div class="container mx-auto px-4 text-center">
         <h2 class="text-3xl font-bold text-gray-900 mb-4">¿Listo para Mejorar tu Vehículo?</h2>
         <p class="text-gray-800 mb-6 max-w-xl mx-auto">Regístrate hoy y obtén acceso a ofertas exclusivas y venta al por mayor.</p>
-        <a href="{{ route('registro') }}" class="inline-block bg-gray-900 text-white font-semibold px-8 py-3 rounded-lg hover:bg-gray-800 transition">Crear Cuenta Ahora</a>
+        <a href="/registro" class="inline-block bg-gray-900 text-white font-semibold px-8 py-3 rounded-lg hover:bg-gray-800 transition">Crear Cuenta Ahora</a>
     </div>
 </section>
 @endsection

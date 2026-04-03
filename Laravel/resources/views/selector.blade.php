@@ -42,11 +42,11 @@
                 <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Rastrear estado de órdenes</li>
                 <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Contacto directo con soporte</li>
             </ul>
-            <a href="{{ route('inicio') }}" class="block w-full bg-[var(--color-macuin-yellow)] hover:bg-amber-500 text-black font-semibold py-3 px-4 rounded-lg text-center transition">Entrar al portal de clientes</a>
+            <a href="/inicio" class="block w-full bg-[var(--color-macuin-yellow)] hover:bg-amber-500 text-black font-semibold py-3 px-4 rounded-lg text-center transition">Entrar al portal de clientes</a>
             <p class="mt-4 text-center text-sm text-gray-600">
-                <a href="{{ route('login') }}" class="text-amber-700 font-medium hover:underline">Iniciar sesión</a>
+                <a href="/ingresar" class="text-amber-700 font-medium hover:underline">Iniciar sesión</a>
                 <span class="mx-2 text-gray-300">|</span>
-                <a href="{{ route('registro') }}" class="text-amber-700 font-medium hover:underline">Crear cuenta</a>
+                <a href="/registro" class="text-amber-700 font-medium hover:underline">Crear cuenta</a>
             </p>
         </div>
 

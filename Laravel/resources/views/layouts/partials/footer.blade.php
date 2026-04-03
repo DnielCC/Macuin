@@ -11,15 +11,15 @@
             <div>
                 <h4 class="font-semibold text-white mb-3">Empresa</h4>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="{{ route('inicio') }}#nosotros" class="hover:text-[var(--color-macuin-yellow)]">Nosotros</a></li>
+                    <li><a href="/inicio#nosotros" class="hover:text-[var(--color-macuin-yellow)]">Nosotros</a></li>
                     <li><a href="#" class="hover:text-[var(--color-macuin-yellow)]">Blog</a></li>
-                    <li><a href="{{ route('contacto') }}" class="hover:text-[var(--color-macuin-yellow)]">Contacto</a></li>
+                    <li><a href="/contacto" class="hover:text-[var(--color-macuin-yellow)]">Contacto</a></li>
                 </ul>
             </div>
             <div>
                 <h4 class="font-semibold text-white mb-3">Recursos</h4>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="{{ route('catalogo') }}" class="hover:text-[var(--color-macuin-yellow)]">Catálogo</a></li>
+                    <li><a href="/catalogo" class="hover:text-[var(--color-macuin-yellow)]">Catálogo</a></li>
                     <li><a href="#" class="hover:text-[var(--color-macuin-yellow)]">Guías</a></li>
                     <li><a href="#" class="hover:text-[var(--color-macuin-yellow)]">FAQ</a></li>
                 </ul>

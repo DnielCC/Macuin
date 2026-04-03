@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
@@ -65,13 +64,14 @@ class RegisteredUserController extends Controller
 
         $validated['email'] = Str::lower(trim($validated['email']));
 
+        // La contraseña la hashea el cast 'hashed' del modelo User (evita doble hash y alinea con Eloquent).
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
             'company' => $validated['company'] ?? null,
             'address' => $validated['address'] ?? null,
-            'password' => Hash::make($validated['password']),
+            'password' => $validated['password'],
         ]);
 
         Auth::login($user);

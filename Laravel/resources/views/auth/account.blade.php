@@ -18,7 +18,7 @@
                     <h1 class="text-3xl font-bold text-gray-900">Bienvenido, {{ auth()->user()->name }}</h1>
                     <p class="text-gray-500 mt-2">Tu cuenta ya se encuentra activa y lista para las siguientes etapas del sistema.</p>
                 </div>
-                <a href="{{ route('catalogo') }}" class="inline-flex items-center justify-center rounded-lg bg-[var(--color-macuin-yellow)] px-5 py-3 text-sm font-semibold text-black hover:bg-amber-500 transition">
+                <a href="/catalogo" class="inline-flex items-center justify-center rounded-lg bg-[var(--color-macuin-yellow)] px-5 py-3 text-sm font-semibold text-black hover:bg-amber-500 transition">
                     Ir al catálogo
                 </a>
             </div>

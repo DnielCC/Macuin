@@ -59,7 +59,7 @@
                 </button>
             </form>
             <p class="mt-6 text-center text-gray-600 text-sm">
-                ¿No tienes una cuenta? <a href="{{ route('registro') }}" class="text-amber-600 font-medium hover:underline">Regístrate aquí</a>
+                ¿No tienes una cuenta? <a href="/registro" class="text-amber-600 font-medium hover:underline">Regístrate aquí</a>
             </p>
         </div>
     </div>

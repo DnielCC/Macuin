@@ -112,7 +112,7 @@
                 </button>
             </form>
             <p class="mt-6 text-center text-gray-600 text-sm">
-                ¿Ya tienes una cuenta? <a href="{{ route('login') }}" class="text-amber-600 font-medium hover:underline">Inicia sesión aquí</a>
+                ¿Ya tienes una cuenta? <a href="/ingresar" class="text-amber-600 font-medium hover:underline">Inicia sesión aquí</a>
             </p>
         </div>
     </div>

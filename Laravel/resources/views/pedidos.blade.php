@@ -15,7 +15,7 @@
         </div>
         <h2 class="text-xl font-semibold text-gray-900 mb-2">No tienes pedidos aún</h2>
         <p class="text-gray-500 mb-6">Explora nuestro catálogo y realiza tu primera compra</p>
-        <a href="{{ route('catalogo') }}" class="inline-block bg-[var(--color-macuin-yellow)] hover:bg-amber-500 text-black font-semibold px-8 py-3 rounded-lg transition">Ir al Catálogo</a>
+        <a href="/catalogo" class="inline-block bg-[var(--color-macuin-yellow)] hover:bg-amber-500 text-black font-semibold px-8 py-3 rounded-lg transition">Ir al Catálogo</a>
     </div>
 </div>
 @endsection

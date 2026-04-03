@@ -8,14 +8,14 @@
         <div class="flex-1 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <h2 class="text-lg font-semibold text-gray-700">Categorías</h2>
             <div class="flex flex-wrap gap-2">
-                <a href="{{ route('catalogo') }}" class="px-4 py-2 rounded-lg {{ !request('categoria') ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Todos</a>
-                <a href="{{ route('catalogo', ['categoria' => 'filtros']) }}" class="px-4 py-2 rounded-lg {{ request('categoria') === 'filtros' ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Filtros</a>
-                <a href="{{ route('catalogo', ['categoria' => 'sistema-electrico']) }}" class="px-4 py-2 rounded-lg {{ request('categoria') === 'sistema-electrico' ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Sistema Eléctrico</a>
-                <a href="{{ route('catalogo', ['categoria' => 'frenos']) }}" class="px-4 py-2 rounded-lg {{ request('categoria') === 'frenos' ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Frenos</a>
-                <a href="{{ route('catalogo', ['categoria' => 'suspension']) }}" class="px-4 py-2 rounded-lg {{ request('categoria') === 'suspension' ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Suspensión</a>
-                <a href="{{ route('catalogo', ['categoria' => 'lubricantes']) }}" class="px-4 py-2 rounded-lg {{ request('categoria') === 'lubricantes' ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Lubricantes</a>
-                <a href="{{ route('catalogo', ['categoria' => 'motor']) }}" class="px-4 py-2 rounded-lg {{ request('categoria') === 'motor' ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Motor</a>
-                <a href="{{ route('catalogo', ['categoria' => 'enfriamiento']) }}" class="px-4 py-2 rounded-lg {{ request('categoria') === 'enfriamiento' ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Sistema de Enfriamiento</a>
+                <a href="/catalogo" class="px-4 py-2 rounded-lg {{ !request('categoria') ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Todos</a>
+                <a href="/catalogo?categoria=filtros" class="px-4 py-2 rounded-lg {{ request('categoria') === 'filtros' ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Filtros</a>
+                <a href="/catalogo?categoria=sistema-electrico" class="px-4 py-2 rounded-lg {{ request('categoria') === 'sistema-electrico' ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Sistema Eléctrico</a>
+                <a href="/catalogo?categoria=frenos" class="px-4 py-2 rounded-lg {{ request('categoria') === 'frenos' ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Frenos</a>
+                <a href="/catalogo?categoria=suspension" class="px-4 py-2 rounded-lg {{ request('categoria') === 'suspension' ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Suspensión</a>
+                <a href="/catalogo?categoria=lubricantes" class="px-4 py-2 rounded-lg {{ request('categoria') === 'lubricantes' ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Lubricantes</a>
+                <a href="/catalogo?categoria=motor" class="px-4 py-2 rounded-lg {{ request('categoria') === 'motor' ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Motor</a>
+                <a href="/catalogo?categoria=enfriamiento" class="px-4 py-2 rounded-lg {{ request('categoria') === 'enfriamiento' ? 'bg-[var(--color-macuin-yellow)] text-black font-medium' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">Sistema de Enfriamiento</a>
             </div>
         </div>
         <div class="w-full lg:w-80">
@@ -62,7 +62,7 @@
                     @if($p['agotado'])
                         <button disabled class="w-full mt-3 py-2.5 rounded-lg bg-gray-200 text-gray-500 font-medium cursor-not-allowed">Agotado</button>
                     @else
-                        <a href="{{ route('carrito') }}" class="block w-full mt-3 py-2.5 rounded-lg bg-[var(--color-macuin-yellow)] hover:bg-amber-500 text-black font-medium text-center transition">Agregar al carrito</a>
+                        <a href="/carrito" class="block w-full mt-3 py-2.5 rounded-lg bg-[var(--color-macuin-yellow)] hover:bg-amber-500 text-black font-medium text-center transition">Agregar al carrito</a>
                     @endif
                 </div>
             </article>

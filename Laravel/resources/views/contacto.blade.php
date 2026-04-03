@@ -6,7 +6,7 @@
 <div class="container mx-auto px-4 py-12">
     <div class="flex flex-col lg:flex-row justify-between gap-4 mb-8">
         <h1 class="text-3xl font-bold text-gray-900">Contáctanos</h1>
-        <a href="{{ route('catalogo') }}" class="text-amber-600 hover:underline font-medium">Volver al Catálogo</a>
+        <a href="/catalogo" class="text-amber-600 hover:underline font-medium">Volver al Catálogo</a>
     </div>
     <p class="text-gray-600 mb-10">Estamos aquí para ayudarte con tus necesidades automotrices.</p>
 
@@ -51,33 +51,9 @@
             <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-8">
                 <h2 class="text-xl font-semibold text-gray-900 mb-1">Envíanos un Mensaje</h2>
                 <p class="text-gray-500 text-sm mb-6">Responderemos a la brevedad posible</p>
-                <form action="#" method="post" class="space-y-4">
-                    @csrf
-                    <div>
-                        <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
-                        <input type="text" id="nombre" name="nombre" placeholder="Juan Pérez" required class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
-                    </div>
-                    <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
-                        <input type="email" id="email" name="email" placeholder="usuario@ejemplo.com" required class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
-                    </div>
-                    <div>
-                        <label for="telefono" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                        <input type="tel" id="telefono" name="telefono" placeholder="+52 55 1234 5678" class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
-                    </div>
-                    <div>
-                        <label for="asunto" class="block text-sm font-medium text-gray-700 mb-1">Asunto</label>
-                        <input type="text" id="asunto" name="asunto" placeholder="Consulta sobre productos" class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
-                    </div>
-                    <div>
-                        <label for="mensaje" class="block text-sm font-medium text-gray-700 mb-1">Mensaje</label>
-                        <textarea id="mensaje" name="mensaje" rows="4" placeholder="Escribe tu mensaje aquí..." required class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"></textarea>
-                    </div>
-                    <button type="submit" class="w-full bg-[var(--color-macuin-yellow)] hover:bg-amber-500 text-black font-semibold py-3 rounded-lg uppercase text-sm tracking-wide flex items-center justify-center gap-2 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                        Enviar mensaje
-                    </button>
-                </form>
+                <p class="text-sm text-gray-600 border border-dashed border-gray-200 rounded-lg px-4 py-8 text-center bg-gray-50">
+                    Vista estática: aquí irá el formulario de contacto cuando se active la funcionalidad. Usa los datos de la columna izquierda para comunicarte por ahora.
+                </p>
             </div>
         </div>
     </div>
