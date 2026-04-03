@@ -8,15 +8,9 @@
   <!-- HEADER -->
   <div class="mb-4 d-flex justify-content-between align-items-center">
     <div>
-      <h2 class="fw-bold" style="color:#111827;">Panel de Administrador</h2>
-      <p class="text-muted mb-0">Bienvenido, {{ session.get('user_name') }} &mdash; <span style="color:#6366f1;">Módulo Administrador</span></p>
+      <h2 class="fw-bold" style="color:#111827;">Panel de Almacén</h2>
+      <p class="text-muted mb-0">Bienvenido, {{ session.get('user_name') }} &mdash; <span style="color:#f59e0b;">Módulo Almacén</span></p>
     </div>
-    <select class="form-select w-auto" id="filtro-tiempo">
-      <option>Hoy</option>
-      <option>Semana</option>
-      <option selected>Mes</option>
-      <option>Año</option>
-    </select>
   </div>
 
   <!-- KPI CARDS -->
@@ -26,13 +20,13 @@
       <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div class="rounded-3 p-3 d-flex align-items-center justify-content-center"
-               style="background:#6366f1;width:45px;height:45px;">
-            <i class="fas fa-users text-white"></i>
+               style="background:#f59e0b;width:45px;height:45px;">
+            <i class="fas fa-cubes text-white"></i>
           </div>
-          <span class="badge rounded-pill text-success" style="background:#d1fae5;">+2 nuevos</span>
+          <span class="badge rounded-pill text-success" style="background:#d1fae5;">SKUs</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">Usuarios Activos</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">18</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">SKUs en Stock</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;" id="kpiSKUs">—</h3>
       </div>
     </div>
 
@@ -41,12 +35,12 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div class="rounded-3 p-3 d-flex align-items-center justify-content-center"
                style="background:#10b981;width:45px;height:45px;">
-            <i class="fas fa-cogs text-white"></i>
+            <i class="fas fa-map-signs text-white"></i>
           </div>
-          <span class="badge rounded-pill text-success" style="background:#d1fae5;">+45</span>
+          <span class="badge rounded-pill text-success" style="background:#d1fae5;">Activas</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">SKUs en Catálogo</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">1,248</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Ubicaciones Asignadas</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;" id="kpiUbicaciones">—</h3>
       </div>
     </div>
 
@@ -54,13 +48,13 @@
       <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div class="rounded-3 p-3 d-flex align-items-center justify-content-center"
-               style="background:#f59e0b;width:45px;height:45px;">
-            <i class="fas fa-shopping-cart text-white"></i>
+               style="background:#3b82f6;width:45px;height:45px;">
+            <i class="fas fa-dolly text-white"></i>
           </div>
-          <span class="badge rounded-pill text-warning" style="background:#fef3c7;">Este mes</span>
+          <span class="badge rounded-pill text-warning" style="background:#fef3c7;">Pendientes</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">Pedidos Totales</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">342</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Pedidos por Surtir</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;" id="kpiPedidos">—</h3>
       </div>
     </div>
 
@@ -68,13 +62,13 @@
       <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div class="rounded-3 p-3 d-flex align-items-center justify-content-center"
-               style="background:#8b5cf6;width:45px;height:45px;">
-            <i class="fas fa-sliders-h text-white"></i>
+               style="background:#ef4444;width:45px;height:45px;">
+            <i class="fas fa-exclamation-triangle text-white"></i>
           </div>
-          <span class="badge rounded-pill text-info" style="background:#e0e7ff;">Activa</span>
+          <span class="badge rounded-pill text-danger" style="background:#fee2e2;">Alerta</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">Configuraciones</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">12</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Stock Bajo Mínimo</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;" id="kpiStockBajo">—</h3>
       </div>
     </div>
 
@@ -85,18 +79,18 @@
 
     <div class="col-md-7">
       <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
-        <h6 class="fw-bold mb-4">Pedidos por Mes</h6>
+        <h6 class="fw-bold mb-4">Stock por Pieza (Top 10)</h6>
         <div style="position:relative;height:250px;">
-          <canvas id="pedidosChart"></canvas>
+          <canvas id="inventarioChart"></canvas>
         </div>
       </div>
     </div>
 
     <div class="col-md-5">
       <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
-        <h6 class="fw-bold mb-4">Distribución de Roles</h6>
+        <h6 class="fw-bold mb-4">Estado de Pedidos en Almacén</h6>
         <div style="position:relative;height:250px;">
-          <canvas id="rolesChart"></canvas>
+          <canvas id="pedidosChart"></canvas>
         </div>
       </div>
     </div>
@@ -111,96 +105,74 @@
       <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
         <h6 class="fw-bold mb-4"><i class="fas fa-bolt text-warning me-2"></i>Accesos Rápidos</h6>
 
-        <a href="{{ url_for('admin_usuarios') }}"
-           class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
-           style="background:#ede9fe;color:#6366f1;transition:background 0.2s;"
-           onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='#ede9fe'">
-          <i class="fas fa-users fa-lg"></i>
-          <div>
-            <div class="fw-bold" style="font-size:0.9rem;">Usuarios Internos</div>
-            <small class="text-muted">Alta, edición y baja de empleados</small>
-          </div>
-        </a>
-
-        <a href="{{ url_for('admin_catalogo') }}"
-           class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
-           style="background:#ecfdf5;color:#10b981;transition:background 0.2s;"
-           onmouseover="this.style.background='#d1fae5'" onmouseout="this.style.background='#ecfdf5'">
-          <i class="fas fa-cogs fa-lg"></i>
-          <div>
-            <div class="fw-bold" style="font-size:0.9rem;">Catálogo Maestro</div>
-            <small class="text-muted">Autopartes, marcas y categorías</small>
-          </div>
-        </a>
-
-        <a href="{{ url_for('admin_configuracion') }}"
-           class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
-           style="background:#f5f3ff;color:#8b5cf6;transition:background 0.2s;"
-           onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">
-          <i class="fas fa-sliders-h fa-lg"></i>
-          <div>
-            <div class="fw-bold" style="font-size:0.9rem;">Configuración</div>
-            <small class="text-muted">Roles, estatus y parámetros</small>
-          </div>
-        </a>
-
-        <a href="{{ url_for('admin_pedidos') }}"
+        <a href="{{ url_for('almacen_inventario') }}"
            class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
            style="background:#fef3c7;color:#d97706;transition:background 0.2s;"
            onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'">
-          <i class="fas fa-clipboard-list fa-lg"></i>
+          <i class="fas fa-cubes fa-lg"></i>
           <div>
-            <div class="fw-bold" style="font-size:0.9rem;">Pedidos</div>
-            <small class="text-muted">Vista general de todos los pedidos</small>
+            <div class="fw-bold" style="font-size:0.9rem;">Gestionar Inventario</div>
+            <small class="text-muted">Ajustar stock y registrar mermas</small>
+          </div>
+        </a>
+
+        <a href="{{ url_for('almacen_ubicaciones') }}"
+           class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
+           style="background:#ecfdf5;color:#10b981;transition:background 0.2s;"
+           onmouseover="this.style.background='#d1fae5'" onmouseout="this.style.background='#ecfdf5'">
+          <i class="fas fa-map-signs fa-lg"></i>
+          <div>
+            <div class="fw-bold" style="font-size:0.9rem;">Ubicaciones</div>
+            <small class="text-muted">Administrar pasillos y estantes</small>
+          </div>
+        </a>
+
+        <a href="{{ url_for('almacen_pedidos') }}"
+           class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
+           style="background:#eff6ff;color:#3b82f6;transition:background 0.2s;"
+           onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+          <i class="fas fa-dolly fa-lg"></i>
+          <div>
+            <div class="fw-bold" style="font-size:0.9rem;">Pedidos a Surtir</div>
+            <small class="text-muted">Ver y actualizar estatus de surtido</small>
+          </div>
+        </a>
+
+        <a href="{{ url_for('almacen_autopartes') }}"
+           class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
+           style="background:#f5f3ff;color:#8b5cf6;transition:background 0.2s;"
+           onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">
+          <i class="fas fa-cogs fa-lg"></i>
+          <div>
+            <div class="fw-bold" style="font-size:0.9rem;">Autopartes</div>
+            <small class="text-muted">Consultar especificaciones de piezas</small>
           </div>
         </a>
 
       </div>
     </div>
 
-    <!-- Actividad reciente -->
+    <!-- Inventario con stock bajo -->
     <div class="col-md-8">
       <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h6 class="fw-bold mb-0"><i class="fas fa-history text-indigo me-2" style="color:#6366f1;"></i>Actividad Reciente del Sistema</h6>
-          <a href="{{ url_for('admin_usuarios') }}" class="btn btn-sm btn-outline-secondary">Ver usuarios</a>
+          <h6 class="fw-bold mb-0"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Piezas con Stock Bajo</h6>
+          <a href="{{ url_for('almacen_inventario') }}" class="btn btn-sm btn-outline-warning">Ver inventario</a>
         </div>
 
         <div class="table-responsive">
-          <table class="table table-borderless align-middle">
+          <table class="table table-borderless align-middle" id="tablaStockBajo">
             <thead class="text-muted" style="font-size:0.82rem;">
               <tr>
-                <th>Acción</th>
-                <th>Usuario</th>
-                <th>Módulo</th>
-                <th>Fecha</th>
+                <th>SKU</th>
+                <th>Descripción</th>
+                <th>Stock</th>
+                <th>Mínimo</th>
+                <th>Ubicación</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td><span class="badge bg-success bg-opacity-10 text-success">Alta</span></td>
-                <td>Frank Contreras</td>
-                <td class="text-muted">Usuarios</td>
-                <td class="text-muted">15/03/2026</td>
-              </tr>
-              <tr>
-                <td><span class="badge bg-primary bg-opacity-10 text-primary">Edición</span></td>
-                <td>Frank Contreras</td>
-                <td class="text-muted">Catálogo</td>
-                <td class="text-muted">14/03/2026</td>
-              </tr>
-              <tr>
-                <td><span class="badge bg-warning bg-opacity-10 text-warning">Cambio</span></td>
-                <td>Frank Contreras</td>
-                <td class="text-muted">Configuración</td>
-                <td class="text-muted">13/03/2026</td>
-              </tr>
-              <tr>
-                <td><span class="badge bg-danger bg-opacity-10 text-danger">Baja</span></td>
-                <td>Frank Contreras</td>
-                <td class="text-muted">Usuarios</td>
-                <td class="text-muted">12/03/2026</td>
-              </tr>
+            <tbody id="bodyStockBajo">
+              <tr><td colspan="5" class="text-center text-muted"><i class="fas fa-spinner fa-spin me-1"></i>Cargando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -213,51 +185,121 @@
 </div>
 
 <script>
-// Pedidos chart
-new Chart(document.getElementById('pedidosChart'), {
-  type: 'bar',
-  data: {
-    labels: ['Oct','Nov','Dic','Ene','Feb','Mar'],
-    datasets: [
-      {
-        label: 'Pedidos',
-        data: [280, 310, 390, 342, 370, 320],
-        backgroundColor: 'rgba(99,102,241,0.75)',
-        borderRadius: 6
-      }
-    ]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      y: { grid: { color: 'rgba(0,0,0,0.04)' } },
-      x: { grid: { display: false } }
-    }
-  }
-});
+let inventarioChart = null;
+let pedidosChart    = null;
 
-// Roles chart
-new Chart(document.getElementById('rolesChart'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Ventas','Almacén','Logística','Admin'],
-    datasets: [{
-      data: [6, 5, 4, 3],
-      backgroundColor: ['#10b981','#f59e0b','#10b981','#6366f1'],
-      borderWidth: 0
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } }
-    },
-    cutout: '65%'
+async function cargarDashboard() {
+  try {
+    const [resInv, resPed, resAuto, resEst] = await Promise.all([
+      fetch('/api/inventarios'),
+      fetch('/api/pedidos'),
+      fetch('/api/autopartes'),
+      fetch('/api/estatus_pedido'),
+    ]);
+
+    const inventario = resInv.ok  ? await resInv.json()  : [];
+    const pedidos    = resPed.ok  ? await resPed.json()  : [];
+    const autopartesArr = resAuto.ok ? await resAuto.json() : [];
+    const estatuses  = resEst.ok  ? await resEst.json()  : [];
+
+    // Mapas
+    const autoMap   = {};
+    autopartesArr.forEach(a => { autoMap[a.id] = {sku: a.sku_codigo, nombre: a.nombre}; });
+    const estatusMap = {};
+    estatuses.forEach(e => { estatusMap[e.id] = e.nombre; });
+
+    // ── KPIs ──────────────────────────────────────────────────────
+    document.getElementById('kpiSKUs').textContent       = inventario.length;
+    document.getElementById('kpiUbicaciones').textContent = inventario.filter(i => i.pasillo).length;
+    document.getElementById('kpiStockBajo').textContent  = inventario.filter(i => i.stock_actual < i.stock_minimo).length;
+
+    const pendienteId = estatuses.find(e => e.nombre === 'Pendiente')?.id;
+    const surtId      = estatuses.find(e => e.nombre === 'Surtiendo')?.id;
+    const pPendientes = pedidos.filter(p => p.estatus_id === pendienteId || p.estatus_id === surtId).length;
+    document.getElementById('kpiPedidos').textContent = pPendientes;
+
+    // ── Tabla stock bajo ─────────────────────────────────────────
+    const stockBajo = inventario.filter(i => i.stock_actual < i.stock_minimo);
+    document.getElementById('bodyStockBajo').innerHTML = stockBajo.length === 0
+      ? '<tr><td colspan="5" class="text-center text-success py-3"><i class="fas fa-check me-2"></i>Sin alertas de stock por ahora</td></tr>'
+      : stockBajo.map(i => {
+          const a   = autoMap[i.autoparte_id] || {};
+          const ubi = [i.pasillo, i.estante, i.nivel].filter(Boolean).join('-') || '—';
+          return `<tr>
+            <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">${a.sku || i.autoparte_id}</code></td>
+            <td>${a.nombre || '—'}</td>
+            <td><span class="badge bg-danger bg-opacity-10 text-danger fw-bold">${i.stock_actual} ⚠</span></td>
+            <td class="text-muted">${i.stock_minimo}</td>
+            <td class="text-muted">${ubi}</td>
+          </tr>`;
+        }).join('');
+
+    // ── Chart: stock por pieza (top 10) ─────────────────────────
+    const top10 = [...inventario]
+      .sort((a, b) => b.stock_actual - a.stock_actual)
+      .slice(0, 10);
+    const labelsInv = top10.map(i => (autoMap[i.autoparte_id]?.sku || `ID${i.autoparte_id}`));
+    const dataInv   = top10.map(i => i.stock_actual);
+
+    if (inventarioChart) inventarioChart.destroy();
+    inventarioChart = new Chart(document.getElementById('inventarioChart'), {
+      type: 'bar',
+      data: {
+        labels: labelsInv,
+        datasets: [{
+          label: 'Stock',
+          data: dataInv,
+          backgroundColor: 'rgba(16,185,129,0.75)',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { grid: { color: 'rgba(0,0,0,0.04)' } },
+          x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+        }
+      }
+    });
+
+    // ── Chart: pedidos por estatus ───────────────────────────────
+    const conteoPedidos = {};
+    estatuses.forEach(e => { conteoPedidos[e.nombre] = 0; });
+    pedidos.forEach(p => {
+      const nombre = estatusMap[p.estatus_id] || 'Otro';
+      conteoPedidos[nombre] = (conteoPedidos[nombre] || 0) + 1;
+    });
+    const labelsPed = Object.keys(conteoPedidos).filter(k => conteoPedidos[k] > 0);
+    const dataPed   = labelsPed.map(k => conteoPedidos[k]);
+    const colorMap  = {
+      'Pendiente':'#3b82f6','Surtiendo':'#f59e0b','Empacado':'#10b981',
+      'Enviado':'#9ca3af','Entregado':'#6b7280','Cancelado':'#ef4444'
+    };
+    const bgPed = labelsPed.map(k => colorMap[k] || '#9ca3af');
+
+    if (pedidosChart) pedidosChart.destroy();
+    pedidosChart = new Chart(document.getElementById('pedidosChart'), {
+      type: 'doughnut',
+      data: {
+        labels: labelsPed,
+        datasets: [{ data: dataPed, backgroundColor: bgPed, borderWidth: 0 }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } } },
+        cutout: '65%'
+      }
+    });
+
+  } catch(e) {
+    console.error('Error cargando dashboard:', e);
   }
-});
+}
+
+document.addEventListener('DOMContentLoaded', cargarDashboard);
 </script>
 
 {% endblock %}

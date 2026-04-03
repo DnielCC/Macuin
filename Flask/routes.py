@@ -1,8 +1,64 @@
 from flask import render_template, redirect, url_for, request, session, jsonify
+import requests
+import os
+
+# ─── Configuración de la API ────────────────────────────────────────────────
+API_BASE = os.getenv("API_BASE_URL", "http://localhost:8000")
+API_USER = os.getenv("API_USER", "alidaniel")
+API_PASS = os.getenv("API_PASS", "123456")
+API_AUTH = (API_USER, API_PASS)
+
+
+def api_get(path, params=None):
+    """GET sin autenticación (endpoints públicos de lectura)."""
+    try:
+        r = requests.get(f"{API_BASE}{path}", params=params, timeout=5)
+        r.raise_for_status()
+        return r.json(), None
+    except requests.RequestException as e:
+        return None, str(e)
+
+
+def api_get_auth(path, params=None):
+    """GET con autenticación básica."""
+    try:
+        r = requests.get(f"{API_BASE}{path}", params=params, auth=API_AUTH, timeout=5)
+        r.raise_for_status()
+        return r.json(), None
+    except requests.RequestException as e:
+        return None, str(e)
+
+
+def api_post(path, data):
+    try:
+        r = requests.post(f"{API_BASE}{path}", json=data, timeout=5)
+        r.raise_for_status()
+        return r.json(), None
+    except requests.RequestException as e:
+        return None, str(e)
+
+
+def api_put(path, data):
+    try:
+        r = requests.put(f"{API_BASE}{path}", json=data, auth=API_AUTH, timeout=5)
+        r.raise_for_status()
+        return r.json(), None
+    except requests.RequestException as e:
+        return None, str(e)
+
+
+def api_delete(path):
+    try:
+        r = requests.delete(f"{API_BASE}{path}", auth=API_AUTH, timeout=5)
+        r.raise_for_status()
+        return r.json(), None
+    except requests.RequestException as e:
+        return None, str(e)
+
 
 def register_routes(app):
 
-    # Base de datos simulada
+    # Base de datos simulada de empleados (login local — no es parte del CRUD de la API)
     USUARIOS = {
         "admin": {
             "nombre": "Frank Contreras",
@@ -55,7 +111,6 @@ def register_routes(app):
                     session['user_role']  = user["rol"]
                     print(f"LOGIN SUCCESS: {perfil}", flush=True)
 
-                    # Redirige según rol
                     if user["rol"] == "Ventas":
                         return redirect(url_for('ventas_dashboard'))
                     if user["rol"] == "Logística":
@@ -84,7 +139,6 @@ def register_routes(app):
     def index():
         if requiere_login():
             return redirect(url_for('login'))
-        # Cada rol va a su propio dashboard
         if session.get('user_role') == 'Ventas':
             return redirect(url_for('ventas_dashboard'))
         if session.get('user_role') == 'Logística':
@@ -104,7 +158,7 @@ def register_routes(app):
             return redirect(url_for('index'))
         return render_template('inventory.html')
 
-    # -------- USUARIOS INTERNOS (legacy - dejado para compatibilidad) --------
+    # -------- USUARIOS INTERNOS (legacy) --------
     @app.route('/users')
     def users():
         if requiere_login():
@@ -133,7 +187,6 @@ def register_routes(app):
             return redirect(url_for('index'))
         return None
 
-    # -------- ADMIN DASHBOARD --------
     @app.route('/admin')
     @app.route('/admin/dashboard')
     def admin_dashboard():
@@ -142,7 +195,6 @@ def register_routes(app):
             return redir
         return render_template('admin_dashboard.html')
 
-    # -------- ADMIN: USUARIOS INTERNOS (CRUD) --------
     @app.route('/admin/usuarios', methods=['GET'])
     def admin_usuarios():
         redir = solo_admin()
@@ -152,51 +204,50 @@ def register_routes(app):
 
     @app.route('/admin/usuarios/nuevo', methods=['POST'])
     def admin_usuarios_nuevo():
-        """Da de alta a un nuevo empleado."""
         redir = solo_admin()
         if redir:
             return redir
-        nombre   = request.form.get('nombre', '').strip()
-        correo   = request.form.get('correo', '').strip()
-        rol      = request.form.get('rol', '').strip()
-        password = request.form.get('password', '').strip()
-        # → Aquí se conectará con el API de Laravel (POST /api/usuarios)
+        data = {
+            "nombre":       request.form.get('nombre', '').strip(),
+            "apellidos":    request.form.get('apellidos', '').strip(),
+            "email":        request.form.get('correo', '').strip(),
+            "password_hash": request.form.get('password', '').strip(),
+            "telefono":     request.form.get('telefono', '').strip() or None,
+            "rol_id":       int(request.form.get('rol_id', 1)),
+            "activo":       True,
+        }
+        api_post("/v1/usuarios/", data)
         return redirect(url_for('admin_usuarios'))
 
-    @app.route('/admin/usuarios/<usuario_id>/editar', methods=['GET', 'POST'])
+    @app.route('/admin/usuarios/<int:usuario_id>/editar', methods=['GET', 'POST'])
     def admin_usuarios_editar(usuario_id):
-        """Edita nombre, correo o rol del empleado."""
         redir = solo_admin()
         if redir:
             return redir
         if request.method == 'POST':
-            nombre = request.form.get('nombre', '').strip()
-            correo = request.form.get('correo', '').strip()
-            rol    = request.form.get('rol', '').strip()
-            # → Aquí se conectará con el API de Laravel (PUT /api/usuarios/{id})
+            data = {
+                "nombre":       request.form.get('nombre', '').strip(),
+                "apellidos":    request.form.get('apellidos', '').strip(),
+                "email":        request.form.get('correo', '').strip(),
+                "password_hash": request.form.get('password', '').strip(),
+                "rol_id":       int(request.form.get('rol_id', 1)),
+                "activo":       True,
+            }
+            api_put(f"/v1/usuarios/{usuario_id}", data)
             return redirect(url_for('admin_usuarios'))
         return render_template('admin_usuarios.html')
 
-    @app.route('/admin/usuarios/<usuario_id>/reset', methods=['POST'])
-    def admin_usuarios_reset(usuario_id):
-        """Resetea la contraseña del empleado."""
-        redir = solo_admin()
-        if redir:
-            return redir
-        nueva_password = request.form.get('password', '').strip()
-        # → Aquí se conectará con el API de Laravel (PATCH /api/usuarios/{id}/reset)
-        return redirect(url_for('admin_usuarios'))
-
-    @app.route('/admin/usuarios/<usuario_id>/baja', methods=['POST'])
+    @app.route('/admin/usuarios/<int:usuario_id>/baja', methods=['POST'])
     def admin_usuarios_baja(usuario_id):
-        """Soft delete: marca al usuario como Inactivo. Nunca elimina registros."""
         redir = solo_admin()
         if redir:
             return redir
-        # → Aquí se conectará con el API de Laravel (PATCH /api/usuarios/{id}/baja)
+        usuario, _ = api_get(f"/v1/usuarios/{usuario_id}")
+        if usuario:
+            usuario['activo'] = False
+            api_put(f"/v1/usuarios/{usuario_id}", usuario)
         return redirect(url_for('admin_usuarios'))
 
-    # -------- ADMIN: CATÁLOGO MAESTRO (CRUD) --------
     @app.route('/admin/catalogo', methods=['GET'])
     def admin_catalogo():
         redir = solo_admin()
@@ -206,41 +257,43 @@ def register_routes(app):
 
     @app.route('/admin/catalogo/nuevo', methods=['POST'])
     def admin_catalogo_nuevo():
-        """Crea una nueva autoparte en el catálogo maestro."""
         redir = solo_admin()
         if redir:
             return redir
-        id       = request.form.get('id', '').strip()
-        nombre    = request.form.get('nombre', '').strip()
-        categoria = request.form.get('categoria', '').strip()
-        marca     = request.form.get('marca', '').strip()
-        precio    = request.form.get('precio', 0)
-        # → Aquí se conectará con el API de Laravel (POST /api/autopartes)
+        data = {
+            "sku_codigo":      request.form.get('id', '').strip(),
+            "nombre":          request.form.get('nombre', '').strip(),
+            "categoria_id":    int(request.form.get('categoria_id', 1)),
+            "marca_id":        int(request.form.get('marca_id', 1)),
+            "precio_unitario": float(request.form.get('precio', 0)),
+        }
+        api_post("/v1/autopartes/", data)
         return redirect(url_for('admin_catalogo'))
 
-    @app.route('/admin/catalogo/<autoparte_id>/editar', methods=['GET', 'POST'])
+    @app.route('/admin/catalogo/<int:autoparte_id>/editar', methods=['GET', 'POST'])
     def admin_catalogo_editar(autoparte_id):
         redir = solo_admin()
         if redir:
             return redir
         if request.method == 'POST':
-            nombre    = request.form.get('nombre', '').strip()
-            categoria = request.form.get('categoria', '').strip()
-            marca     = request.form.get('marca', '').strip()
-            precio    = request.form.get('precio', 0)
-            # → Aquí se conectará con el API de Laravel (PUT /api/autopartes/{id})
+            data = {
+                "nombre":          request.form.get('nombre', '').strip(),
+                "categoria_id":    int(request.form.get('categoria_id', 1)),
+                "marca_id":        int(request.form.get('marca_id', 1)),
+                "precio_unitario": float(request.form.get('precio', 0)),
+            }
+            api_put(f"/v1/autopartes/{autoparte_id}", data)
             return redirect(url_for('admin_catalogo'))
         return render_template('admin_catalogo.html')
 
-    @app.route('/admin/catalogo/<autoparte_id>/eliminar', methods=['POST'])
+    @app.route('/admin/catalogo/<int:autoparte_id>/eliminar', methods=['POST'])
     def admin_catalogo_eliminar(autoparte_id):
         redir = solo_admin()
         if redir:
             return redir
-        # → Aquí se conectará con el API de Laravel (DELETE /api/autopartes/{id})
+        api_delete(f"/v1/autopartes/{autoparte_id}")
         return redirect(url_for('admin_catalogo'))
 
-    # -------- ADMIN: CONFIGURACIÓN (CRUD) --------
     @app.route('/admin/configuracion', methods=['GET'])
     def admin_configuracion():
         redir = solo_admin()
@@ -250,49 +303,47 @@ def register_routes(app):
 
     @app.route('/admin/configuracion/nuevo', methods=['POST'])
     def admin_configuracion_nuevo():
-        """Crea un nuevo rol, estatus o parámetro."""
         redir = solo_admin()
         if redir:
             return redir
-        tipo  = request.form.get('tipo', '').strip()   # 'rol' | 'estatus' | 'parametro'
-        clave = request.form.get('clave', '').strip()
+        tipo  = request.form.get('tipo', '').strip()
         valor = request.form.get('valor', '').strip()
-        # → Aquí se conectará con el API de Laravel
+        if tipo == 'rol':
+            api_post("/v1/roles/", {"nombre_rol": valor})
+        elif tipo == 'estatus':
+            api_post("/v1/estatus_pedido/", {"nombre": valor})
         return redirect(url_for('admin_configuracion'))
 
-    @app.route('/admin/configuracion/<config_id>/editar', methods=['GET', 'POST'])
+    @app.route('/admin/configuracion/<int:config_id>/editar', methods=['GET', 'POST'])
     def admin_configuracion_editar(config_id):
         redir = solo_admin()
         if redir:
             return redir
         if request.method == 'POST':
-            clave = request.form.get('clave', '').strip()
+            tipo  = request.form.get('tipo', '').strip()
             valor = request.form.get('valor', '').strip()
-            # → Aquí se conectará con el API de Laravel (PUT /api/configuracion/{id})
+            if tipo == 'rol':
+                api_put(f"/v1/roles/{config_id}", {"nombre_rol": valor})
             return redirect(url_for('admin_configuracion'))
         return render_template('admin_configuracion.html')
 
-    @app.route('/admin/configuracion/<config_id>/eliminar', methods=['POST'])
+    @app.route('/admin/configuracion/<int:config_id>/eliminar', methods=['POST'])
     def admin_configuracion_eliminar(config_id):
         redir = solo_admin()
         if redir:
             return redir
-        # → Aquí se conectará con el API de Laravel (DELETE /api/configuracion/{id})
+        tipo = request.form.get('tipo', '').strip()
+        if tipo == 'rol':
+            api_delete(f"/v1/roles/{config_id}")
         return redirect(url_for('admin_configuracion'))
 
-    # -------- ADMIN: PEDIDOS (Solo lectura) --------
     @app.route('/admin/pedidos', methods=['GET'])
     def admin_pedidos():
-        """Vista de solo lectura para todos los pedidos del sistema."""
         redir = solo_admin()
         if redir:
             return redir
-        # → Aquí se conectará con el API de Laravel (GET /api/pedidos)
         return render_template('admin_pedidos.html')
 
-
-
-    # -------- CATALOGO LOGISTICA --------
     @app.route('/catalog')
     def catalog():
         if requiere_login():
@@ -312,7 +363,6 @@ def register_routes(app):
             return redirect(url_for('index'))
         return None
 
-    # -------- VENTAS DASHBOARD --------
     @app.route('/ventas')
     @app.route('/ventas/dashboard')
     def ventas_dashboard():
@@ -321,41 +371,49 @@ def register_routes(app):
             return redir
         return render_template('ventas_dashboard.html')
 
-    # -------- VENTAS: CLIENTES (CRUD externo) --------
     @app.route('/ventas/clientes', methods=['GET', 'POST'])
     def ventas_clientes():
         redir = solo_ventas()
         if redir:
             return redir
         if request.method == 'POST':
-            nombre   = request.form.get('nombre', '').strip()
-            correo   = request.form.get('correo', '').strip()
-            telefono = request.form.get('telefono', '').strip()
-            # → Aquí se conectará con el API de Laravel para persistir
+            data = {
+                "nombre":        request.form.get('nombre', '').strip(),
+                "apellidos":     request.form.get('apellidos', '').strip(),
+                "email":         request.form.get('correo', '').strip(),
+                "telefono":      request.form.get('telefono', '').strip() or None,
+                "password_hash": "temporal",
+                "rol_id":        3,
+                "activo":        True,
+            }
+            api_post("/v1/usuarios/", data)
             return redirect(url_for('ventas_clientes'))
         return render_template('ventas_clientes.html')
 
-    @app.route('/ventas/clientes/<cliente_id>/editar', methods=['GET', 'POST'])
+    @app.route('/ventas/clientes/<int:cliente_id>/editar', methods=['GET', 'POST'])
     def ventas_clientes_editar(cliente_id):
         redir = solo_ventas()
         if redir:
             return redir
         if request.method == 'POST':
-            nuevo_correo = request.form.get('correo', '').strip()
-            # → Aquí se conectará con el API de Laravel (PUT /api/clientes/{id})
+            cliente, _ = api_get(f"/v1/usuarios/{cliente_id}")
+            if cliente:
+                cliente['email'] = request.form.get('correo', '').strip()
+                api_put(f"/v1/usuarios/{cliente_id}", cliente)
             return redirect(url_for('ventas_clientes'))
         return render_template('ventas_clientes.html')
 
-    @app.route('/ventas/clientes/<cliente_id>/baja', methods=['POST'])
+    @app.route('/ventas/clientes/<int:cliente_id>/baja', methods=['POST'])
     def ventas_clientes_baja(cliente_id):
-        """Soft delete: marca al cliente como Inactivo. Nunca elimina registros."""
         redir = solo_ventas()
         if redir:
             return redir
-        # → Aquí se conectará con el API de Laravel (PATCH /api/clientes/{id}/baja)
+        cliente, _ = api_get(f"/v1/usuarios/{cliente_id}")
+        if cliente:
+            cliente['activo'] = False
+            api_put(f"/v1/usuarios/{cliente_id}", cliente)
         return redirect(url_for('ventas_clientes'))
 
-    # -------- VENTAS: PEDIDOS (CRU — sin Delete) --------
     @app.route('/ventas/pedidos', methods=['GET'])
     def ventas_pedidos():
         redir = solo_ventas()
@@ -369,35 +427,39 @@ def register_routes(app):
         if redir:
             return redir
         if request.method == 'POST':
-            cliente_id = request.form.get('cliente_id')
-            direccion  = request.form.get('direccion', '').strip()
-            piezas     = request.form.getlist('pieza_codigo')
-            cantidades = request.form.getlist('pieza_cantidad')
-            # → Aquí se conectará con el API de Laravel (POST /api/pedidos)
+            data = {
+                "usuario_id":       int(request.form.get('cliente_id', 1)),
+                "estatus_id":       1,
+                "total":            0.00,
+                "direccion_envio_id": int(request.form.get('direccion_id', 1)),
+            }
+            api_post("/v1/pedidos/", data)
             return redirect(url_for('ventas_pedidos'))
         return render_template('ventas_pedidos.html')
 
-    @app.route('/ventas/pedidos/<pedido_id>/editar', methods=['GET', 'POST'])
+    @app.route('/ventas/pedidos/<int:pedido_id>/editar', methods=['GET', 'POST'])
     def ventas_pedido_editar(pedido_id):
-        """Permite actualizar dirección o CANCELAR. NUNCA borrar."""
         redir = solo_ventas()
         if redir:
             return redir
         if request.method == 'POST':
-            accion    = request.form.get('accion')          # 'direccion' | 'cancelar'
-            direccion = request.form.get('direccion', '').strip()
-            motivo    = request.form.get('motivo', '').strip()
-            # → Aquí se conectará con el API de Laravel (PATCH /api/pedidos/{id})
+            pedido, _ = api_get(f"/v1/pedidos/{pedido_id}")
+            if pedido:
+                accion = request.form.get('accion')
+                if accion == 'cancelar':
+                    # Estatus de cancelado — buscar el id correspondiente en tu catálogo
+                    pedido['estatus_id'] = int(request.form.get('estatus_cancelado_id', pedido['estatus_id']))
+                elif accion == 'direccion':
+                    pedido['direccion_envio_id'] = int(request.form.get('direccion_id', pedido['direccion_envio_id']))
+                api_put(f"/v1/pedidos/{pedido_id}", pedido)
             return redirect(url_for('ventas_pedidos'))
         return render_template('ventas_pedidos.html')
 
-    # -------- VENTAS: CATÁLOGO (Solo lectura) --------
     @app.route('/ventas/catalogo')
     def ventas_catalogo():
         redir = solo_ventas()
         if redir:
             return redir
-        # → Aquí se puede conectar con el API de Laravel (GET /api/productos)
         return render_template('ventas_catalogo.html')
 
     # ==============================================================
@@ -405,14 +467,12 @@ def register_routes(app):
     # ==============================================================
 
     def solo_logistica():
-        """Helper: devuelve redirect si el usuario NO es Logística."""
         if requiere_login():
             return redirect(url_for('login'))
         if requiere_rol('Logística'):
             return redirect(url_for('index'))
         return None
 
-    # -------- LOGÍSTICA DASHBOARD --------
     @app.route('/logistica')
     @app.route('/logistica/dashboard')
     def logistica_dashboard():
@@ -421,7 +481,6 @@ def register_routes(app):
             return redir
         return render_template('logistica_dashboard.html')
 
-    # -------- LOGÍSTICA: ENVÍOS (R U — solo estatus ENVIADO / ENTREGADO) --------
     @app.route('/logistica/envios', methods=['GET'])
     def logistica_envios():
         redir = solo_logistica()
@@ -429,29 +488,27 @@ def register_routes(app):
             return redir
         return render_template('logistica_envios.html')
 
-    @app.route('/logistica/envios/<pedido_id>/estatus', methods=['POST'])
+    @app.route('/logistica/envios/<int:pedido_id>/estatus', methods=['POST'])
     def logistica_envios_estatus(pedido_id):
-        """Solo permite actualizar estatus a ENVIADO o ENTREGADO."""
         redir = solo_logistica()
         if redir:
             return redir
         nuevo_estatus = request.form.get('estatus', '').strip()
-        # Validación: únicamente los dos estatus permitidos
         if nuevo_estatus not in ('Enviado', 'Entregado'):
             return redirect(url_for('logistica_envios'))
-        # → Aquí se conectará con el API de Laravel (PATCH /api/pedidos/{id}/estatus)
+        pedido, _ = api_get(f"/v1/pedidos/{pedido_id}")
+        if pedido:
+            pedido['estatus_id'] = int(request.form.get('estatus_id', pedido['estatus_id']))
+            api_put(f"/v1/pedidos/{pedido_id}", pedido)
         return redirect(url_for('logistica_envios'))
 
-    # -------- LOGÍSTICA: DIRECCIONES (R — solo lectura) --------
     @app.route('/logistica/direcciones')
     def logistica_direcciones():
         redir = solo_logistica()
         if redir:
             return redir
-        # → Aquí se conectará con el API de Laravel (GET /api/pedidos/{id}/direccion)
         return render_template('logistica_direcciones.html')
 
-    # -------- LOGÍSTICA: GUÍAS (CRUD completo) --------
     @app.route('/logistica/guias', methods=['GET'])
     def logistica_guias():
         redir = solo_logistica()
@@ -461,16 +518,10 @@ def register_routes(app):
 
     @app.route('/logistica/guias/nueva', methods=['POST'])
     def logistica_guias_nueva():
-        """Sube un PDF o genera etiqueta de ruta."""
         redir = solo_logistica()
         if redir:
             return redir
-        pedido_id   = request.form.get('pedido_id')
-        paqueteria  = request.form.get('paqueteria', '').strip()
-        rastreo     = request.form.get('rastreo', '').strip()
-        tipo        = request.form.get('tipo', 'PDF')   # 'PDF' | 'Etiqueta'
-        # archivo = request.files.get('pdf_file')       # para manejo de archivo
-        # → Aquí se conectará con el API de Laravel (POST /api/guias)
+        # Guías no tienen endpoint propio en la API — lógica futura
         return redirect(url_for('logistica_guias'))
 
     @app.route('/logistica/guias/<guia_id>/editar', methods=['GET', 'POST'])
@@ -479,19 +530,14 @@ def register_routes(app):
         if redir:
             return redir
         if request.method == 'POST':
-            paqueteria = request.form.get('paqueteria', '').strip()
-            rastreo    = request.form.get('rastreo', '').strip()
-            # → Aquí se conectará con el API de Laravel (PUT /api/guias/{id})
             return redirect(url_for('logistica_guias'))
         return render_template('logistica_guias.html')
 
     @app.route('/logistica/guias/<guia_id>/eliminar', methods=['POST'])
     def logistica_guias_eliminar(guia_id):
-        """Elimina el documento de envío (NO el pedido)."""
         redir = solo_logistica()
         if redir:
             return redir
-        # → Aquí se conectará con el API de Laravel (DELETE /api/guias/{id})
         return redirect(url_for('logistica_guias'))
 
     # ==============================================================
@@ -499,14 +545,12 @@ def register_routes(app):
     # ==============================================================
 
     def solo_almacen():
-        """Helper: devuelve redirect si el usuario NO es Almacén."""
         if requiere_login():
             return redirect(url_for('login'))
         if requiere_rol('Almacén'):
             return redirect(url_for('index'))
         return None
 
-    # -------- ALMACÉN DASHBOARD --------
     @app.route('/almacen')
     @app.route('/almacen/dashboard')
     def almacen_dashboard():
@@ -515,7 +559,6 @@ def register_routes(app):
             return redir
         return render_template('almacen_dashboard.html')
 
-    # -------- ALMACÉN: INVENTARIO (CRU — ajuste de stock y mermas) --------
     @app.route('/almacen/inventario', methods=['GET'])
     def almacen_inventario():
         redir = solo_almacen()
@@ -525,17 +568,23 @@ def register_routes(app):
 
     @app.route('/almacen/inventario/ajustar', methods=['POST'])
     def almacen_inventario_ajustar():
-        """Suma stock (entrada) o resta Stock (merma). Nunca elimina el ID."""
         redir = solo_almacen()
         if redir:
             return redir
-        id       = request.form.get('id', '').strip()
-        tipo      = request.form.get('tipo', '').strip()   # 'entrada' | 'merma'
-        cantidad  = request.form.get('cantidad', 0)
-        # → Aquí se conectará con el API de Laravel (POST /api/inventario/ajustar)
+        inventario_id = int(request.form.get('id', 0))
+        tipo          = request.form.get('tipo', '').strip()   # 'entrada' | 'merma'
+        cantidad      = int(request.form.get('cantidad', 0))
+
+        inv, _ = api_get(f"/v1/inventarios/{inventario_id}")
+        if inv and cantidad > 0:
+            if tipo == 'entrada':
+                inv['stock_actual'] += cantidad
+            elif tipo == 'merma':
+                inv['stock_actual'] = max(0, inv['stock_actual'] - cantidad)
+            api_put(f"/v1/inventarios/{inventario_id}", inv)
+
         return redirect(url_for('almacen_inventario'))
 
-    # -------- ALMACÉN: UBICACIONES (CRUD) --------
     @app.route('/almacen/ubicaciones', methods=['GET'])
     def almacen_ubicaciones():
         redir = solo_almacen()
@@ -548,35 +597,40 @@ def register_routes(app):
         redir = solo_almacen()
         if redir:
             return redir
-        pasillo     = request.form.get('pasillo', '').strip()
-        estante     = request.form.get('estante', '').strip()
-        capacidad   = request.form.get('capacidad', '').strip()
-        descripcion = request.form.get('descripcion', '').strip()
-        # → Aquí se conectará con el API de Laravel (POST /api/ubicaciones)
+        # Las ubicaciones se gestionan como campos en Inventario (pasillo/estante/nivel)
+        # Este endpoint actualiza un inventario existente con nueva ubicación
+        inventario_id = int(request.form.get('inventario_id', 0))
+        inv, _ = api_get(f"/v1/inventarios/{inventario_id}")
+        if inv:
+            inv['pasillo'] = request.form.get('pasillo', '').strip() or None
+            inv['estante'] = request.form.get('estante', '').strip() or None
+            inv['nivel']   = request.form.get('nivel', '').strip() or None
+            api_put(f"/v1/inventarios/{inventario_id}", inv)
         return redirect(url_for('almacen_ubicaciones'))
 
-    @app.route('/almacen/ubicaciones/<ubicacion_id>/editar', methods=['GET', 'POST'])
+    @app.route('/almacen/ubicaciones/<int:ubicacion_id>/editar', methods=['GET', 'POST'])
     def almacen_ubicaciones_editar(ubicacion_id):
         redir = solo_almacen()
         if redir:
             return redir
         if request.method == 'POST':
-            capacidad   = request.form.get('capacidad', '').strip()
-            descripcion = request.form.get('descripcion', '').strip()
-            # → Aquí se conectará con el API de Laravel (PUT /api/ubicaciones/{id})
+            inv, _ = api_get(f"/v1/inventarios/{ubicacion_id}")
+            if inv:
+                inv['pasillo'] = request.form.get('pasillo', inv.get('pasillo', '')).strip() or None
+                inv['estante'] = request.form.get('estante', inv.get('estante', '')).strip() or None
+                inv['nivel']   = request.form.get('nivel',   inv.get('nivel', '')).strip() or None
+                api_put(f"/v1/inventarios/{ubicacion_id}", inv)
             return redirect(url_for('almacen_ubicaciones'))
         return render_template('almacen_ubicaciones.html')
 
-    @app.route('/almacen/ubicaciones/<ubicacion_id>/eliminar', methods=['POST'])
+    @app.route('/almacen/ubicaciones/<int:ubicacion_id>/eliminar', methods=['POST'])
     def almacen_ubicaciones_eliminar(ubicacion_id):
-        """Solo permite si no hay stock asignado a esa ubicación."""
         redir = solo_almacen()
         if redir:
             return redir
-        # → Aquí se conectará con el API de Laravel (DELETE /api/ubicaciones/{id})
+        api_delete(f"/v1/inventarios/{ubicacion_id}")
         return redirect(url_for('almacen_ubicaciones'))
 
-    # -------- ALMACÉN: PEDIDOS (R U — solo estatus SURTIENDO / EMPACADO) --------
     @app.route('/almacen/pedidos', methods=['GET'])
     def almacen_pedidos():
         redir = solo_almacen()
@@ -584,23 +638,172 @@ def register_routes(app):
             return redir
         return render_template('almacen_pedidos.html')
 
-    @app.route('/almacen/pedidos/<pedido_id>/estatus', methods=['POST'])
+    @app.route('/almacen/pedidos/<int:pedido_id>/estatus', methods=['POST'])
     def almacen_pedidos_estatus(pedido_id):
-        """Solo permite actualizar estatus a SURTIENDO o EMPACADO."""
         redir = solo_almacen()
         if redir:
             return redir
         nuevo_estatus = request.form.get('estatus', '').strip()
         if nuevo_estatus not in ('Surtiendo', 'Empacado'):
             return redirect(url_for('almacen_pedidos'))
-        # → Aquí se conectará con el API de Laravel (PATCH /api/pedidos/{id}/estatus)
+        pedido, _ = api_get(f"/v1/pedidos/{pedido_id}")
+        if pedido:
+            pedido['estatus_id'] = int(request.form.get('estatus_id', pedido['estatus_id']))
+            api_put(f"/v1/pedidos/{pedido_id}", pedido)
         return redirect(url_for('almacen_pedidos'))
 
-    # -------- ALMACÉN: AUTOPARTES (Solo lectura) --------
     @app.route('/almacen/autopartes')
     def almacen_autopartes():
         redir = solo_almacen()
         if redir:
             return redir
-        # → Aquí se conectará con el API de Laravel (GET /api/autopartes)
         return render_template('almacen_autopartes.html')
+
+    # ==============================================================
+    # API PROXY — los templates consumen estos endpoints via fetch()
+    # Evita exponer la URL interna de la API ni las credenciales al browser
+    # ==============================================================
+
+    def _check_session():
+        if 'user_id' not in session:
+            return jsonify({"error": "No autenticado"}), 401
+        return None
+
+    # ── Autopartes ──────────────────────────────────────────────
+    @app.route('/api/autopartes')
+    def proxy_autopartes():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get("/v1/autopartes/")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/autopartes/buscar')
+    def proxy_autopartes_buscar():
+        err = _check_session()
+        if err:
+            return err
+        nombre = request.args.get('nombre', '')
+        data, error = api_get("/v1/autopartes/buscar/", params={"nombre": nombre})
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    # ── Inventarios ─────────────────────────────────────────────
+    @app.route('/api/inventarios')
+    def proxy_inventarios():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get("/v1/inventarios/")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/inventarios/<int:inv_id>', methods=['GET'])
+    def proxy_inventario_get(inv_id):
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get(f"/v1/inventarios/{inv_id}")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/inventarios/<int:inv_id>', methods=['PUT'])
+    def proxy_inventario_put(inv_id):
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_put(f"/v1/inventarios/{inv_id}", request.get_json())
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    # ── Pedidos ─────────────────────────────────────────────────
+    @app.route('/api/pedidos')
+    def proxy_pedidos():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get("/v1/pedidos/")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/pedidos/<int:pedido_id>', methods=['GET'])
+    def proxy_pedido_get(pedido_id):
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get(f"/v1/pedidos/{pedido_id}")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/pedidos/<int:pedido_id>', methods=['PUT'])
+    def proxy_pedido_put(pedido_id):
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_put(f"/v1/pedidos/{pedido_id}", request.get_json())
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    # ── Categorías ──────────────────────────────────────────────
+    @app.route('/api/categorias')
+    def proxy_categorias():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get("/v1/categorias/")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    # ── Marcas ──────────────────────────────────────────────────
+    @app.route('/api/marcas')
+    def proxy_marcas():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get("/v1/marcas/")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    # ── Usuarios ────────────────────────────────────────────────
+    @app.route('/api/usuarios')
+    def proxy_usuarios():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get("/v1/usuarios/")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    # ── Estatus de pedido ────────────────────────────────────────
+    @app.route('/api/estatus_pedido')
+    def proxy_estatus_pedido():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get("/v1/estatus_pedido/")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    # ── Direcciones ─────────────────────────────────────────────
+    @app.route('/api/direcciones')
+    def proxy_direcciones():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get("/v1/direcciones/")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)

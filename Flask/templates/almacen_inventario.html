@@ -21,7 +21,7 @@
         <div class="d-flex justify-content-between">
           <div>
             <small class="text-muted">Total SKUs</small>
-            <h3 class="fw-bold" id="kpiTotal">8</h3>
+            <h3 class="fw-bold" id="kpiTotal">—</h3>
           </div>
           <div class="p-3 rounded-3 d-flex align-items-center" style="background:#fef3c7;">
             <i class="fas fa-cubes" style="color:#d97706;"></i>
@@ -33,8 +33,8 @@
       <div class="card border-0 shadow-sm rounded-4 p-3">
         <div class="d-flex justify-content-between">
           <div>
-            <small class="text-muted">Stock Bajo (&lt;10 unid.)</small>
-            <h3 class="fw-bold" id="kpiStockBajo">0</h3>
+            <small class="text-muted">Stock Bajo (&lt;mínimo)</small>
+            <h3 class="fw-bold" id="kpiStockBajo">—</h3>
           </div>
           <div class="p-3 rounded-3 d-flex align-items-center" style="background:#fee2e2;">
             <i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i>
@@ -46,11 +46,11 @@
       <div class="card border-0 shadow-sm rounded-4 p-3">
         <div class="d-flex justify-content-between">
           <div>
-            <small class="text-muted">Mermas Registradas</small>
-            <h3 class="fw-bold" id="kpiMermas">0</h3>
+            <small class="text-muted">Sin Ubicación</small>
+            <h3 class="fw-bold" id="kpiSinUbi">—</h3>
           </div>
           <div class="p-3 rounded-3 d-flex align-items-center" style="background:#ecfdf5;">
-            <i class="fas fa-minus-circle" style="color:#10b981;"></i>
+            <i class="fas fa-map-marker-alt" style="color:#10b981;"></i>
           </div>
         </div>
       </div>
@@ -66,27 +66,25 @@
                placeholder="Buscar SKU o descripción..." oninput="renderTabla()">
         <select class="form-select w-auto" id="filtroUbicacion" onchange="renderTabla()">
           <option value="">Todas las ubicaciones</option>
-          <option>A-01</option><option>A-02</option><option>B-01</option>
-          <option>B-02</option><option>C-01</option>
         </select>
       </div>
-      <small class="text-muted" id="contadorInv">Mostrando 8 piezas</small>
+      <small class="text-muted" id="contadorInv">Cargando...</small>
     </div>
 
     <div class="table-responsive">
       <table class="table align-middle table-hover" id="tablaInv">
         <thead class="table-light">
           <tr>
-            <th>SKU (código_pieza)</th>
+            <th>SKU</th>
             <th>Descripción</th>
             <th>Ubicación</th>
             <th>Stock Actual</th>
-            <th>Último Movimiento</th>
+            <th>Stock Mínimo</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody id="bodyInv">
-          <!-- generado por JS -->
+          <tr><td colspan="6" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Cargando datos desde la API...</td></tr>
         </tbody>
       </table>
     </div>
@@ -131,30 +129,15 @@
             <span>Usa este formulario cuando llega mercancía nueva al almacén. El stock se <strong>sumará</strong> a la cantidad actual.</span>
           </div>
           <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">SKU (código_pieza)</label>
-              <select class="form-select" id="entradaSKU">
+            <div class="col-md-8">
+              <label class="form-label fw-semibold">Pieza (SKU)</label>
+              <select class="form-select" id="entradaInvId">
                 <option value="">Seleccionar pieza…</option>
-                <option value="FRE-001">FRE-001 — Disco de Freno Delantero</option>
-                <option value="FRE-009">FRE-009 — Pastilla de Freno</option>
-                <option value="SUS-014">SUS-014 — Amortiguador Trasero</option>
-                <option value="MOT-088">MOT-088 — Filtro de Aceite</option>
-                <option value="MOT-032">MOT-032 — Bujía de Encendido</option>
-                <option value="ELE-005">ELE-005 — Batería 12V</option>
-                <option value="LUB-021">LUB-021 — Aceite Motor 5W-30</option>
-                <option value="SUS-007">SUS-007 — Rótula de Dirección</option>
               </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
               <label class="form-label fw-semibold">Cantidad a Ingresar</label>
               <input type="number" class="form-control" id="entradaCantidad" placeholder="Ej. 50" min="1">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label fw-semibold">Ubicación</label>
-              <select class="form-select" id="entradaUbicacion">
-                <option>A-01</option><option>A-02</option><option>B-01</option>
-                <option>B-02</option><option>C-01</option>
-              </select>
             </div>
             <div class="col-12">
               <label class="form-label fw-semibold">Número de Remisión / Factura (opcional)</label>
@@ -170,25 +153,17 @@
             <span>Registra piezas dañadas, rotas o faltantes. El stock se <strong>restará</strong>. Esta acción queda en el historial de mermas.</span>
           </div>
           <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">SKU (código_pieza)</label>
-              <select class="form-select" id="mermaSKU">
+            <div class="col-md-8">
+              <label class="form-label fw-semibold">Pieza (SKU)</label>
+              <select class="form-select" id="mermaInvId">
                 <option value="">Seleccionar pieza…</option>
-                <option value="FRE-001">FRE-001 — Disco de Freno Delantero</option>
-                <option value="FRE-009">FRE-009 — Pastilla de Freno</option>
-                <option value="SUS-014">SUS-014 — Amortiguador Trasero</option>
-                <option value="MOT-088">MOT-088 — Filtro de Aceite</option>
-                <option value="MOT-032">MOT-032 — Bujía de Encendido</option>
-                <option value="ELE-005">ELE-005 — Batería 12V</option>
-                <option value="LUB-021">LUB-021 — Aceite Motor 5W-30</option>
-                <option value="SUS-007">SUS-007 — Rótula de Dirección</option>
               </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
               <label class="form-label fw-semibold">Cantidad Afectada</label>
               <input type="number" class="form-control" id="mermaCantidad" placeholder="Ej. 3" min="1">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-6">
               <label class="form-label fw-semibold">Motivo</label>
               <select class="form-select" id="mermaMotivo">
                 <option>Pieza rota</option>
@@ -216,7 +191,7 @@
   </div>
 </div>
 
-<!-- ═══════════════ MODAL: EDITAR UBICACIÓN DE PIEZA ═══════════════ -->
+<!-- ═══════════════ MODAL: EDITAR UBICACIÓN ═══════════════ -->
 <div class="modal fade" id="modalEditar" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content border-0 shadow rounded-4">
@@ -226,16 +201,23 @@
       </div>
       <div class="modal-body">
         <p class="text-muted mb-3">SKU: <strong id="editSKU"></strong> — <span id="editDesc"></span></p>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Ubicación en Almacén</label>
-          <select class="form-select" id="editUbicacion">
-            <option>A-01</option><option>A-02</option><option>B-01</option>
-            <option>B-02</option><option>C-01</option>
-          </select>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Notas de Almacenamiento</label>
-          <textarea class="form-control" id="editNotas" rows="2" placeholder="Ej. Mantener en seco, frágil…"></textarea>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Pasillo</label>
+            <input type="text" class="form-control" id="editPasillo" placeholder="Ej. A" maxlength="10">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Estante</label>
+            <input type="text" class="form-control" id="editEstante" placeholder="Ej. 01" maxlength="10">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Nivel</label>
+            <input type="text" class="form-control" id="editNivel" placeholder="Ej. 2" maxlength="10">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Stock Mínimo</label>
+            <input type="number" class="form-control" id="editStockMin" min="0">
+          </div>
         </div>
       </div>
       <div class="modal-footer border-0 pt-0">
@@ -252,27 +234,61 @@
 
 {% block scripts %}
 <script>
-/* ─── Estado en memoria ─── */
-let inventario = [
-  {sku:"FRE-001", descripcion:"Disco de Freno Delantero",    ubicacion:"A-01", stock:48,  fecha:"14/03/2026", mermas:0},
-  {sku:"FRE-009", descripcion:"Pastilla de Freno",           ubicacion:"A-01", stock:124, fecha:"12/03/2026", mermas:3},
-  {sku:"SUS-014", descripcion:"Amortiguador Trasero",        ubicacion:"A-02", stock:31,  fecha:"14/03/2026", mermas:0},
-  {sku:"MOT-088", descripcion:"Filtro de Aceite",            ubicacion:"B-01", stock:210, fecha:"13/03/2026", mermas:0},
-  {sku:"MOT-032", descripcion:"Bujía de Encendido",          ubicacion:"B-02", stock:88,  fecha:"10/03/2026", mermas:0},
-  {sku:"ELE-005", descripcion:"Batería 12V",                 ubicacion:"C-01", stock:14,  fecha:"09/03/2026", mermas:0},
-  {sku:"LUB-021", descripcion:"Aceite Motor 5W-30",          ubicacion:"B-01", stock:73,  fecha:"11/03/2026", mermas:0},
-  {sku:"SUS-007", descripcion:"Rótula de Dirección",         ubicacion:"A-02", stock:22,  fecha:"08/03/2026", mermas:0},
-];
+/* ─── Estado ─── */
+let inventario  = [];
+let autopartes  = {};   // id → {sku_codigo, nombre}
+let itemActivo  = null;
+let tabActiva   = 'entrada';
 
-let itemActivo = null;
-let tabActiva  = 'entrada';
-let totalMermas = 3;
+/* ─── Carga inicial ─── */
+async function cargarDatos() {
+  try {
+    const [resInv, resAuto] = await Promise.all([
+      fetch('/api/inventarios'),
+      fetch('/api/autopartes'),
+    ]);
+
+    if (!resInv.ok || !resAuto.ok) throw new Error('Error al obtener datos');
+
+    inventario = await resInv.json();
+    const dataAuto = await resAuto.json();
+    dataAuto.forEach(a => { autopartes[a.id] = { sku: a.sku_codigo, nombre: a.nombre }; });
+
+    // Poblar selects del modal
+    poblarSelectAutopartes();
+    poblarFiltroUbicacion();
+    renderTabla();
+  } catch (e) {
+    document.getElementById('bodyInv').innerHTML =
+      `<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle me-2"></i>No se pudo conectar con la API: ${e.message}</td></tr>`;
+  }
+}
+
+function poblarSelectAutopartes() {
+  const opts = inventario.map(i => {
+    const a = autopartes[i.autoparte_id] || {};
+    return `<option value="${i.id}">${a.sku || i.autoparte_id} — ${a.nombre || ''}</option>`;
+  }).join('');
+  document.getElementById('entradaInvId').innerHTML = '<option value="">Seleccionar pieza…</option>' + opts;
+  document.getElementById('mermaInvId').innerHTML   = '<option value="">Seleccionar pieza…</option>' + opts;
+}
+
+function poblarFiltroUbicacion() {
+  const pasillos = new Set(inventario.map(i => i.pasillo).filter(Boolean));
+  const sel = document.getElementById('filtroUbicacion');
+  pasillos.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p;
+    opt.textContent = `Pasillo ${p}`;
+    sel.appendChild(opt);
+  });
+}
 
 /* ─── Render ─── */
-function badgeStock(stock) {
-  if (stock < 10)
+function badgeStock(stock, minimo) {
+  if (stock < minimo)
     return `<span class="badge bg-danger bg-opacity-10 text-danger fw-bold">${stock} ⚠</span>`;
-  if (stock < 30)
+  if (stock < minimo * 2)
     return `<span class="badge bg-warning bg-opacity-10 text-warning fw-bold">${stock}</span>`;
   return `<span class="badge bg-success bg-opacity-10 text-success fw-bold">${stock}</span>`;
 }
@@ -282,28 +298,32 @@ function renderTabla() {
   const ubi = document.getElementById('filtroUbicacion').value;
 
   const filtrado = inventario.filter(i => {
-    const txt   = `${i.sku} ${i.descripcion}`.toLowerCase();
+    const a     = autopartes[i.autoparte_id] || {};
+    const txt   = `${a.sku || ''} ${a.nombre || ''}`.toLowerCase();
     const matchQ = q   === '' || txt.includes(q);
-    const matchU = ubi === '' || i.ubicacion === ubi;
+    const matchU = ubi === '' || i.pasillo === ubi;
     return matchQ && matchU;
   });
 
-  document.getElementById('bodyInv').innerHTML = filtrado.map(i => `
+  document.getElementById('bodyInv').innerHTML = filtrado.map(i => {
+    const a     = autopartes[i.autoparte_id] || {};
+    const ubiFmt = [i.pasillo, i.estante, i.nivel].filter(Boolean).join('-') || '—';
+    return `
     <tr>
-      <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">${i.sku}</code></td>
-      <td class="fw-semibold">${i.descripcion}</td>
-      <td><span class="badge bg-secondary bg-opacity-10 text-secondary"><i class="fas fa-map-marker-alt me-1"></i>${i.ubicacion}</span></td>
-      <td>${badgeStock(i.stock)}</td>
-      <td class="text-muted">${i.fecha}</td>
+      <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">${a.sku || i.autoparte_id}</code></td>
+      <td class="fw-semibold">${a.nombre || '—'}</td>
+      <td><span class="badge bg-secondary bg-opacity-10 text-secondary"><i class="fas fa-map-marker-alt me-1"></i>${ubiFmt}</span></td>
+      <td>${badgeStock(i.stock_actual, i.stock_minimo)}</td>
+      <td class="text-muted">${i.stock_minimo}</td>
       <td>
         <button class="btn btn-sm btn-outline-primary me-1" title="Editar ubicación"
                 data-bs-toggle="modal" data-bs-target="#modalEditar"
-                onclick="prepEditar('${i.sku}','${i.descripcion}','${i.ubicacion}')">
+                onclick="prepEditar(${i.id}, '${a.sku || i.autoparte_id}', '${a.nombre || ''}', '${i.pasillo || ''}', '${i.estante || ''}', '${i.nivel || ''}', ${i.stock_minimo})">
           <i class="fas fa-edit"></i>
         </button>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 
   document.getElementById('contadorInv').textContent = `Mostrando ${filtrado.length} piezas`;
   actualizarKPIs();
@@ -311,8 +331,8 @@ function renderTabla() {
 
 function actualizarKPIs() {
   document.getElementById('kpiTotal').textContent    = inventario.length;
-  document.getElementById('kpiStockBajo').textContent = inventario.filter(i => i.stock < 10).length;
-  document.getElementById('kpiMermas').textContent   = totalMermas;
+  document.getElementById('kpiStockBajo').textContent = inventario.filter(i => i.stock_actual < i.stock_minimo).length;
+  document.getElementById('kpiSinUbi').textContent   = inventario.filter(i => !i.pasillo).length;
 }
 
 /* ─── Tab Entrada / Merma ─── */
@@ -325,44 +345,59 @@ function cambiarTab(panel, btn) {
 }
 
 /* ─── Guardar Ajuste ─── */
-function guardarAjuste() {
-  const hoy = new Date();
-  const fecha = `${String(hoy.getDate()).padStart(2,'0')}/${String(hoy.getMonth()+1).padStart(2,'0')}/${hoy.getFullYear()}`;
-
+async function guardarAjuste() {
   if (tabActiva === 'entrada') {
-    const sku      = document.getElementById('entradaSKU').value;
+    const invId    = parseInt(document.getElementById('entradaInvId').value);
     const cantidad = parseInt(document.getElementById('entradaCantidad').value);
-    const ubicacion = document.getElementById('entradaUbicacion').value;
-    if (!sku || !cantidad || cantidad < 1) { mostrarToast('Completa el SKU y la cantidad', 'warning'); return; }
+    if (!invId || !cantidad || cantidad < 1) { mostrarToast('Completa la pieza y la cantidad', 'warning'); return; }
 
-    const idx = inventario.findIndex(i => i.sku === sku);
-    if (idx !== -1) {
-      inventario[idx].stock     += cantidad;
-      inventario[idx].ubicacion  = ubicacion;
-      inventario[idx].fecha      = fecha;
+    const inv = inventario.find(i => i.id === invId);
+    if (!inv) return;
+    const nuevoStock = inv.stock_actual + cantidad;
+
+    try {
+      const res = await fetch(`/api/inventarios/${invId}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({...inv, stock_actual: nuevoStock})
+      });
+      if (!res.ok) throw new Error('Error al guardar');
+      inv.stock_actual = nuevoStock;
+      mostrarToast(`Entrada registrada: +${cantidad} unidades`, 'success');
+    } catch(e) {
+      mostrarToast('Error al guardar la entrada: ' + e.message, 'danger'); return;
     }
-    document.getElementById('entradaSKU').value      = '';
+
+    document.getElementById('entradaInvId').value    = '';
     document.getElementById('entradaCantidad').value = '';
     document.getElementById('entradaDocumento').value = '';
-    mostrarToast(`Entrada registrada: +${cantidad} unidades de ${sku}`, 'success');
 
   } else {
-    const sku      = document.getElementById('mermaSKU').value;
+    const invId    = parseInt(document.getElementById('mermaInvId').value);
     const cantidad = parseInt(document.getElementById('mermaCantidad').value);
-    if (!sku || !cantidad || cantidad < 1) { mostrarToast('Completa el SKU y la cantidad', 'warning'); return; }
+    if (!invId || !cantidad || cantidad < 1) { mostrarToast('Completa la pieza y la cantidad', 'warning'); return; }
 
-    const idx = inventario.findIndex(i => i.sku === sku);
-    if (idx !== -1) {
-      if (inventario[idx].stock < cantidad) { mostrarToast('No hay suficiente stock para registrar esa merma', 'danger'); return; }
-      inventario[idx].stock  -= cantidad;
-      inventario[idx].mermas += cantidad;
-      inventario[idx].fecha   = fecha;
+    const inv = inventario.find(i => i.id === invId);
+    if (!inv) return;
+    if (inv.stock_actual < cantidad) { mostrarToast('No hay suficiente stock para registrar esa merma', 'danger'); return; }
+    const nuevoStock = inv.stock_actual - cantidad;
+
+    try {
+      const res = await fetch(`/api/inventarios/${invId}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({...inv, stock_actual: nuevoStock})
+      });
+      if (!res.ok) throw new Error('Error al guardar');
+      inv.stock_actual = nuevoStock;
+      mostrarToast(`Merma registrada: -${cantidad} unidades`, 'warning');
+    } catch(e) {
+      mostrarToast('Error al guardar la merma: ' + e.message, 'danger'); return;
     }
-    totalMermas += cantidad;
-    document.getElementById('mermaSKU').value           = '';
-    document.getElementById('mermaCantidad').value      = '';
-    document.getElementById('mermaObservaciones').value = '';
-    mostrarToast(`Merma registrada: -${cantidad} unidades de ${sku}`, 'warning');
+
+    document.getElementById('mermaInvId').value           = '';
+    document.getElementById('mermaCantidad').value        = '';
+    document.getElementById('mermaObservaciones').value   = '';
   }
 
   bootstrap.Modal.getInstance(document.getElementById('modalAjuste')).hide();
@@ -370,23 +405,40 @@ function guardarAjuste() {
 }
 
 /* ─── Editar ubicación ─── */
-function prepEditar(sku, descripcion, ubicacion) {
-  itemActivo = sku;
-  document.getElementById('editSKU').textContent  = sku;
-  document.getElementById('editDesc').textContent = descripcion;
-  const sel = document.getElementById('editUbicacion');
-  [...sel.options].forEach(o => { o.selected = o.value === ubicacion; });
-  document.getElementById('editNotas').value = '';
+function prepEditar(id, sku, nombre, pasillo, estante, nivel, stockMin) {
+  itemActivo = id;
+  document.getElementById('editSKU').textContent      = sku;
+  document.getElementById('editDesc').textContent     = nombre;
+  document.getElementById('editPasillo').value        = pasillo;
+  document.getElementById('editEstante').value        = estante;
+  document.getElementById('editNivel').value          = nivel;
+  document.getElementById('editStockMin').value       = stockMin;
 }
 
-function guardarEdicion() {
-  const nuevaUbi = document.getElementById('editUbicacion').value;
-  const idx = inventario.findIndex(i => i.sku === itemActivo);
-  if (idx !== -1) inventario[idx].ubicacion = nuevaUbi;
+async function guardarEdicion() {
+  const inv = inventario.find(i => i.id === itemActivo);
+  if (!inv) return;
+
+  inv.pasillo      = document.getElementById('editPasillo').value.trim() || null;
+  inv.estante      = document.getElementById('editEstante').value.trim() || null;
+  inv.nivel        = document.getElementById('editNivel').value.trim()   || null;
+  inv.stock_minimo = parseInt(document.getElementById('editStockMin').value) || inv.stock_minimo;
+
+  try {
+    const res = await fetch(`/api/inventarios/${itemActivo}`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(inv)
+    });
+    if (!res.ok) throw new Error('Error al guardar');
+    mostrarToast('Información de la pieza actualizada', 'success');
+  } catch(e) {
+    mostrarToast('Error al guardar: ' + e.message, 'danger'); return;
+  }
 
   bootstrap.Modal.getInstance(document.getElementById('modalEditar')).hide();
+  poblarFiltroUbicacion();
   renderTabla();
-  mostrarToast('Información de la pieza actualizada', 'success');
   itemActivo = null;
 }
 
@@ -401,6 +453,6 @@ function mostrarToast(msg, tipo) {
   setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3000);
 }
 
-document.addEventListener('DOMContentLoaded', renderTabla);
+document.addEventListener('DOMContentLoaded', cargarDatos);
 </script>
 {% endblock %}

@@ -49,6 +49,7 @@ services:
     environment:
       - FLASK_ENV=development
       - FLASK_PORT=5001
+      - API_BASE_URL=http://api:8000 
     volumes:
       - ./Flask:/app
     command: gunicorn --reload -w 4 --threads 2 -b 0.0.0.0:5001 "main:create_app()"

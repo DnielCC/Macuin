@@ -1,8 +1,6 @@
 {% extends "base.html" %}
-
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <div class="container-fluid py-4">
 
   <!-- HEADER -->
@@ -11,11 +9,11 @@
       <h2 class="fw-bold" style="color:#111827;">Panel de Almacén</h2>
       <p class="text-muted mb-0">Bienvenido, {{ session.get('user_name') }} &mdash; <span style="color:#f59e0b;">Módulo Almacén</span></p>
     </div>
-    <select class="form-select w-auto" id="filtro-tiempo">
-      <option>Hoy</option>
-      <option>Semana</option>
-      <option selected>Mes</option>
-      <option>Año</option>
+    <select class="form-select w-auto" id="filtro-tiempo" onchange="aplicarFiltro()">
+      <option value="hoy">Hoy</option>
+      <option value="semana">Semana</option>
+      <option value="mes" selected>Mes</option>
+      <option value="año">Año</option>
     </select>
   </div>
 
@@ -29,10 +27,10 @@
                style="background:#f59e0b;width:45px;height:45px;">
             <i class="fas fa-cubes text-white"></i>
           </div>
-          <span class="badge rounded-pill text-success" style="background:#d1fae5;">+3.2%</span>
+          <span class="badge rounded-pill text-success" style="background:#d1fae5;" id="badgeSKUs">Stock</span>
         </div>
         <p class="text-muted mb-1" style="font-size:0.9rem;">SKUs en Stock</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">1,248</h3>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;" id="kpiSKUs">—</h3>
       </div>
     </div>
 
@@ -46,7 +44,7 @@
           <span class="badge rounded-pill text-success" style="background:#d1fae5;">Activas</span>
         </div>
         <p class="text-muted mb-1" style="font-size:0.9rem;">Ubicaciones Activas</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">84</h3>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;" id="kpiUbicaciones">—</h3>
       </div>
     </div>
 
@@ -57,10 +55,10 @@
                style="background:#3b82f6;width:45px;height:45px;">
             <i class="fas fa-dolly text-white"></i>
           </div>
-          <span class="badge rounded-pill text-warning" style="background:#fef3c7;">Pendientes</span>
+          <span class="badge rounded-pill text-warning" style="background:#fef3c7;" id="badgePedidos">Pendientes</span>
         </div>
         <p class="text-muted mb-1" style="font-size:0.9rem;">Pedidos por Surtir</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">23</h3>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;" id="kpiPedidos">—</h3>
       </div>
     </div>
 
@@ -71,10 +69,10 @@
                style="background:#ef4444;width:45px;height:45px;">
             <i class="fas fa-exclamation-triangle text-white"></i>
           </div>
-          <span class="badge rounded-pill text-danger" style="background:#fee2e2;">Este mes</span>
+          <span class="badge rounded-pill text-danger" style="background:#fee2e2;">Alerta</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">Mermas Registradas</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">7</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Stock Bajo Mínimo</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;" id="kpiStockBajo">—</h3>
       </div>
     </div>
 
@@ -165,110 +163,205 @@
           <h6 class="fw-bold mb-0"><i class="fas fa-history text-warning me-2"></i>Actividad Reciente</h6>
           <a href="{{ url_for('almacen_inventario') }}" class="btn btn-sm btn-outline-warning">Ver inventario</a>
         </div>
-
         <div class="table-responsive">
           <table class="table table-borderless align-middle">
             <thead class="text-muted" style="font-size:0.82rem;">
               <tr>
                 <th>SKU</th>
                 <th>Descripción</th>
-                <th>Movimiento</th>
-                <th>Cantidad</th>
-                <th>Fecha</th>
+                <th>Stock Actual</th>
+                <th>Mínimo</th>
+                <th>Ubicación</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="bodyActividad">
               <tr>
-                <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">FRE-001</code></td>
-                <td>Disco de Freno Delantero</td>
-                <td><span class="badge bg-success bg-opacity-10 text-success">Entrada</span></td>
-                <td class="fw-bold">+50</td>
-                <td class="text-muted">14/03/2026</td>
-              </tr>
-              <tr>
-                <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">SUS-014</code></td>
-                <td>Amortiguador Trasero</td>
-                <td><span class="badge bg-warning bg-opacity-10 text-warning">Salida</span></td>
-                <td class="fw-bold text-warning">-12</td>
-                <td class="text-muted">14/03/2026</td>
-              </tr>
-              <tr>
-                <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">MOT-088</code></td>
-                <td>Filtro de Aceite</td>
-                <td><span class="badge bg-success bg-opacity-10 text-success">Entrada</span></td>
-                <td class="fw-bold">+200</td>
-                <td class="text-muted">13/03/2026</td>
-              </tr>
-              <tr>
-                <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">FRE-009</code></td>
-                <td>Pastilla de Freno</td>
-                <td><span class="badge bg-danger bg-opacity-10 text-danger">Merma</span></td>
-                <td class="fw-bold text-danger">-3</td>
-                <td class="text-muted">12/03/2026</td>
+                <td colspan="5" class="text-center text-muted">
+                  <i class="fas fa-spinner fa-spin me-2"></i>Cargando...
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
-
       </div>
     </div>
 
   </div>
-
 </div>
 
 <script>
-// Inventario chart
-new Chart(document.getElementById('inventarioChart'), {
-  type: 'bar',
-  data: {
-    labels: ['Ene','Feb','Mar','Abr','May','Jun'],
-    datasets: [
-      {
-        label: 'Entradas',
-        data: [320, 410, 375, 490, 460, 520],
-        backgroundColor: 'rgba(16,185,129,0.75)',
-        borderRadius: 6
-      },
-      {
-        label: 'Salidas',
-        data: [280, 360, 310, 420, 400, 470],
-        backgroundColor: 'rgba(245,158,11,0.75)',
-        borderRadius: 6
-      }
-    ]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { position: 'top', labels: { padding: 15, font: { size: 12 } } } },
-    scales: {
-      y: { grid: { color: 'rgba(0,0,0,0.04)' } },
-      x: { grid: { display: false } }
-    }
-  }
-});
+/* ─── Datos globales ─── */
+let gInventario = [];
+let gPedidos    = [];
+let gAutoMap    = {};
+let gEstatusMap = {};
+let gEstatuses  = [];
+let invChart    = null;
+let pedChart    = null;
 
-// Pedidos chart
-new Chart(document.getElementById('pedidosChart'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Pendiente','Surtiendo','Empacado','Enviado'],
-    datasets: [{
-      data: [23, 14, 9, 112],
-      backgroundColor: ['#3b82f6','#f59e0b','#10b981','#9ca3af'],
-      borderWidth: 0
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } }
+/* ─── Calcular fecha límite según filtro ─── */
+function fechaDesde(filtro) {
+  const ahora = new Date();
+  switch(filtro) {
+    case 'hoy':
+      return new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+    case 'semana':
+      const d = new Date(ahora);
+      d.setDate(ahora.getDate() - 7);
+      return d;
+    case 'mes':
+      return new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+    case 'año':
+      return new Date(ahora.getFullYear(), 0, 1);
+    default:
+      return new Date(0);
+  }
+}
+
+/* ─── Aplicar filtro sobre los datos ya cargados ─── */
+function aplicarFiltro() {
+  const filtro = document.getElementById('filtro-tiempo').value;
+  const desde  = fechaDesde(filtro);
+
+  // Pedidos filtrados por fecha_pedido
+  const pedidosFiltrados = gPedidos.filter(p => {
+    if (!p.fecha_pedido) return true;
+    return new Date(p.fecha_pedido) >= desde;
+  });
+
+  // Autopartes/inventario filtrado por fecha_alta de la autoparte
+  // Como inventario no tiene fecha propia, filtramos por fecha_alta del autoparte asociado
+  // Si no hay fecha, incluimos siempre (inventario es atemporal por naturaleza)
+  const invFiltrado = gInventario; // inventario no tiene fecha, se muestra completo siempre
+
+  // ── KPIs ──────────────────────────────────────────────────────
+  document.getElementById('kpiSKUs').textContent        = invFiltrado.length;
+  document.getElementById('kpiUbicaciones').textContent = invFiltrado.filter(i => i.pasillo).length;
+  document.getElementById('kpiStockBajo').textContent   = invFiltrado.filter(i => i.stock_actual < i.stock_minimo).length;
+
+  const idsPendSurt = gEstatuses
+    .filter(e => e.nombre === 'Pendiente' || e.nombre === 'Surtiendo')
+    .map(e => e.id);
+  document.getElementById('kpiPedidos').textContent = pedidosFiltrados.filter(p => idsPendSurt.includes(p.estatus_id)).length;
+
+  // ── Actividad reciente: piezas más críticas ───────────────────
+  const actividad = [...invFiltrado]
+    .sort((a, b) => (a.stock_actual - a.stock_minimo) - (b.stock_actual - b.stock_minimo))
+    .slice(0, 5);
+
+  document.getElementById('bodyActividad').innerHTML = actividad.length === 0
+    ? '<tr><td colspan="5" class="text-center text-muted">Sin datos para este período</td></tr>'
+    : actividad.map(i => {
+        const a   = gAutoMap[i.autoparte_id] || {};
+        const ubi = [i.pasillo, i.estante, i.nivel].filter(Boolean).join('-') || '—';
+        const bajo = i.stock_actual < i.stock_minimo;
+        return `<tr>
+          <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">${a.sku || i.autoparte_id}</code></td>
+          <td>${a.nombre || '—'}</td>
+          <td><span class="fw-bold ${bajo ? 'text-danger' : 'text-success'}">${i.stock_actual}${bajo ? ' ⚠' : ''}</span></td>
+          <td class="text-muted">${i.stock_minimo}</td>
+          <td class="text-muted">${ubi}</td>
+        </tr>`;
+      }).join('');
+
+  // ── Chart inventario: stock actual vs mínimo top 6 ───────────
+  const top6      = [...invFiltrado].sort((a, b) => b.stock_actual - a.stock_actual).slice(0, 6);
+  const labelsInv = top6.map(i => gAutoMap[i.autoparte_id]?.sku || `ID${i.autoparte_id}`);
+
+  if (invChart) invChart.destroy();
+  invChart = new Chart(document.getElementById('inventarioChart'), {
+    type: 'bar',
+    data: {
+      labels: labelsInv,
+      datasets: [
+        { label: 'Stock Actual', data: top6.map(i => i.stock_actual), backgroundColor: 'rgba(16,185,129,0.75)', borderRadius: 6 },
+        { label: 'Stock Mínimo', data: top6.map(i => i.stock_minimo), backgroundColor: 'rgba(245,158,11,0.75)',  borderRadius: 6 }
+      ]
     },
-    cutout: '65%'
-  }
-});
-</script>
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { padding: 15, font: { size: 12 } } } },
+      scales: {
+        y: { grid: { color: 'rgba(0,0,0,0.04)' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
 
+  // ── Chart pedidos filtrados por estatus ───────────────────────
+  const conteo = {};
+  gEstatuses.forEach(e => { conteo[e.nombre] = 0; });
+  pedidosFiltrados.forEach(p => {
+    const nombre = gEstatusMap[p.estatus_id] || 'Otro';
+    conteo[nombre] = (conteo[nombre] || 0) + 1;
+  });
+
+  const labelsPed = Object.keys(conteo).filter(k => conteo[k] > 0);
+  const colorMap  = {
+    'Pendiente':'#3b82f6','Surtiendo':'#f59e0b','Empacado':'#10b981',
+    'Enviado':'#9ca3af','Entregado':'#6b7280','Cancelado':'#ef4444'
+  };
+
+  if (pedChart) pedChart.destroy();
+
+  if (labelsPed.length === 0) {
+    // Sin pedidos en el período — mostrar mensaje vacío en el canvas
+    const ctx = document.getElementById('pedidosChart').getContext('2d');
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '14px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Sin pedidos en este período', ctx.canvas.width / 2, ctx.canvas.height / 2);
+  } else {
+    pedChart = new Chart(document.getElementById('pedidosChart'), {
+      type: 'doughnut',
+      data: {
+        labels: labelsPed,
+        datasets: [{
+          data: labelsPed.map(k => conteo[k]),
+          backgroundColor: labelsPed.map(k => colorMap[k] || '#9ca3af'),
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } } },
+        cutout: '65%'
+      }
+    });
+  }
+}
+
+/* ─── Carga inicial de datos ─── */
+async function cargarDashboard() {
+  try {
+    const [resInv, resPed, resAuto, resEst] = await Promise.all([
+      fetch('/api/inventarios'),
+      fetch('/api/pedidos'),
+      fetch('/api/autopartes'),
+      fetch('/api/estatus_pedido'),
+    ]);
+
+    gInventario = resInv.ok  ? await resInv.json()  : [];
+    gPedidos    = resPed.ok  ? await resPed.json()  : [];
+    gEstatuses  = resEst.ok  ? await resEst.json()  : [];
+    const autoArr = resAuto.ok ? await resAuto.json() : [];
+
+    autoArr.forEach(a => { gAutoMap[a.id] = { sku: a.sku_codigo, nombre: a.nombre }; });
+    gEstatuses.forEach(e => { gEstatusMap[e.id] = e.nombre; });
+
+    // Aplicar filtro por defecto (Mes)
+    aplicarFiltro();
+
+  } catch(e) {
+    console.error('Error cargando dashboard:', e);
+    document.getElementById('bodyActividad').innerHTML =
+      '<tr><td colspan="5" class="text-center text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Error al conectar con la API</td></tr>';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', cargarDashboard);
+</script>
 {% endblock %}
