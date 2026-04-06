@@ -1,14 +1,11 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container-fluid py-4">
   <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
-      <h2 class="fw-bold" style="color:#111827;">Pedidos a Surtir <span style="font-size:1rem;font-weight:400;color:#6b7280;">(Cola de Almacén)</span></h2>
-      <p class="text-muted mb-0">Lista de pedidos pendientes · Solo puedes actualizar el estatus a <strong>Surtiendo</strong> o <strong>Empacado</strong></p>
+      <h2 class="fw-bold" style="color:#111827;">Pedidos a Surtir</h2>
     </div>
   </div>
-
   <div class="row g-4 mb-4">
     <div class="col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3">
@@ -63,9 +60,7 @@
       </div>
     </div>
   </div>
-
   <div class="card border-0 shadow-sm rounded-4 p-4">
-
     <div class="d-flex justify-content-between mb-3 flex-wrap gap-2 align-items-center">
       <div class="d-flex gap-2 flex-wrap">
         <input class="form-control" style="max-width:280px;" id="searchPed"
@@ -76,13 +71,12 @@
       </div>
       <small class="text-muted" id="contadorPed">Cargando...</small>
     </div>
-
     <div class="table-responsive">
       <table class="table align-middle table-hover" id="tablaPed">
         <thead class="table-light">
           <tr>
             <th>ID / Folio</th>
-            <th>Usuario</th>
+            <th>Cliente</th>
             <th>Total</th>
             <th>Fecha Pedido</th>
             <th>Estatus Almacén</th>
@@ -94,16 +88,8 @@
         </tbody>
       </table>
     </div>
-
-    <small class="text-muted mt-2 d-block">
-      <i class="fas fa-lock me-1 text-warning"></i>
-      Almacén solo puede actualizar el estatus a <strong>Surtiendo</strong> o <strong>Empacado</strong>. El pase a <em>Enviado</em> lo gestiona Logística.
-    </small>
-
   </div>
-
 </div>
-
 <div class="modal fade" id="modalEstatus" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content border-0 shadow rounded-4">
@@ -136,30 +122,30 @@
     </div>
   </div>
 </div>
-
 {% endblock %}
-
 {% block scripts %}
 <script>
-  let pedidos        = [];
+  let pedidos         = [];
   let estatusCatalogo = [];
-  let pedidoActivo   = null;
-
-  const ESTATUS_ALMACEN = ['Surtiendo', 'Empacado'];
+  let mapaUsuarios    = {};
+  let pedidoActivo    = null;
+  const ESTATUS_ALMACEN       = ['Surtiendo', 'Empacado'];
   const ESTATUS_PUEDE_CAMBIAR = ['Pendiente', 'Surtiendo'];
 
   async function cargarDatos() {
     try {
-      const [resPed, resEst] = await Promise.all([
+      const [resPed, resEst, resUsu] = await Promise.all([
         fetch('/api/pedidos'),
         fetch('/api/estatus_pedido'),
+        fetch('/api/usuarios'),
       ]);
-
-      if (!resPed.ok || !resEst.ok) throw new Error('Error al obtener datos');
-
+      if (!resPed.ok || !resEst.ok || !resUsu.ok) throw new Error('Error al obtener datos');
       pedidos         = await resPed.json();
       estatusCatalogo = await resEst.json();
-
+      const usuData   = await resUsu.json();
+      usuData.usuarios.forEach(u => {
+        mapaUsuarios[u.id] = `${u.nombre} ${u.apellidos}`;
+      });
       const sel = document.getElementById('filtroEstatus');
       estatusCatalogo.forEach(e => {
         const opt = document.createElement('option');
@@ -167,7 +153,6 @@
         opt.textContent = e.nombre;
         sel.appendChild(opt);
       });
-
       renderTabla();
     } catch (e) {
       document.getElementById('bodyPed').innerHTML =
@@ -215,21 +200,20 @@
   function renderTabla() {
     const q   = document.getElementById('searchPed').value.toLowerCase();
     const est = document.getElementById('filtroEstatus').value;
-
     const filtrado = pedidos.filter(p => {
       const txt    = `${p.id} ${p.folio || ''}`.toLowerCase();
       const matchQ = q   === '' || txt.includes(q);
       const matchE = est === '' || String(p.estatus_id) === String(est);
       return matchQ && matchE;
     });
-
     document.getElementById('bodyPed').innerHTML = filtrado.map(p => {
       const estNombre    = nombreEstatus(p.estatus_id);
       const puedeCambiar = ESTATUS_PUEDE_CAMBIAR.includes(estNombre);
+      const nombreCliente = mapaUsuarios[p.usuario_id] || `Usuario ${p.usuario_id}`;
       return `
       <tr>
         <td class="fw-bold">${p.folio || `#${p.id}`}</td>
-        <td class="text-muted">Usuario ${p.usuario_id}</td>
+        <td class="text-muted">${nombreCliente}</td>
         <td class="fw-semibold">$${parseFloat(p.total).toFixed(2)}</td>
         <td class="text-muted">${formatFecha(p.fecha_pedido)}</td>
         <td>${badgeEstatus(estNombre)}</td>
@@ -247,7 +231,6 @@
         </td>
       </tr>`;
     }).join('');
-
     document.getElementById('contadorPed').textContent = `Mostrando ${filtrado.length} pedidos`;
     actualizarKPIs();
   }
@@ -263,22 +246,19 @@
   function prepEstatus(id, estatusActualId, estatusActualNombre) {
     pedidoActivo = id;
     document.getElementById('estatusPedidoId').textContent = `#${id}`;
-
     const sel = document.getElementById('nuevoEstatusId');
     sel.innerHTML = '';
     ESTATUS_ALMACEN.forEach(nombre => {
       const eid = idEstatus(nombre);
       if (eid === null) return;
       const opt = document.createElement('option');
-      opt.value    = eid;
+      opt.value       = eid;
       opt.textContent = nombre;
-      opt.disabled = nombre === estatusActualNombre;
+      opt.disabled    = nombre === estatusActualNombre;
       sel.appendChild(opt);
     });
-
     if (estatusActualNombre === 'Surtiendo') sel.value = idEstatus('Empacado');
     else sel.value = idEstatus('Surtiendo');
-
     document.getElementById('estatusNotas').value = '';
   }
 
@@ -286,9 +266,7 @@
     const nuevoEstatusId = parseInt(document.getElementById('nuevoEstatusId').value);
     const pedido = pedidos.find(p => p.id === pedidoActivo);
     if (!pedido) return;
-
     const payload = {...pedido, estatus_id: nuevoEstatusId};
-
     try {
       const res = await fetch(`/api/pedidos/${pedidoActivo}`, {
         method: 'PUT',
@@ -301,12 +279,10 @@
     } catch(e) {
       mostrarToast('Error al actualizar: ' + e.message, 'danger'); return;
     }
-
     bootstrap.Modal.getInstance(document.getElementById('modalEstatus')).hide();
     renderTabla();
     pedidoActivo = null;
   }
-
 
   function mostrarToast(msg, tipo) {
     const icons = {success:'fa-check-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle',danger:'fa-times-circle'};

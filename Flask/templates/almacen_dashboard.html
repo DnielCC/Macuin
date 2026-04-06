@@ -5,7 +5,7 @@
   <div class="mb-4 d-flex justify-content-between align-items-center">
     <div>
       <h2 class="fw-bold" style="color:#111827;">Panel de Almacén</h2>
-      <p class="text-muted mb-0">Bienvenido, {{ session.get('user_name') }} &mdash; <span style="color:#f59e0b;">Módulo Almacén</span></p>
+      <p class="text-muted mb-0">Bienvenido, {{ session.get('user_name') }}</p>
     </div>
     <select class="form-select w-auto" id="filtro-tiempo" onchange="aplicarFiltro()">
       <option value="hoy">Hoy</option>
@@ -15,7 +15,6 @@
     </select>
   </div>
   <div class="row g-4 mb-4">
-
     <div class="col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -29,7 +28,6 @@
         <h3 class="fw-bold mb-0" style="color:#1f2937;" id="kpiSKUs">—</h3>
       </div>
     </div>
-
     <div class="col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -43,7 +41,6 @@
         <h3 class="fw-bold mb-0" style="color:#1f2937;" id="kpiUbicaciones">—</h3>
       </div>
     </div>
-
     <div class="col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -57,7 +54,6 @@
         <h3 class="fw-bold mb-0" style="color:#1f2937;" id="kpiPedidos">—</h3>
       </div>
     </div>
-
     <div class="col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -71,11 +67,8 @@
         <h3 class="fw-bold mb-0" style="color:#1f2937;" id="kpiStockBajo">—</h3>
       </div>
     </div>
-
   </div>
-
   <div class="row g-4 mb-4">
-
     <div class="col-md-7">
       <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
         <h6 class="fw-bold mb-4">Movimientos de Inventario</h6>
@@ -84,7 +77,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-md-5">
       <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
         <h6 class="fw-bold mb-4">Estado de Pedidos en Almacén</h6>
@@ -93,14 +85,11 @@
         </div>
       </div>
     </div>
-
   </div>
-
   <div class="row g-4">
     <div class="col-md-4">
       <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
         <h6 class="fw-bold mb-4"><i class="fas fa-bolt text-warning me-2"></i>Accesos Rápidos</h6>
-
         <a href="{{ url_for('almacen_inventario') }}"
            class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
            style="background:#fef3c7;color:#d97706;transition:background 0.2s;"
@@ -111,7 +100,6 @@
             <small class="text-muted">Ajustar stock y registrar mermas</small>
           </div>
         </a>
-
         <a href="{{ url_for('almacen_ubicaciones') }}"
            class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
            style="background:#ecfdf5;color:#10b981;transition:background 0.2s;"
@@ -122,7 +110,6 @@
             <small class="text-muted">Administrar pasillos y estantes</small>
           </div>
         </a>
-
         <a href="{{ url_for('almacen_pedidos') }}"
            class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
            style="background:#eff6ff;color:#3b82f6;transition:background 0.2s;"
@@ -133,7 +120,6 @@
             <small class="text-muted">Ver y actualizar estatus de surtido</small>
           </div>
         </a>
-
         <a href="{{ url_for('almacen_autopartes') }}"
            class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3 text-decoration-none"
            style="background:#f5f3ff;color:#8b5cf6;transition:background 0.2s;"
@@ -144,10 +130,8 @@
             <small class="text-muted">Consultar especificaciones de piezas</small>
           </div>
         </a>
-
       </div>
     </div>
-
     <div class="col-md-8">
       <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -176,60 +160,50 @@
         </div>
       </div>
     </div>
-
   </div>
 </div>
-
 <script>
   let gInventario = [];
-  let gPedidos    = [];
-  let gAutoMap    = {};
+  let gPedidos = [];
+  let gDetalles = [];
+  let gAutoMap = {};
   let gEstatusMap = {};
-  let gEstatuses  = [];
-  let invChart    = null;
-  let pedChart    = null;
+  let gEstatuses = [];
+  let invChart = null;
+  let pedChart = null;
 
   function fechaDesde(filtro) {
     const ahora = new Date();
     switch(filtro) {
-      case 'hoy':
-        return new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
-      case 'semana':
-        const d = new Date(ahora);
-        d.setDate(ahora.getDate() - 7);
-        return d;
-      case 'mes':
-        return new Date(ahora.getFullYear(), ahora.getMonth(), 1);
-      case 'año':
-        return new Date(ahora.getFullYear(), 0, 1);
-      default:
-        return new Date(0);
+      case 'hoy': return new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+      case 'semana': const d = new Date(ahora); d.setDate(ahora.getDate() - 7); return d;
+      case 'mes': return new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+      case 'año': return new Date(ahora.getFullYear(), 0, 1);
+      default: return new Date(0);
     }
   }
 
   function aplicarFiltro() {
     const filtro = document.getElementById('filtro-tiempo').value;
-    const desde  = fechaDesde(filtro);
+    const desde = fechaDesde(filtro);
 
     const pedidosFiltrados = gPedidos.filter(p => {
       if (!p.fecha_pedido) return true;
       return new Date(p.fecha_pedido) >= desde;
     });
 
-    const invFiltrado = gInventario; 
-    document.getElementById('kpiSKUs').textContent = invFiltrado.length;
-    document.getElementById('kpiUbicaciones').textContent = invFiltrado.filter(i => i.pasillo).length;
-    document.getElementById('kpiStockBajo').textContent = invFiltrado.filter(i => i.stock_actual < i.stock_minimo).length;
+    document.getElementById('kpiSKUs').textContent = gInventario.length;
+    document.getElementById('kpiUbicaciones').textContent = gInventario.filter(i => i.pasillo).length;
+    document.getElementById('kpiStockBajo').textContent = gInventario.filter(i => i.stock_actual < i.stock_minimo).length;
 
     const idsPendSurt = gEstatuses
       .filter(e => e.nombre === 'Pendiente' || e.nombre === 'Surtiendo')
       .map(e => e.id);
     document.getElementById('kpiPedidos').textContent = pedidosFiltrados.filter(p => idsPendSurt.includes(p.estatus_id)).length;
 
-    const actividad = [...invFiltrado]
+    const actividad = [...gInventario]
       .sort((a, b) => (a.stock_actual - a.stock_minimo) - (b.stock_actual - b.stock_minimo))
       .slice(0, 5);
-
     document.getElementById('bodyActividad').innerHTML = actividad.length === 0
       ? '<tr><td colspan="5" class="text-center text-muted">Sin datos para este período</td></tr>'
       : actividad.map(i => {
@@ -245,8 +219,35 @@
           </tr>`;
         }).join('');
 
-    const top6      = [...invFiltrado].sort((a, b) => b.stock_actual - a.stock_actual).slice(0, 6);
-    const labelsInv = top6.map(i => gAutoMap[i.autoparte_id]?.sku || `ID${i.autoparte_id}`);
+    const pedidosIds = new Set(pedidosFiltrados.map(p => p.id));
+    const detallesFiltrados = gDetalles.filter(d => pedidosIds.has(d.pedido_id));
+    const conteoAutopartes  = {};
+    detallesFiltrados.forEach(d => {
+      conteoAutopartes[d.autoparte_id] = (conteoAutopartes[d.autoparte_id] || 0) + d.cantidad;
+    });
+
+    let topInv;
+    if (Object.keys(conteoAutopartes).length > 0) {
+      const idsOrdenados = Object.entries(conteoAutopartes)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
+        .map(([id]) => parseInt(id));
+      topInv = idsOrdenados
+        .map(aid => gInventario.find(i => i.autoparte_id === aid))
+        .filter(Boolean);
+      if (topInv.length < 6) {
+        const yaIncluidos = new Set(topInv.map(i => i.autoparte_id));
+        const resto = [...gInventario]
+          .filter(i => !yaIncluidos.has(i.autoparte_id))
+          .sort((a, b) => b.stock_actual - a.stock_actual)
+          .slice(0, 6 - topInv.length);
+        topInv = [...topInv, ...resto];
+      }
+    } else {
+      topInv = [...gInventario].sort((a, b) => b.stock_actual - a.stock_actual).slice(0, 6);
+    }
+
+    const labelsInv = topInv.map(i => gAutoMap[i.autoparte_id]?.sku || `ID${i.autoparte_id}`);
 
     if (invChart) invChart.destroy();
     invChart = new Chart(document.getElementById('inventarioChart'), {
@@ -254,8 +255,8 @@
       data: {
         labels: labelsInv,
         datasets: [
-          { label: 'Stock Actual', data: top6.map(i => i.stock_actual), backgroundColor: 'rgba(16,185,129,0.75)', borderRadius: 6 },
-          { label: 'Stock Mínimo', data: top6.map(i => i.stock_minimo), backgroundColor: 'rgba(245,158,11,0.75)',  borderRadius: 6 }
+          { label: 'Stock Actual', data: topInv.map(i => i.stock_actual), backgroundColor: 'rgba(16,185,129,0.75)', borderRadius: 6 },
+          { label: 'Stock Mínimo', data: topInv.map(i => i.stock_minimo), backgroundColor: 'rgba(245,158,11,0.75)',  borderRadius: 6 }
         ]
       },
       options: {
@@ -283,7 +284,6 @@
     };
 
     if (pedChart) pedChart.destroy();
-
     if (labelsPed.length === 0) {
       const ctx = document.getElementById('pedidosChart').getContext('2d');
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -314,23 +314,21 @@
 
   async function cargarDashboard() {
     try {
-      const [resInv, resPed, resAuto, resEst] = await Promise.all([
+      const [resInv, resPed, resAuto, resEst, resDet] = await Promise.all([
         fetch('/api/inventarios'),
         fetch('/api/pedidos'),
         fetch('/api/autopartes'),
         fetch('/api/estatus_pedido'),
+        fetch('/api/detalles_pedidos'),
       ]);
-
       gInventario = resInv.ok  ? await resInv.json()  : [];
-      gPedidos = resPed.ok  ? await resPed.json()  : [];
-      gEstatuses = resEst.ok  ? await resEst.json()  : [];
+      gPedidos    = resPed.ok  ? await resPed.json()  : [];
+      gEstatuses  = resEst.ok  ? await resEst.json()  : [];
+      gDetalles   = resDet.ok  ? await resDet.json()  : [];
       const autoArr = resAuto.ok ? await resAuto.json() : [];
-
       autoArr.forEach(a => { gAutoMap[a.id] = { sku: a.sku_codigo, nombre: a.nombre }; });
       gEstatuses.forEach(e => { gEstatusMap[e.id] = e.nombre; });
-
       aplicarFiltro();
-
     } catch(e) {
       console.error('Error cargando dashboard:', e);
       document.getElementById('bodyActividad').innerHTML =
