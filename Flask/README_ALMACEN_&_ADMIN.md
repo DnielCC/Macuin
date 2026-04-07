@@ -120,3 +120,16 @@ NOTA: SE DEBEN EJECUTAR EN ESTE ORDEN POR LAS FK Y EN TERMINAL GIT BASH
     "
 
 ## ADMINISTRADOR
+
+# Cambios en la API
+en la carpeta de router agregue detalles_pedido
+al igual que en main, para graficas 
+
+# HTML 
+solo agregue una interfaz nueva para los reportes admin_reportes 
+(por el momento no esta en mis commits por que aun la estoy trabajando),
+agregue una nueva ruta en base.html para reportes
+
+# BD
+coloque un rol para los clientes "Cliente"
+
