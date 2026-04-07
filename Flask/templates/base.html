@@ -50,7 +50,7 @@ Módulo: {{ session.get('user_role','General') }}
 <a href="{{ url_for('admin_catalogo') }}"
    class="nav-item {% if request.endpoint in ['admin_catalogo'] %}active{% endif %}">
   <i class="fas fa-cogs"></i>
-  Catálogo Maestro
+  Catálogo
 </a>
 <a href="{{ url_for('admin_configuracion') }}"
    class="nav-item {% if request.endpoint in ['admin_configuracion'] %}active{% endif %}">
