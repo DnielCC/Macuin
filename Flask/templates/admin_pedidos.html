@@ -1,120 +1,80 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container-fluid py-4">
-
-  <!-- HEADER -->
   <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
-      <h2 class="fw-bold" style="color:#111827;">Pedidos — Vista General</h2>
-      <p class="text-muted mb-0">Consulta de todos los pedidos del sistema &mdash;
-        <span class="badge rounded-pill" style="background:#fef3c7;color:#d97706;font-size:0.8rem;">
-          <i class="fas fa-eye me-1"></i>Solo lectura
-        </span>
-      </p>
+      <h2 class="fw-bold" style="color:#111827;">Pedidos</h2>
     </div>
-    <span class="badge rounded-pill fs-6 px-3 py-2" style="background:#ede9fe;color:#6366f1;font-weight:600;">
-      <i class="fas fa-user-shield me-2"></i>Módulo Administrador
+    <span class="badge rounded-pill" style="background:#fef3c7;color:#d97706;font-size:0.8rem;">
+          <i class="fas fa-eye me-1"></i>Solo lectura
     </span>
   </div>
-
-  <!-- KPI MINI -->
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
-        <div class="fw-bold" id="kpiTotal" style="font-size:1.5rem;color:#6366f1;">10</div>
+        <div class="fw-bold" id="kpiTotal" style="font-size:1.5rem;color:#6366f1;">—</div>
         <small class="text-muted">Total Pedidos</small>
       </div>
     </div>
     <div class="col-6 col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
-        <div class="fw-bold text-warning" id="kpiPendientes" style="font-size:1.5rem;">3</div>
+        <div class="fw-bold text-warning" id="kpiPendientes" style="font-size:1.5rem;">—</div>
         <small class="text-muted">Pendientes</small>
       </div>
     </div>
     <div class="col-6 col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
-        <div class="fw-bold text-primary" id="kpiEnProceso" style="font-size:1.5rem;">4</div>
+        <div class="fw-bold text-primary" id="kpiEnProceso" style="font-size:1.5rem;">—</div>
         <small class="text-muted">En Proceso</small>
       </div>
     </div>
     <div class="col-6 col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
-        <div class="fw-bold text-success" id="kpiEntregados" style="font-size:1.5rem;">3</div>
+        <div class="fw-bold text-success" id="kpiEntregados" style="font-size:1.5rem;">—</div>
         <small class="text-muted">Entregados</small>
       </div>
     </div>
   </div>
-
-  <!-- TABLA PEDIDOS -->
   <div class="card border-0 shadow-sm rounded-4 p-4">
-
-    <!-- Filtros -->
     <div class="d-flex gap-3 mb-4 flex-wrap align-items-center">
-      <input class="form-control" style="max-width:250px;" id="searchPedidos" placeholder="Buscar pedido o cliente..."
-        oninput="filtrarPedidos()">
-      <select class="form-select w-auto" id="filtroEstatus" onchange="filtrarPedidos()">
+      <input class="form-control" style="max-width:250px;" id="searchPedidos" placeholder="Buscar folio o ID..." oninput="renderPedidos()">
+      <select class="form-select w-auto" id="filtroEstatus" onchange="renderPedidos()">
         <option value="">Todos los estatus</option>
-        <option>Pendiente</option>
-        <option>Surtiendo</option>
-        <option>Empacado</option>
-        <option>Enviado</option>
-        <option>Entregado</option>
-        <option>Cancelado</option>
       </select>
-      <select class="form-select w-auto" id="filtroModulo" onchange="filtrarPedidos()">
-        <option value="">Todos los módulos</option>
-        <option>Ventas</option>
-        <option>Almacén</option>
-        <option>Logística</option>
-      </select>
-      <small class="text-muted ms-auto" id="contadorPedidos">Mostrando 10 pedidos</small>
+      <small class="text-muted ms-auto" id="contadorPedidos">Cargando...</small>
     </div>
-
     <div class="table-responsive">
-      <table class="table align-middle" id="tablaPedidos">
+      <table class="table align-middle">
         <thead class="table-light">
-          <tr>
-            <th>ID Pedido</th>
-            <th>Cliente</th>
-            <th>Destino</th>
-            <th>Piezas</th>
-            <th>Estatus</th>
-            <th>Módulo</th>
-            <th>Fecha</th>
-            <th>Detalle</th>
-          </tr>
+          <tr><th>ID / Folio</th><th>Usuario</th><th>Total</th><th>Estatus</th><th>Fecha</th><th>Detalle</th></tr>
         </thead>
         <tbody id="bodyPedidos">
-          <!-- generado por JS -->
+          <tr><td colspan="6" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Cargando...</td></tr>
         </tbody>
       </table>
     </div>
-
-    <small class="text-muted mt-2 d-block">
-      <i class="fas fa-lock me-1 text-warning"></i>
-      Vista de solo lectura. Para actualizar estatus, accede al módulo correspondiente (Almacén / Logística).
-    </small>
-
   </div>
-
 </div>
 
-<!-- MODAL: DETALLE PEDIDO (solo lectura) -->
 <div class="modal fade" id="modalDetalle" tabindex="-1">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content border-0 shadow rounded-4">
       <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold">
-          <i class="fas fa-clipboard-list me-2" style="color:#6366f1;"></i>Detalle del Pedido
-        </h5>
+        <h5 class="modal-title fw-bold"><i class="fas fa-clipboard-list me-2" style="color:#6366f1;"></i>Detalle del Pedido</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <div class="row g-3" id="detalleContenido"></div>
-        <div class="alert alert-secondary mt-3 d-flex gap-2 align-items-center" style="font-size:0.83rem;">
-          <i class="fas fa-lock"></i>
-          <span>Vista de solo lectura. El Administrador no puede modificar estatus de pedidos.</span>
+        <div class="row g-3 mb-4" id="detalleContenido"></div>
+        <div class="card border-0 rounded-3 p-3 mb-3" style="background:#f8fafc;">
+          <h6 class="fw-bold mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Dirección de Envío</h6>
+          <div id="detalleDir" class="text-muted" style="font-size:0.9rem;">—</div>
+        </div>
+        <div class="card border-0 rounded-3 p-3 mb-3" style="background:#f8fafc;">
+          <h6 class="fw-bold mb-2"><i class="fas fa-user me-2 text-success"></i>Usuario del Pedido</h6>
+          <div id="detalleUsu" class="text-muted" style="font-size:0.9rem;">—</div>
+        </div>
+        <div class="alert alert-secondary d-flex gap-2 align-items-center" style="font-size:0.83rem;">
+          <i class="fas fa-lock"></i><span>El Administrador no puede modificar estatus</span>
         </div>
       </div>
       <div class="modal-footer border-0 pt-0">
@@ -123,126 +83,66 @@
     </div>
   </div>
 </div>
-
 {% endblock %}
-
 {% block scripts %}
 <script>
-  /* ─── Datos ─── */
-  const pedidos = [
-    { id: "ORD-2401", cliente: "Autopartes González", destino: "CDMX", piezas: 8, estatus: "Entregado", modulo: "Logística", fecha: "31/01/2026", nota: "Entregado a recepcionista" },
-    { id: "ORD-2402", cliente: "Taller Mecánico Express", destino: "Guadalajara", piezas: 3, estatus: "Enviado", modulo: "Logística", fecha: "31/01/2026", nota: "En tránsito DHL" },
-    { id: "ORD-2403", cliente: "Distribuidora del Norte", destino: "Monterrey", piezas: 15, estatus: "Enviado", modulo: "Logística", fecha: "01/02/2026", nota: "" },
-    { id: "ORD-2404", cliente: "Refaccionaria El Sol", destino: "CDMX", piezas: 5, estatus: "Empacado", modulo: "Almacén", fecha: "02/02/2026", nota: "Listo para recolección" },
-    { id: "ORD-2405", cliente: "Servicio Rápido SA", destino: "Puebla", piezas: 6, estatus: "Surtiendo", modulo: "Almacén", fecha: "03/02/2026", nota: "" },
-    { id: "ORD-2406", cliente: "Grupo Automotriz MX", destino: "Querétaro", piezas: 11, estatus: "Entregado", modulo: "Logística", fecha: "05/02/2026", nota: "Confirmado por cliente" },
-    { id: "ORD-2407", cliente: "Refaccionaria Omega", destino: "León", piezas: 4, estatus: "Pendiente", modulo: "Ventas", fecha: "06/02/2026", nota: "Nuevo pedido" },
-    { id: "ORD-2408", cliente: "Taller del Bajío", destino: "Irapuato", piezas: 9, estatus: "Pendiente", modulo: "Ventas", fecha: "07/02/2026", nota: "" },
-    { id: "ORD-2409", cliente: "Mecánica Rápida SA", destino: "Toluca", piezas: 2, estatus: "Pendiente", modulo: "Ventas", fecha: "08/02/2026", nota: "" },
-    { id: "ORD-2410", cliente: "Autozone Franchised", destino: "CDMX", piezas: 20, estatus: "Surtiendo", modulo: "Almacén", fecha: "09/02/2026", nota: "" }
-  ];
-
-  /* ─── Badge estatus ─── */
-  function badgeEstatus(est) {
-    const cfg = {
-      'Pendiente': { bg: '#fef3c7', color: '#d97706' },
-      'Surtiendo': { bg: '#dbeafe', color: '#1d4ed8' },
-      'Empacado': { bg: '#d1fae5', color: '#059669' },
-      'Enviado': { bg: '#eff6ff', color: '#3b82f6' },
-      'Entregado': { bg: '#d1fae5', color: '#10b981' },
-      'Cancelado': { bg: '#fee2e2', color: '#dc2626' }
-    };
-    const c = cfg[est] || { bg: '#f1f5f9', color: '#64748b' };
-    return `<span class="badge rounded-pill" style="background:${c.bg};color:${c.color};">${est}</span>`;
-  }
-
-  function badgeModulo(mod) {
-    const cfg = {
-      'Ventas': { bg: '#d1fae5', color: '#10b981' },
-      'Almacén': { bg: '#fef3c7', color: '#d97706' },
-      'Logística': { bg: '#eff6ff', color: '#3b82f6' }
-    };
-    const c = cfg[mod] || { bg: '#f1f5f9', color: '#64748b' };
-    return `<span class="badge rounded-pill" style="background:${c.bg};color:${c.color};">${mod}</span>`;
-  }
-
-  /* ─── Render ─── */
-  function filtrarPedidos() {
-    const q = document.getElementById('searchPedidos').value.toLowerCase();
-    const est = document.getElementById('filtroEstatus').value;
-    const mod = document.getElementById('filtroModulo').value;
-
-    const fil = pedidos.filter(p => {
-      const t = `${p.id} ${p.cliente} ${p.destino}`.toLowerCase();
-      return (q === '' || t.includes(q)) && (est === '' || p.estatus === est) && (mod === '' || p.modulo === mod);
-    });
-
-    document.getElementById('bodyPedidos').innerHTML = fil.map(p => `
-    <tr>
-      <td class="fw-bold">${p.id}</td>
-      <td>${p.cliente}</td>
-      <td class="text-muted"><i class="fas fa-map-marker-alt me-1" style="font-size:0.8rem;"></i>${p.destino}</td>
-      <td class="text-center">${p.piezas}</td>
-      <td>${badgeEstatus(p.estatus)}</td>
-      <td>${badgeModulo(p.modulo)}</td>
-      <td class="text-muted">${p.fecha}</td>
-      <td>
-        <button class="btn btn-sm btn-outline-secondary" title="Ver detalle"
-          data-bs-toggle="modal" data-bs-target="#modalDetalle"
-          onclick="verDetalle('${p.id}')">
-          <i class="fas fa-eye"></i>
-        </button>
-      </td>
-    </tr>`).join('');
-
-    document.getElementById('contadorPedidos').textContent = `Mostrando ${fil.length} pedidos`;
-    actualizarKPIs(fil);
-  }
-
-  function actualizarKPIs(fil) {
-    const all = fil || pedidos;
-    document.getElementById('kpiTotal').textContent = pedidos.length;
-    document.getElementById('kpiPendientes').textContent = pedidos.filter(p => p.estatus === 'Pendiente').length;
-    document.getElementById('kpiEnProceso').textContent = pedidos.filter(p => ['Surtiendo', 'Empacado', 'Enviado'].includes(p.estatus)).length;
-    document.getElementById('kpiEntregados').textContent = pedidos.filter(p => p.estatus === 'Entregado').length;
-  }
-
-  /* ─── Modal detalle ─── */
-  function verDetalle(id) {
-    const p = pedidos.find(x => x.id === id);
-    document.getElementById('detalleContenido').innerHTML = `
-    <div class="col-6">
-      <small class="text-muted d-block">ID Pedido</small>
-      <strong>${p.id}</strong>
-    </div>
-    <div class="col-6">
-      <small class="text-muted d-block">Estatus</small>
-      ${badgeEstatus(p.estatus)}
-    </div>
-    <div class="col-12">
-      <small class="text-muted d-block">Cliente</small>
-      <strong>${p.cliente}</strong>
-    </div>
-    <div class="col-6">
-      <small class="text-muted d-block">Destino</small>
-      ${p.destino}
-    </div>
-    <div class="col-6">
-      <small class="text-muted d-block">Piezas</small>
-      ${p.piezas}
-    </div>
-    <div class="col-6">
-      <small class="text-muted d-block">Módulo</small>
-      ${badgeModulo(p.modulo)}
-    </div>
-    <div class="col-6">
-      <small class="text-muted d-block">Fecha</small>
-      ${p.fecha}
-    </div>
-    ${p.nota ? `<div class="col-12"><small class="text-muted d-block">Notas</small>${p.nota}</div>` : ''}
-  `;
-  }
-
-  document.addEventListener('DOMContentLoaded', () => { filtrarPedidos(); });
+let pedidos=[],estatuses=[],usuarios=[],direcciones=[];
+let estatusMap={},usuarioMap={},direccionMap={};
+const colorMap={'Pendiente':{bg:'#fef3c7',color:'#d97706'},'Surtiendo':{bg:'#dbeafe',color:'#1d4ed8'},'Empacado':{bg:'#d1fae5',color:'#059669'},'Enviado':{bg:'#eff6ff',color:'#3b82f6'},'Entregado':{bg:'#d1fae5',color:'#10b981'},'Cancelado':{bg:'#fee2e2',color:'#dc2626'}};
+function badgeEstatus(n){const c=colorMap[n]||{bg:'#f1f5f9',color:'#64748b'};return `<span class="badge rounded-pill" style="background:${c.bg};color:${c.color};">${n}</span>`;}
+async function cargarDatos(){
+  try{
+    const[rp,re,ru,rd]=await Promise.all([fetch('/api/pedidos'),fetch('/api/estatus_pedido'),fetch('/api/usuarios'),fetch('/api/direcciones')]);
+    pedidos=rp.ok?await rp.json():[];
+    estatuses=re.ok?await re.json():[];
+    const uData=ru.ok?await ru.json():{};
+    usuarios=uData.usuarios||uData||[];
+    direcciones=rd.ok?await rd.json():[];
+    estatuses.forEach(e=>{estatusMap[e.id]=e.nombre;});
+    usuarios.forEach(u=>{usuarioMap[u.id]=u;});
+    direcciones.forEach(d=>{direccionMap[d.id]=d;});
+    const sel=document.getElementById('filtroEstatus');
+    estatuses.forEach(e=>{const o=document.createElement('option');o.value=e.id;o.textContent=e.nombre;sel.appendChild(o);});
+    renderPedidos();
+  }catch(e){document.getElementById('bodyPedidos').innerHTML=`<tr><td colspan="6" class="text-center text-danger py-4">Error al conectar con la API</td></tr>`;}
+}
+function renderPedidos(){
+  const q=document.getElementById('searchPedidos').value.toLowerCase();
+  const est=document.getElementById('filtroEstatus').value;
+  const fil=pedidos.filter(p=>{const txt=`${p.id} ${p.folio||''}`.toLowerCase();return(q===''||txt.includes(q))&&(est===''||String(p.estatus_id)===est);});
+  document.getElementById('bodyPedidos').innerHTML=fil.map(p=>{
+    const estN=estatusMap[p.estatus_id]||`Est.${p.estatus_id}`;
+    const u=usuarioMap[p.usuario_id];
+    const nU=u?`${u.nombre} ${u.apellidos}`:`Usuario ${p.usuario_id}`;
+    return `<tr><td class="fw-bold">${p.folio||`#${p.id}`}</td><td class="text-muted">${nU}</td><td class="fw-semibold">$${parseFloat(p.total).toFixed(2)}</td><td>${badgeEstatus(estN)}</td><td class="text-muted">${p.fecha_pedido?p.fecha_pedido.substring(0,10):'—'}</td><td><button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalDetalle" onclick="verDetalle(${p.id})"><i class="fas fa-eye"></i></button></td></tr>`;
+  }).join('')||'<tr><td colspan="6" class="text-center text-muted py-3">Sin pedidos</td></tr>';
+  document.getElementById('contadorPedidos').textContent=`Mostrando ${fil.length} pedidos`;
+  const idPend=estatuses.find(e=>e.nombre==='Pendiente')?.id;
+  const idsProc=estatuses.filter(e=>['Surtiendo','Empacado','Enviado'].includes(e.nombre)).map(e=>e.id);
+  const idEntr=estatuses.find(e=>e.nombre==='Entregado')?.id;
+  document.getElementById('kpiTotal').textContent=pedidos.length;
+  document.getElementById('kpiPendientes').textContent=pedidos.filter(p=>p.estatus_id===idPend).length;
+  document.getElementById('kpiEnProceso').textContent=pedidos.filter(p=>idsProc.includes(p.estatus_id)).length;
+  document.getElementById('kpiEntregados').textContent=pedidos.filter(p=>p.estatus_id===idEntr).length;
+}
+function verDetalle(id){
+  const p=pedidos.find(x=>x.id===id);
+  const estN=estatusMap[p.estatus_id]||`Est.${p.estatus_id}`;
+  const u=usuarioMap[p.usuario_id];
+  const d=direccionMap[p.direccion_envio_id];
+  document.getElementById('detalleContenido').innerHTML=`
+    <div class="col-md-4"><div class="p-3 rounded-3" style="background:#f8fafc;"><small class="text-muted d-block mb-1">ID / Folio</small><strong class="fs-5">${p.folio||`#${p.id}`}</strong></div></div>
+    <div class="col-md-4"><div class="p-3 rounded-3" style="background:#f8fafc;"><small class="text-muted d-block mb-1">Estatus</small>${badgeEstatus(estN)}</div></div>
+    <div class="col-md-4"><div class="p-3 rounded-3" style="background:#f8fafc;"><small class="text-muted d-block mb-1">Total</small><strong class="text-success fs-5">$${parseFloat(p.total).toFixed(2)}</strong></div></div>
+    <div class="col-md-6"><div class="p-3 rounded-3" style="background:#f8fafc;"><small class="text-muted d-block mb-1">Fecha de Pedido</small>${p.fecha_pedido?p.fecha_pedido.substring(0,10):'—'}</div></div>
+    <div class="col-md-6"><div class="p-3 rounded-3" style="background:#f8fafc;"><small class="text-muted d-block mb-1">Última Actualización</small>${p.actualizado_en?p.actualizado_en.substring(0,10):'—'}</div></div>`;
+  document.getElementById('detalleDir').innerHTML=d
+    ?`<div class="row g-2"><div class="col-md-6"><strong>Calle:</strong> ${d.calle_principal} #${d.num_ext}${d.num_int?` Int. ${d.num_int}`:''}</div><div class="col-md-6"><strong>Colonia:</strong> ${d.colonia}</div><div class="col-md-6"><strong>Municipio:</strong> ${d.municipio}, ${d.estado}</div><div class="col-md-6"><strong>C.P.:</strong> ${d.cp}</div>${d.referencias?`<div class="col-12"><strong>Referencias:</strong> ${d.referencias}</div>`:''}</div>`
+    :`Dirección ID: ${p.direccion_envio_id}`;
+  document.getElementById('detalleUsu').innerHTML=u
+    ?`<div class="row g-2"><div class="col-md-6"><strong>Nombre:</strong> ${u.nombre} ${u.apellidos}</div><div class="col-md-6"><strong>Correo:</strong> ${u.email}</div><div class="col-md-6"><strong>Teléfono:</strong> ${u.telefono||'—'}</div><div class="col-md-6"><strong>Estatus:</strong> ${u.activo?'Activo':'Inactivo'}</div></div>`
+    :`Usuario ID: ${p.usuario_id}`;
+}
+document.addEventListener('DOMContentLoaded',cargarDatos);
 </script>
 {% endblock %}
