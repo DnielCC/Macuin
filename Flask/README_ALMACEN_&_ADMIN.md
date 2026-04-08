@@ -125,6 +125,10 @@ NOTA: SE DEBEN EJECUTAR EN ESTE ORDEN POR LAS FK Y EN TERMINAL GIT BASH
 en la carpeta de router agregue detalles_pedido
 al igual que en main, para graficas 
 
+Cambie esta linea imagen_url = Column(String(255), nullable=True)
+por imagen_url = Column(Text, nullable=True)
+en autoparte/database 
+
 # HTML 
 solo agregue una interfaz nueva para los reportes admin_reportes 
 (por el momento no esta en mis commits por que aun la estoy trabajando),
