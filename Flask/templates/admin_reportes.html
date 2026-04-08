@@ -1,0 +1,653 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
+
+<div class="container-fluid py-4">
+
+  <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h2 class="fw-bold mb-0" style="color:#111827;">Reportes del Sistema</h2>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h6 class="fw-bold mb-0"><i class="fas fa-filter me-2" style="color:#6366f1;"></i>Filtros Globales</h6>
+      <button class="btn btn-sm btn-light border shadow-sm" onclick="limpiarFiltros()">
+        <i class="fas fa-eraser me-1"></i>Limpiar filtros
+      </button>
+    </div>
+    
+    <div class="row g-4">
+      <div class="col-md-6 border-end">
+        <label class="form-label fw-bold mb-2">Por Rango de Fechas</label>
+        <div class="row g-2 align-items-end">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold text-muted mb-1" style="font-size:0.85rem;">Fecha Desde</label>
+            <input type="date" class="form-control" id="filtroDesde">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold text-muted mb-1" style="font-size:0.85rem;">Fecha Hasta</label>
+            <input type="date" class="form-control" id="filtroHasta">
+          </div>
+          <div class="col-md-4">
+            <button class="btn w-100 fw-bold text-white shadow-sm" style="background-color:#6366f1; border-color:#6366f1;" onclick="generarReportesFechas()">
+              <i class="fas fa-sync me-2"></i>Generar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label fw-bold mb-2">Por Período Rápido</label>
+        <div class="row g-2 align-items-end">
+          <div class="col-md-8">
+            <label class="form-label fw-semibold text-muted mb-1" style="font-size:0.85rem;">Seleccionar Período</label>
+            <select class="form-select" id="filtroPeriodo">
+              <option value="">Seleccionar...</option>
+              <option value="hoy">Hoy</option>
+              <option value="semana">Última Semana</option>
+              <option value="mes" selected>Este Mes</option>
+              <option value="trimestre">Este Trimestre</option>
+              <option value="año">Este Año</option>
+              <option value="todo">Todo el historial</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <button class="btn w-100 fw-bold text-white shadow-sm" style="background-color:#6366f1; border-color:#6366f1;" onclick="generarReportesPeriodo()">
+              <i class="fas fa-sync me-2"></i>Generar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold" id="rKpiPedidos" style="font-size:1.5rem;color:#eab308;">—</div>
+        <small class="text-muted">Pedidos en Período</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold text-success" id="rKpiIngresos" style="font-size:1.5rem;">—</div>
+        <small class="text-muted">Ingresos Totales</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold text-primary" id="rKpiUsuarios" style="font-size:1.5rem;">—</div>
+        <small class="text-muted">Usuarios Activos</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+        <div class="fw-bold text-warning" id="rKpiAutopartes" style="font-size:1.5rem;">—</div>
+        <small class="text-muted">Autopartes en Catálogo</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="rounded-3 p-3 d-flex align-items-center justify-content-center" style="background:#fef3c7;width:48px;height:48px;">
+            <i class="fas fa-clipboard-list" style="color:#eab308;"></i>
+          </div>
+          <div>
+            <h6 class="fw-bold mb-0">Reporte de Ventas</h6>
+            <small class="text-muted" id="infoPedidos">Cargando...</small>
+          </div>
+        </div>
+        <div class="rounded-3 p-3 mb-3" style="background:#f8f9fe;font-size:0.82rem;">
+          <div class="row text-center g-2">
+            <div class="col-4"><div class="fw-bold" style="color:#eab308;" id="pvTotal">—</div><div class="text-muted">Total</div></div>
+            <div class="col-4"><div class="fw-bold text-success" id="pvIngreso">—</div><div class="text-muted">Ingresos</div></div>
+            <div class="col-4"><div class="fw-bold text-warning" id="pvTicket">—</div><div class="text-muted">Ticket prom.</div></div>
+          </div>
+        </div>
+        <div class="table-responsive mb-3" style="max-height:200px;overflow-y:auto;">
+          <table class="table table-sm table-borderless align-middle" style="font-size:0.82rem;">
+            <thead class="table-light"><tr><th>Folio</th><th>Cliente</th><th>Total</th><th>Estatus</th><th>%</th></tr></thead>
+            <tbody id="previewPedidos"></tbody>
+          </table>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-danger fw-bold" onclick="descargarPDF('pedidos')"><i class="fas fa-file-pdf me-1"></i> PDF</button>
+          <button class="btn btn-sm btn-success fw-bold" onclick="descargarExcel('pedidos')"><i class="fas fa-file-excel me-1"></i> Excel</button>
+          <button class="btn btn-sm btn-primary fw-bold" onclick="descargarWord('pedidos')"><i class="fas fa-file-word me-1"></i> Word</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="rounded-3 p-3 d-flex align-items-center justify-content-center" style="background:#d1fae5;width:48px;height:48px;">
+            <i class="fas fa-cubes" style="color:#10b981;"></i>
+          </div>
+          <div>
+            <h6 class="fw-bold mb-0">Reporte de Inventario</h6>
+            <small class="text-muted" id="infoInventario">Cargando...</small>
+          </div>
+        </div>
+        <div class="rounded-3 p-3 mb-3" style="background:#f0fdf4;font-size:0.82rem;">
+          <div class="row text-center g-2">
+            <div class="col-4"><div class="fw-bold text-success" id="piTotalSKU">—</div><div class="text-muted">SKUs</div></div>
+            <div class="col-4"><div class="fw-bold text-danger" id="piStockBajo">—</div><div class="text-muted">Bajo mín.</div></div>
+            <div class="col-4"><div class="fw-bold text-primary" id="piValorInv">—</div><div class="text-muted">Valor est.</div></div>
+          </div>
+        </div>
+        <div class="table-responsive mb-3" style="max-height:200px;overflow-y:auto;">
+          <table class="table table-sm table-borderless align-middle" style="font-size:0.82rem;">
+            <thead class="table-light"><tr><th>SKU</th><th>Nombre</th><th>Stock</th><th>Mín.</th></tr></thead>
+            <tbody id="previewInventario"></tbody>
+          </table>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-danger fw-bold" onclick="descargarPDF('inventario')"><i class="fas fa-file-pdf me-1"></i> PDF</button>
+          <button class="btn btn-sm btn-success fw-bold" onclick="descargarExcel('inventario')"><i class="fas fa-file-excel me-1"></i> Excel</button>
+          <button class="btn btn-sm btn-primary fw-bold" onclick="descargarWord('inventario')"><i class="fas fa-file-word me-1"></i> Word</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="rounded-3 p-3 d-flex align-items-center justify-content-center" style="background:#dbeafe;width:48px;height:48px;">
+            <i class="fas fa-users" style="color:#3b82f6;"></i>
+          </div>
+          <div>
+            <h6 class="fw-bold mb-0">Reporte de Usuarios</h6>
+            <small class="text-muted" id="infoUsuarios">Cargando...</small>
+          </div>
+        </div>
+        <div class="rounded-3 p-3 mb-3" style="background:#eff6ff;font-size:0.82rem;">
+          <div class="row text-center g-2">
+            <div class="col-4"><div class="fw-bold text-primary" id="puTotal">—</div><div class="text-muted">Total</div></div>
+            <div class="col-4"><div class="fw-bold text-success" id="puActivos">—</div><div class="text-muted">Activos</div></div>
+            <div class="col-4"><div class="fw-bold text-danger" id="puInactivos">—</div><div class="text-muted">Inactivos</div></div>
+          </div>
+        </div>
+        <div class="table-responsive mb-3" style="max-height:200px;overflow-y:auto;">
+          <table class="table table-sm table-borderless align-middle" style="font-size:0.82rem;">
+            <thead class="table-light"><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estatus</th><th>%</th></tr></thead>
+            <tbody id="previewUsuarios"></tbody>
+          </table>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-danger fw-bold" onclick="descargarPDF('usuarios')"><i class="fas fa-file-pdf me-1"></i> PDF</button>
+          <button class="btn btn-sm btn-success fw-bold" onclick="descargarExcel('usuarios')"><i class="fas fa-file-excel me-1"></i> Excel</button>
+          <button class="btn btn-sm btn-primary fw-bold" onclick="descargarWord('usuarios')"><i class="fas fa-file-word me-1"></i> Word</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="rounded-3 p-3 d-flex align-items-center justify-content-center" style="background:#fef3c7;width:48px;height:48px;">
+            <i class="fas fa-cogs" style="color:#d97706;"></i>
+          </div>
+          <div>
+            <h6 class="fw-bold mb-0">Reporte de Catálogo</h6>
+            <small class="text-muted" id="infoCatalogo">Cargando...</small>
+          </div>
+        </div>
+        <div class="rounded-3 p-3 mb-3" style="background:#fffbeb;font-size:0.82rem;">
+          <div class="row text-center g-2">
+            <div class="col-4"><div class="fw-bold text-warning" id="pcTotal">—</div><div class="text-muted">Productos</div></div>
+            <div class="col-4"><div class="fw-bold" style="color:#d97706;" id="pcPrecioMin">—</div><div class="text-muted">P. Mín</div></div>
+            <div class="col-4"><div class="fw-bold" style="color:#d97706;" id="pcPrecioMax">—</div><div class="text-muted">P. Máx</div></div>
+          </div>
+        </div>
+        <div class="table-responsive mb-3" style="max-height:200px;overflow-y:auto;">
+          <table class="table table-sm table-borderless align-middle" style="font-size:0.82rem;">
+            <thead class="table-light"><tr><th>SKU</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>%</th></tr></thead>
+            <tbody id="previewCatalogo"></tbody>
+          </table>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-danger fw-bold" onclick="descargarPDF('catalogo')"><i class="fas fa-file-pdf me-1"></i> PDF</button>
+          <button class="btn btn-sm btn-success fw-bold" onclick="descargarExcel('catalogo')"><i class="fas fa-file-excel me-1"></i> Excel</button>
+          <button class="btn btn-sm btn-primary fw-bold" onclick="descargarWord('catalogo')"><i class="fas fa-file-word me-1"></i> Word</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+  <script>
+        let gPedidos = [], gInventario = [], gUsuarios = [], gAutopartes = [];
+        let gEstatuses = [], gCategorias = [], gMarcas = [], gRoles = {};
+        let estatusMap = {}, catMap = {}, marcaMap = {}, usuarioMap = {};
+        let pedidosFiltrados = [];
+
+        const ADMIN_NOMBRE = "{{ session.get('user_name', 'Administrador') }}";
+        const hoy = new Date();
+        const fmt = d => d.toISOString().substring(0,10);
+        const fmtMXN = v => `$${parseFloat(v||0).toLocaleString('es-MX',{minimumFractionDigits:2})}`;
+        const fmtPct = (n, total) => total > 0 ? `${((n/total)*100).toFixed(1)}%` : '0%';
+        const getFechaReporte = () => new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        function generarReportesFechas() {
+          const desde = document.getElementById('filtroDesde').value;
+          const hasta = document.getElementById('filtroHasta').value;
+
+          if (desde && hasta) {
+            if (desde > hasta) {
+              mostrarToast('Rango de fechas inválido: "Fecha Desde" no puede ser mayor a "Fecha Hasta".', 'warning');
+              return;
+            }
+          } else if (!desde || !hasta) {
+            mostrarToast('Por favor ingrese ambas fechas para aplicar el filtro.', 'warning');
+            return;
+          }
+
+          document.getElementById('filtroPeriodo').value = "";
+          ejecutarGeneracion();
+          mostrarToast('Reportes filtrados por rango de fechas.', 'info');
+        }
+
+        function generarReportesPeriodo() {
+          const v = document.getElementById('filtroPeriodo').value;
+          if (!v) {
+            mostrarToast('Debe seleccionar un período rápido de la lista.', 'warning');
+            return;
+          }
+
+          const hastaD = new Date(hoy);
+          let desdeD = new Date(hoy);
+          
+          switch(v) {
+            case 'hoy': break;
+            case 'semana': desdeD.setDate(hoy.getDate()-7); break;
+            case 'mes': desdeD = new Date(hoy.getFullYear(), hoy.getMonth(), 1); break;
+            case 'trimestre': desdeD = new Date(hoy.getFullYear(), Math.floor(hoy.getMonth()/3)*3, 1); break;
+            case 'año': desdeD = new Date(hoy.getFullYear(), 0, 1); break;
+            case 'todo': desdeD = new Date(2000, 0, 1); break;
+          }
+          
+          document.getElementById('filtroDesde').value = fmt(desdeD);
+          document.getElementById('filtroHasta').value = fmt(hastaD);
+          
+          ejecutarGeneracion();
+          mostrarToast('Reportes filtrados por período rápido.', 'info');
+        }
+
+        function limpiarFiltros() {
+          document.getElementById('filtroDesde').value = '';
+          document.getElementById('filtroHasta').value = '';
+          document.getElementById('filtroPeriodo').value = '';
+          
+          ejecutarGeneracion();
+          mostrarToast('Filtros limpiados. Mostrando todo el historial.', 'info');
+        }
+
+        async function cargarDatos() {
+          try {
+            const [resP, resI, resU, resA, resE, resC, resM, resR] = await Promise.all([
+              fetch('/api/pedidos'), fetch('/api/inventarios'), fetch('/api/usuarios'),
+              fetch('/api/autopartes'), fetch('/api/estatus_pedido'), fetch('/api/categorias'),
+              fetch('/api/marcas'), fetch('/api/roles')
+            ]);
+
+            gPedidos = await resP.json() || [];
+            gInventario = await resI.json() || [];
+            const uData = await resU.json();
+            gUsuarios = uData.usuarios || uData || [];
+            gAutopartes = await resA.json() || [];
+            gEstatuses = await resE.json() || [];
+            gCategorias = await resC.json() || [];
+            gMarcas = await resM.json() || [];
+            const rolesArr = await resR.json() || [];
+
+            gEstatuses.forEach(e => { estatusMap[e.id] = e.nombre; });
+            gCategorias.forEach(c => { catMap[c.id] = c.nombre; });
+            gMarcas.forEach(m => { marcaMap[m.id] = m.nombre; });
+            rolesArr.forEach(r => { gRoles[r.id] = r.nombre_rol; });
+            gUsuarios.forEach(u => { usuarioMap[u.id] = `${u.nombre} ${u.apellidos}`; });
+
+            document.getElementById('filtroPeriodo').value = 'mes';
+            const hastaD = new Date(hoy);
+            const desdeD = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+            document.getElementById('filtroDesde').value = fmt(desdeD);
+            document.getElementById('filtroHasta').value = fmt(hastaD);
+
+            ejecutarGeneracion();
+          } catch(e) { console.error('Error:', e); }
+        }
+
+        function ejecutarGeneracion() {
+          const desde = document.getElementById('filtroDesde').value;
+          const hasta = document.getElementById('filtroHasta').value;
+
+          pedidosFiltrados = gPedidos.filter(p => {
+            const f = p.fecha_pedido?.substring(0,10);
+            return (!desde || f >= desde) && (!hasta || f <= hasta);
+          });
+
+          const ingresos = pedidosFiltrados.reduce((s,p) => s + parseFloat(p.total||0), 0);
+          document.getElementById('rKpiPedidos').textContent = pedidosFiltrados.length;
+          document.getElementById('rKpiIngresos').textContent = fmtMXN(ingresos);
+          document.getElementById('rKpiUsuarios').textContent = gUsuarios.filter(u => u.activo).length;
+          document.getElementById('rKpiAutopartes').textContent = gAutopartes.length;
+
+          const totalP = pedidosFiltrados.length;
+          document.getElementById('infoPedidos').textContent = `${totalP} pedidos en el rango.`;
+          document.getElementById('pvTotal').textContent = totalP;
+          document.getElementById('pvIngreso').textContent = fmtMXN(ingresos);
+          document.getElementById('pvTicket').textContent = totalP > 0 ? fmtMXN(ingresos/totalP) : '$0.00';
+          document.getElementById('previewPedidos').innerHTML = pedidosFiltrados.slice(0,5).map(p => `
+            <tr><td>${p.folio || p.id}</td><td>${usuarioMap[p.usuario_id] || 'ID:'+p.usuario_id}</td><td>${fmtMXN(p.total)}</td><td>${estatusMap[p.estatus_id] || '--'}</td><td>${fmtPct(parseFloat(p.total), ingresos)}</td></tr>`
+          ).join('') || '<tr><td colspan="5" class="text-center text-muted">Sin datos</td></tr>';
+
+          const bajos = gInventario.filter(i => i.stock_actual <= i.stock_minimo).length;
+          const valorEst = gInventario.reduce((s, i) => { const a = gAutopartes.find(x => x.id === i.autoparte_id); return s + (i.stock_actual * parseFloat(a?.precio_unitario || 0)); }, 0);
+          document.getElementById('infoInventario').textContent = `${gInventario.length} SKUs monitoreados.`;
+          document.getElementById('piTotalSKU').textContent = gInventario.length;
+          document.getElementById('piStockBajo').textContent = bajos;
+          document.getElementById('piValorInv').textContent = fmtMXN(valorEst);
+          document.getElementById('previewInventario').innerHTML = gInventario.slice(0,5).map(i => {
+            const a = gAutopartes.find(x => x.id === i.autoparte_id) || {};
+            return `<tr><td>${a.sku_codigo||'--'}</td><td>${a.nombre||'--'}</td><td>${i.stock_actual}</td><td>${i.stock_minimo}</td></tr>`;
+          }).join('');
+
+          const totalU = gUsuarios.length;
+          document.getElementById('infoUsuarios').textContent = `${totalU} usuarios registrados.`;
+          document.getElementById('puTotal').textContent = totalU;
+          document.getElementById('puActivos').textContent = gUsuarios.filter(u => u.activo).length;
+          document.getElementById('puInactivos').textContent = gUsuarios.filter(u => !u.activo).length;
+          document.getElementById('previewUsuarios').innerHTML = gUsuarios.slice(0,5).map(u => `
+            <tr><td>${u.nombre}</td><td>${u.email}</td><td>${gRoles[u.rol_id] || u.rol_id}</td><td>${u.activo ? 'Activo' : 'Inactivo'}</td><td>${fmtPct(1, totalU)}</td></tr>`
+          ).join('');
+
+          const precios = gAutopartes.map(a => parseFloat(a.precio_unitario || 0));
+          document.getElementById('infoCatalogo').textContent = `${gAutopartes.length} autopartes activas.`;
+          document.getElementById('pcTotal').textContent = gAutopartes.length;
+          document.getElementById('pcPrecioMin').textContent = fmtMXN(Math.min(...precios) || 0);
+          document.getElementById('pcPrecioMax').textContent = fmtMXN(Math.max(...precios) || 0);
+          document.getElementById('previewCatalogo').innerHTML = gAutopartes.slice(0,5).map(a => `
+            <tr><td>${a.sku_codigo}</td><td>${a.nombre}</td><td>${catMap[a.categoria_id] || '--'}</td><td>${fmtMXN(a.precio_unitario)}</td><td>${fmtPct(1, gAutopartes.length)}</td></tr>`
+          ).join('');
+        }
+
+        function getDatosResumen(tipo) {
+          const desde = document.getElementById('filtroDesde').value || 'Histórico';
+          const hasta = document.getElementById('filtroHasta').value || 'Hoy';
+
+          switch(tipo) {
+            case 'pedidos':
+              const ingresos = pedidosFiltrados.reduce((s,p) => s + parseFloat(p.total||0), 0);
+              const ticketP = pedidosFiltrados.length > 0 ? (ingresos/pedidosFiltrados.length) : 0;
+              const entregados = pedidosFiltrados.filter(p => estatusMap[p.estatus_id] === 'Entregado').length;
+              const cancelados = pedidosFiltrados.filter(p => estatusMap[p.estatus_id] === 'Cancelado').length;
+              return [
+                ['Total de pedidos en período', String(pedidosFiltrados.length)],
+                ['Ingresos totales (MXN)', fmtMXN(ingresos)],
+                ['Ticket promedio', fmtMXN(ticketP)],
+                ['Pedidos entregados', `${entregados} (${fmtPct(entregados, pedidosFiltrados.length)})`],
+                ['Pedidos cancelados', `${cancelados} (${fmtPct(cancelados, pedidosFiltrados.length)})`],
+                ['Período analizado', `${desde} al ${hasta}`],
+                ['Fecha de generación', getFechaReporte()]
+              ];
+            case 'inventario':
+              const bajos = gInventario.filter(i => i.stock_actual <= i.stock_minimo).length;
+              const sinStock = gInventario.filter(i => i.stock_actual === 0).length;
+              const tUnidades = gInventario.reduce((s,i) => s + i.stock_actual, 0);
+              const valorEst = gInventario.reduce((s, i) => {
+                const a = gAutopartes.find(x => x.id === i.autoparte_id);
+                return s + (i.stock_actual * parseFloat(a?.precio_unitario || 0));
+              }, 0);
+              return [
+                ['Total de SKUs en inventario', String(gInventario.length)],
+                ['Unidades totales en stock', String(tUnidades)],
+                ['Valor estimado del inventario', fmtMXN(valorEst)],
+                ['SKUs bajo stock mínimo', `${bajos} (${fmtPct(bajos, gInventario.length)})`],
+                ['SKUs sin stock (agotados)', String(sinStock)],
+                ['Fecha de corte', getFechaReporte()]
+              ];
+            case 'usuarios':
+              const activos = gUsuarios.filter(u => u.activo).length;
+              const inactivos = gUsuarios.filter(u => !u.activo).length;
+              const distRoles = {};
+              gUsuarios.forEach(u => { const r = gRoles[u.rol_id]||'Otro'; distRoles[r] = (distRoles[r]||0)+1; });
+              const strRoles = Object.keys(distRoles).map(k => `${k}: ${distRoles[k]} (${fmtPct(distRoles[k], gUsuarios.length)})`).join(', ');
+              return [
+                ['Total de usuarios registrados', String(gUsuarios.length)],
+                ['Usuarios activos', `${activos} (${fmtPct(activos, gUsuarios.length)})`],
+                ['Usuarios inactivos (baja lógica)', `${inactivos} (${fmtPct(inactivos, gUsuarios.length)})`],
+                ['Distribución por rol', strRoles],
+                ['Fecha de generación', getFechaReporte()]
+              ];
+            case 'catalogo':
+              const precios = gAutopartes.map(a => parseFloat(a.precio_unitario || 0));
+              const avg = gAutopartes.length > 0 ? (precios.reduce((a,b)=>a+b,0) / gAutopartes.length) : 0;
+              const distCat = {};
+              gAutopartes.forEach(a => { const c = catMap[a.categoria_id]||'Otra'; distCat[c] = (distCat[c]||0)+1; });
+              const strCats = Object.keys(distCat).map(k => `${k}: ${distCat[k]}`).join(', ');
+              return [
+                ['Total de autopartes en catálogo', String(gAutopartes.length)],
+                ['Categorías activas', String(gCategorias.length)],
+                ['Marcas activas', String(gMarcas.length)],
+                ['Precio mínimo', fmtMXN(Math.min(...precios)||0)],
+                ['Precio máximo', fmtMXN(Math.max(...precios)||0)],
+                ['Precio promedio', fmtMXN(avg)],
+                ['Distribución por categoría', strCats],
+                ['Fecha de generación', getFechaReporte()]
+              ];
+          }
+        }
+
+        function getDatosTabla(tipo) {
+          switch(tipo) {
+            case 'pedidos':
+              const ingresos = pedidosFiltrados.reduce((s,p) => s + parseFloat(p.total||0), 0);
+              return {
+                head: ['Folio', 'Cliente', 'Total (MXN)', '% del Total', 'Estatus', 'Fecha'],
+                body: pedidosFiltrados.map(p => [p.folio || p.id, usuarioMap[p.usuario_id] || '--', fmtMXN(p.total), fmtPct(parseFloat(p.total), ingresos), estatusMap[p.estatus_id], p.fecha_pedido?.substring(0,10)])
+              };
+            case 'inventario':
+              return {
+                head: ['SKU', 'Nombre', 'Categoria', 'Precio Unit.', 'Stock Actual', 'Stock Min.', 'Valor Estimado', 'Ubicación'],
+                body: gInventario.map(i => {
+                  const a = gAutopartes.find(x => x.id === i.autoparte_id) || {};
+                  const vEst = i.stock_actual * parseFloat(a?.precio_unitario||0);
+                  return [a.sku_codigo, a.nombre, catMap[a.categoria_id]||'--', fmtMXN(a.precio_unitario), i.stock_actual, i.stock_minimo, fmtMXN(vEst), `${i.pasillo||'--'}/${i.nivel||'--'}`];
+                })
+              };
+            case 'usuarios':
+              return {
+                head: ['Nombre', 'Apellidos', 'Correo', 'Teléfono', 'Rol', 'Estatus'],
+                body: gUsuarios.map(u => [u.nombre, u.apellidos, u.email, u.telefono||'--', gRoles[u.rol_id], u.activo?'Activo':'Inactivo'])
+              };
+            case 'catalogo':
+              return {
+                head: ['SKU', 'Nombre', 'Descripción', 'Categoria', 'Marca', 'Precio (MXN)'],
+                body: gAutopartes.map(a => [a.sku_codigo, a.nombre, a.descripcion||'--', catMap[a.categoria_id]||'--', marcaMap[a.marca_id]||'--', fmtMXN(a.precio_unitario)])
+              };
+          }
+        }
+
+        function descargarPDF(tipo) {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          const resumen = getDatosResumen(tipo);
+          const { head, body } = getDatosTabla(tipo);
+          
+          doc.setFillColor(234, 179, 8);
+          doc.rect(0, 0, 210, 10, 'F');
+
+          doc.setFontSize(22);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(234, 179, 8);
+          doc.text('MACUIN AUTOPARTES', 14, 25);
+          doc.setFontSize(14);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(50, 50, 50);
+          doc.text(`Reporte de ${tipo.toUpperCase()}`, 14, 33);
+          
+          doc.setLineWidth(0.5);
+          doc.setDrawColor(220, 220, 220);
+          doc.line(14, 38, 196, 38);
+
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(30, 30, 30);
+          doc.text('RESUMEN EJECUTIVO', 14, 48);
+          doc.autoTable({
+            startY: 51,
+            body: resumen,
+            theme: 'plain',
+            styles: { fontSize: 9, cellPadding: 2, textColor: [60, 60, 60] },
+            columnStyles: { 0: { fontStyle: 'bold', cellWidth: 80, textColor: [30,30,30] } }
+          });
+
+          let finalY = doc.lastAutoTable.finalY + 12;
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(30, 30, 30);
+          doc.text('DETALLE DEL REPORTE', 14, finalY);
+          doc.autoTable({
+            startY: finalY + 4,
+            head: [head],
+            body: body,
+            theme: 'grid',
+            headStyles: { fillColor: [234, 179, 8], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+            styles: { fontSize: 8, cellPadding: 3, textColor: [50, 50, 50], lineColor: [220, 220, 220], lineWidth: 0.1 },
+            alternateRowStyles: { fillColor: [249, 250, 251] },
+          });
+
+          finalY = doc.lastAutoTable.finalY + 25; 
+          if (finalY > doc.internal.pageSize.height - 25) { doc.addPage(); finalY = 30; }
+
+          doc.setDrawColor(0, 0, 0);
+          doc.setLineWidth(0.5);
+          doc.line(70, finalY, 140, finalY);
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(30, 30, 30);
+          doc.text(`Autoriza: ${ADMIN_NOMBRE}`, 105, finalY + 6, { align: 'center' });
+
+          doc.save(`reporte_${tipo}_${fmt(new Date())}.pdf`);
+          mostrarToast(`PDF de ${tipo} generado con éxito`, 'success');
+        }
+
+        function descargarExcel(tipo) {
+          const resumen = getDatosResumen(tipo);
+          const { head, body } = getDatosTabla(tipo);
+          
+          const finalData = [
+            ['MACUIN AUTOPARTES'],
+            [`Reporte de ${tipo.toUpperCase()}`],
+            [],
+            ['RESUMEN EJECUTIVO'],
+            ...resumen,
+            [],
+            ['DETALLE DEL REPORTE'],
+            head,
+            ...body,
+            [], [],
+            ['', '', '______________________________'],
+            ['', '', `Autoriza: ${ADMIN_NOMBRE}`]
+          ];
+
+          const ws = XLSX.utils.aoa_to_sheet(finalData);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+          XLSX.writeFile(wb, `reporte_${tipo}_${fmt(new Date())}.xlsx`);
+          mostrarToast(`Excel de ${tipo} generado con éxito`, 'success');
+        }
+
+        async function descargarWord(tipo) {
+          const D = window.docx;
+          const resumen = getDatosResumen(tipo);
+          const { head, body } = getDatosTabla(tipo);
+
+          const tablaResumen = new D.Table({
+            width: { size: 100, type: D.WidthType.PERCENTAGE },
+            borders: D.TableBorders.NONE,
+            rows: resumen.map(row => new D.TableRow({
+              children: [
+                new D.TableCell({ children: [new D.Paragraph({ text: row[0], bold: true })], width: { size: 40, type: D.WidthType.PERCENTAGE } }),
+                new D.TableCell({ children: [new D.Paragraph({ text: String(row[1]) })], width: { size: 60, type: D.WidthType.PERCENTAGE } })
+              ]
+            }))
+          });
+
+          const tablaDetalle = new D.Table({
+            width: { size: 100, type: D.WidthType.PERCENTAGE },
+            borders: {
+              top: { style: D.BorderStyle.SINGLE, size: 1, color: "E2E8F0" },
+              bottom: { style: D.BorderStyle.SINGLE, size: 1, color: "E2E8F0" },
+              left: { style: D.BorderStyle.SINGLE, size: 1, color: "E2E8F0" },
+              right: { style: D.BorderStyle.SINGLE, size: 1, color: "E2E8F0" },
+              insideHorizontal: { style: D.BorderStyle.SINGLE, size: 1, color: "E2E8F0" },
+              insideVertical: { style: D.BorderStyle.SINGLE, size: 1, color: "E2E8F0" },
+            },
+            rows: [
+              new D.TableRow({
+                children: head.map(h => new D.TableCell({
+                  children: [new D.Paragraph({ children: [new D.TextRun({ text: h, bold: true, color: "FFFFFF" })], alignment: D.AlignmentType.CENTER })],
+                  shading: { fill: "eab308" }, margins: { top: 100, bottom: 100, left: 100, right: 100 }
+                }))
+              }),
+              ...body.map((row, index) => new D.TableRow({
+                children: row.map(cell => new D.TableCell({
+                  children: [new D.Paragraph({ text: String(cell) })],
+                  shading: { fill: index % 2 === 0 ? "F8FAFC" : "FFFFFF" }, margins: { top: 100, bottom: 100, left: 100, right: 100 }
+                }))
+              }))
+            ]
+          });
+
+          const doc = new D.Document({
+            sections: [{
+              children: [
+                new D.Paragraph({ children: [new D.TextRun({ text: "MACUIN AUTOPARTES", bold: true, size: 44, color: "eab308" })], alignment: D.AlignmentType.CENTER }),
+                new D.Paragraph({ children: [new D.TextRun({ text: `Reporte de ${tipo.toUpperCase()}`, size: 28, color: "333333" })], alignment: D.AlignmentType.CENTER, spacing: { before: 100, after: 400 } }),
+                
+                new D.Paragraph({ children: [new D.TextRun({ text: "RESUMEN EJECUTIVO", bold: true, size: 24, color: "333333" })], spacing: { after: 150 } }),
+                tablaResumen,
+                
+                new D.Paragraph({ children: [new D.TextRun({ text: "DETALLE DEL REPORTE", bold: true, size: 24, color: "333333" })], spacing: { before: 400, after: 150 } }),
+                tablaDetalle,
+
+                new D.Paragraph({ text: "", spacing: { before: 400 } }),
+                new D.Paragraph({ text: "___________________________________", alignment: D.AlignmentType.CENTER }),
+                new D.Paragraph({ children: [new D.TextRun({ text: `Autoriza: ${ADMIN_NOMBRE}`, bold: true })], alignment: D.AlignmentType.CENTER })
+              ]
+            }]
+          });
+
+          const blob = await D.Packer.toBlob(doc);
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url; a.download = `reporte_${tipo}_${fmt(new Date())}.docx`;
+          document.body.appendChild(a); a.click();
+          document.body.removeChild(a);
+          mostrarToast(`Word de ${tipo} generado con éxito`, 'success');
+        }
+
+        function mostrarToast(msg, tipo) {
+          const icons = {success:'fa-check-circle', warning:'fa-exclamation-triangle', info:'fa-info-circle'};
+          const t = document.createElement('div');
+          t.className = `alert alert-${tipo} position-fixed shadow d-flex align-items-center gap-2`;
+          t.style.cssText = 'bottom:30px;right:30px;z-index:9999;min-width:250px; transition: opacity 0.5s;';
+          t.innerHTML = `<i class="fas ${icons[tipo]||'fa-info-circle'}"></i> ${msg}`;
+          document.body.appendChild(t);
+          setTimeout(() => { t.style.opacity = '0'; setTimeout(()=> t.remove(), 500); }, 3500);
+        }
+
+        document.addEventListener('DOMContentLoaded', cargarDatos);
+    </script>
+{% endblock %}
