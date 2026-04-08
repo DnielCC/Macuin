@@ -1,56 +1,47 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container-fluid py-4">
-
-  <!-- HEADER -->
   <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
       <h2 class="fw-bold" style="color:#111827;">Catálogo Maestro</h2>
-      <p class="text-muted mb-0">Autopartes, marcas y categorías &mdash; <strong>CRUD completo</strong></p>
     </div>
     <div class="d-flex gap-2">
-      <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalCategoria"
-        onclick="prepNuevaCat()">
+      <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalCategoria" onclick="prepNuevaCat()">
         <i class="fas fa-tag me-1"></i>Nueva Categoría
       </button>
-      <button class="btn btn-primary" style="background:#10b981;border-color:#10b981;" data-bs-toggle="modal"
-        data-bs-target="#modalAutoparte" onclick="prepNueva()">
+      <button class="btn btn-primary" style="background:#10b981;border-color:#10b981;"
+              data-bs-toggle="modal" data-bs-target="#modalAutoparte" onclick="prepNueva()">
         <i class="fas fa-plus me-1"></i>Nueva Autoparte
       </button>
     </div>
   </div>
-
-  <!-- KPI MINI -->
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
-        <div class="fw-bold" id="kpiTotal" style="font-size:1.5rem;color:#10b981;">8</div>
-        <small class="text-muted">Total IDs</small>
+        <div class="fw-bold" id="kpiTotal" style="font-size:1.5rem;color:#10b981;">—</div>
+        <small class="text-muted">Total Autopartes</small>
       </div>
     </div>
     <div class="col-6 col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
-        <div class="fw-bold text-primary" id="kpiCategorias" style="font-size:1.5rem;">4</div>
+        <div class="fw-bold text-primary" id="kpiCategorias" style="font-size:1.5rem;">—</div>
         <small class="text-muted">Categorías</small>
       </div>
     </div>
     <div class="col-6 col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
-        <div class="fw-bold text-warning" id="kpiMarcas" style="font-size:1.5rem;">5</div>
+        <div class="fw-bold text-warning" id="kpiMarcas" style="font-size:1.5rem;">—</div>
         <small class="text-muted">Marcas</small>
       </div>
     </div>
     <div class="col-6 col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
-        <div class="fw-bold text-success" id="kpiActivos" style="font-size:1.5rem;">7</div>
-        <small class="text-muted">Activos</small>
+        <div class="fw-bold text-success" id="kpiMostrando" style="font-size:1.5rem;">—</div>
+        <small class="text-muted">Mostrando</small>
       </div>
     </div>
   </div>
-
-  <!-- NAV TABS -->
-  <ul class="nav nav-pills mb-4 gap-2" id="catTab">
+  <ul class="nav nav-pills mb-4 gap-2">
     <li class="nav-item">
       <button class="nav-link active" id="tab-autopartes" onclick="mostrarTab('autopartes')">
         <i class="fas fa-cogs me-2"></i>Autopartes
@@ -62,73 +53,55 @@
       </button>
     </li>
   </ul>
-
-  <!-- TABLA AUTOPARTES -->
   <div id="panel-autopartes" class="card border-0 shadow-sm rounded-4 p-4">
-
     <div class="d-flex gap-3 mb-4 flex-wrap align-items-center">
       <input class="form-control" style="max-width:260px;" id="searchAutopartes"
-        placeholder="Buscar ID, nombre o marca..." oninput="filtrarAutopartes()">
-      <select class="form-select w-auto" id="filtroCategoria" onchange="filtrarAutopartes()">
+             placeholder="Buscar SKU, nombre o marca..." oninput="renderAutopartes()">
+      <select class="form-select w-auto" id="filtroCategoria" onchange="renderAutopartes()">
         <option value="">Todas las categorías</option>
-        <option>Frenos</option>
-        <option>Suspensión</option>
-        <option>Motor</option>
-        <option>Transmisión</option>
       </select>
-      <small class="text-muted ms-auto" id="contadorAutopartes">Mostrando 8 autopartes</small>
+      <small class="text-muted ms-auto" id="contadorAutopartes">Cargando...</small>
     </div>
-
     <div class="table-responsive">
       <table class="table align-middle">
         <thead class="table-light">
           <tr>
-            <th>ID</th>
+            <th>SKU</th>
+            <th>Imagen</th>
             <th>Nombre</th>
             <th>Categoría</th>
             <th>Marca</th>
             <th>Precio</th>
-            <th>Estatus</th>
             <th>Acciones</th>
           </tr>
         </thead>
-        <tbody id="bodyAutopartes"></tbody>
+        <tbody id="bodyAutopartes">
+          <tr><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Cargando...</td></tr>
+        </tbody>
       </table>
     </div>
-
   </div>
-
-  <!-- TABLA CATEGORÍAS -->
   <div id="panel-categorias" class="card border-0 shadow-sm rounded-4 p-4" style="display:none;">
-
     <div class="d-flex gap-3 mb-4 flex-wrap align-items-center">
-      <input class="form-control" style="max-width:260px;" id="searchCategorias" placeholder="Buscar categoría..."
-        oninput="filtrarCategorias()">
-      <small class="text-muted ms-auto" id="contadorCategorias">Mostrando 4 categorías</small>
+      <input class="form-control" style="max-width:260px;" id="searchCategorias"
+             placeholder="Buscar categoría..." oninput="renderCategorias()">
+      <small class="text-muted ms-auto" id="contadorCategorias">Cargando...</small>
     </div>
-
     <div class="table-responsive">
       <table class="table align-middle">
         <thead class="table-light">
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Descripción</th>
-            <th>Autopartes</th>
-            <th>Acciones</th>
-          </tr>
+          <tr><th>ID</th><th>Nombre</th><th>Acciones</th></tr>
         </thead>
-        <tbody id="bodyCategorias"></tbody>
+        <tbody id="bodyCategorias">
+          <tr><td colspan="3" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Cargando...</td></tr>
+        </tbody>
       </table>
     </div>
-
   </div>
-
 </div>
 
-<!-- MODAL: AUTOPARTE CRUD -->
 <div class="modal fade" id="modalAutoparte" tabindex="-1">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content border-0 shadow rounded-4">
       <div class="modal-header border-0 pb-0">
         <h5 class="modal-title fw-bold" id="modalAutoparteTitulo">
@@ -138,37 +111,56 @@
       </div>
       <div class="modal-body">
         <div class="row g-3">
-          <div class="col-6">
-            <label class="form-label fw-semibold">ID <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="aID" placeholder="Ej. FRE-015">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">SKU (código) <span class="text-danger">*</span></label>
+            <input type="text" class="form-control no-validation-icon" id="aSKU" placeholder="Ej. FRE-015" oninput="validarSKU()">
+            <div class="invalid-feedback" id="skuError"></div>
           </div>
-          <div class="col-6">
-            <label class="form-label fw-semibold">Marca <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="aMarca" placeholder="Ej. Brembo">
-          </div>
-          <div class="col-12">
+          <div class="col-md-6">
             <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
             <input type="text" class="form-control" id="aNombre" placeholder="Ej. Disco de Freno Delantero">
           </div>
-          <div class="col-6">
+          <div class="col-md-6">
             <label class="form-label fw-semibold">Categoría <span class="text-danger">*</span></label>
-            <select class="form-select" id="aCategoria">
+            <select class="form-select" id="aCategoriaId">
               <option value="">Seleccionar…</option>
-              <option>Frenos</option>
-              <option>Suspensión</option>
-              <option>Motor</option>
-              <option>Transmisión</option>
             </select>
           </div>
-          <div class="col-6">
-            <label class="form-label fw-semibold">Precio (MXN)</label>
-            <input type="number" class="form-control" id="aPrecio" placeholder="0.00">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Marca <span class="text-danger">*</span></label>
+            <select class="form-select" id="aMarcaId">
+              <option value="">Seleccionar…</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Precio (MXN) <span class="text-danger">*</span></label>
+            <input type="number" class="form-control no-validation-icon" id="aPrecio" placeholder="0.00" min="1" step="0.01"
+                   onkeydown="bloquearTeclaE(event)" oninput="validarPrecio()">
+            <div class="invalid-feedback" id="precioError"></div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Descripción</label>
+            <input type="text" class="form-control" id="aDesc" placeholder="Descripción breve">
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Imagen de la Autoparte</label>
+            <div class="d-flex gap-3 align-items-start">
+              <div class="border rounded-3 d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0"
+                   style="width:80px;height:80px;background:#f8fafc;" id="imgPreviewBox">
+                <img id="imgPreview" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;">
+                <i class="fas fa-image fa-2x text-muted" id="imgPlaceholder"></i>
+              </div>
+              <div class="flex-grow-1">
+                <input type="file" class="form-control" id="aImagen" accept="image/*" onchange="previsualizarImagen(this)">
+                <small class="text-muted">Formatos: JPG, PNG, WEBP</small>
+              </div>
+            </div>
           </div>
         </div>
       </div>
       <div class="modal-footer border-0 pt-0">
         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-success" onclick="guardarautoparte()">
+        <button type="button" class="btn btn-success" id="btnGuardar" onclick="guardarAutoparte()">
           <i class="fas fa-save me-1"></i>Guardar
         </button>
       </div>
@@ -176,7 +168,6 @@
   </div>
 </div>
 
-<!-- MODAL: CATEGORÍA CRUD -->
 <div class="modal fade" id="modalCategoria" tabindex="-1">
   <div class="modal-dialog modal-sm">
     <div class="modal-content border-0 shadow rounded-4">
@@ -191,10 +182,6 @@
           <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
           <input type="text" class="form-control" id="cNombre" placeholder="Ej. Eléctrico">
         </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Descripción</label>
-          <textarea class="form-control" id="cDesc" rows="2" placeholder="Descripción breve"></textarea>
-        </div>
       </div>
       <div class="modal-footer border-0 pt-0">
         <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancelar</button>
@@ -206,7 +193,6 @@
   </div>
 </div>
 
-<!-- MODAL: ELIMINAR CONFIRMACIÓN -->
 <div class="modal fade" id="modalEliminar" tabindex="-1">
   <div class="modal-dialog modal-sm">
     <div class="modal-content border-0 shadow rounded-4">
@@ -217,8 +203,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <p class="text-muted">¿Deseas eliminar <strong id="eliminarNombre"></strong>? Esta acción no se puede deshacer.
-        </p>
+        <p class="text-muted">¿Deseas eliminar <strong id="eliminarNombre"></strong>? Esta acción no se puede deshacer.</p>
       </div>
       <div class="modal-footer border-0 pt-0">
         <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancelar</button>
@@ -229,189 +214,357 @@
     </div>
   </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
-<script>
-  /* ─── Datos ─── */
-  let autopartes = [
-    { id: 1, id: "FRE-001", nombre: "Disco de Freno Delantero", categoria: "Frenos", marca: "Brembo", precio: 850, estatus: "Activo" },
-    { id: 2, id: "FRE-009", nombre: "Pastilla de Freno", categoria: "Frenos", marca: "TRW", precio: 320, estatus: "Activo" },
-    { id: 3, id: "SUS-014", nombre: "Amortiguador Trasero", categoria: "Suspensión", marca: "Monroe", precio: 1200, estatus: "Activo" },
-    { id: 4, id: "MOT-088", nombre: "Filtro de Aceite", categoria: "Motor", marca: "Bosch", precio: 95, estatus: "Activo" },
-    { id: 5, id: "MOT-023", nombre: "Bujías de Encendido x4", categoria: "Motor", marca: "NGK", precio: 480, estatus: "Activo" },
-    { id: 6, id: "TRA-007", nombre: "Banda de Distribución", categoria: "Transmisión", marca: "Gates", precio: 650, estatus: "Activo" },
-    { id: 7, id: "SUS-031", nombre: "Rótula de Dirección", categoria: "Suspensión", marca: "Moog", precio: 275, estatus: "Activo" },
-    { id: 8, id: "FRE-022", nombre: "Líquido de Frenos DOT4", categoria: "Frenos", marca: "Castrol", precio: 130, estatus: "Inactivo" }
-  ];
-  let categorias = [
-    { id: 1, nombre: "Frenos", desc: "Sistemas de frenado y componentes", count: 3 },
-    { id: 2, nombre: "Suspensión", desc: "Amortiguadores, rótulas y soportes", count: 2 },
-    { id: 3, nombre: "Motor", desc: "Filtros, bujías y componentes del motor", count: 2 },
-    { id: 4, nombre: "Transmisión", desc: "Bandas, embragues y elementos de transmisión", count: 1 }
-  ];
-  let nextAId = 9, nextCId = 5;
-  let activoId = null, activoTipo = null;
-
-  /* ─── Tabs ─── */
-  function mostrarTab(tab) {
-    document.getElementById('panel-autopartes').style.display = tab === 'autopartes' ? '' : 'none';
-    document.getElementById('panel-categorias').style.display = tab === 'categorias' ? '' : 'none';
-    document.getElementById('tab-autopartes').classList.toggle('active', tab === 'autopartes');
-    document.getElementById('tab-categorias').classList.toggle('active', tab === 'categorias');
+<style>
+  .no-validation-icon.is-valid,
+  .no-validation-icon.is-invalid {
+    background-image: none !important;
+    padding-right: 0.75rem !important;
   }
+</style>
+<script>
+let autopartes = [], categorias = [], marcas = [];
+let catMap = {}, marcaMap = {};
+let activoId = null, activoTipo = null;
+let imagenBase64 = null;
 
-  /* ─── Render Autopartes ─── */
-  function renderAutopartes() {
-    const q = document.getElementById('searchAutopartes').value.toLowerCase();
-    const cat = document.getElementById('filtroCategoria').value;
-    const fil = autopartes.filter(a => {
-      const t = `${a.id} ${a.nombre} ${a.marca}`.toLowerCase();
-      return (q === '' || t.includes(q)) && (cat === '' || a.categoria === cat);
-    });
-    document.getElementById('bodyAutopartes').innerHTML = fil.map(a => `
-    <tr>
-      <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">${a.id}</code></td>
+async function cargarDatos() {
+  try {
+    const [ra, rc, rm] = await Promise.all([
+      fetch('/api/autopartes'), fetch('/api/categorias'), fetch('/api/marcas')
+    ]);
+    autopartes = ra.ok ? await ra.json() : [];
+    categorias = rc.ok ? await rc.json() : [];
+    marcas     = rm.ok ? await rm.json() : [];
+    categorias.forEach(c => { catMap[c.id]  = c.nombre; });
+    marcas.forEach(m     => { marcaMap[m.id] = m.nombre; });
+    poblarSelects();
+    renderAutopartes();
+    renderCategorias();
+  } catch(e) {
+    mostrarToast('Error al conectar con la API', 'danger');
+  }
+}
+
+function poblarSelects() {
+  const selFiltro = document.getElementById('filtroCategoria');
+  selFiltro.innerHTML = '<option value="">Todas las categorías</option>' +
+    categorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+  document.getElementById('aCategoriaId').innerHTML =
+    '<option value="">Seleccionar…</option>' +
+    categorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+  document.getElementById('aMarcaId').innerHTML =
+    '<option value="">Seleccionar…</option>' +
+    marcas.map(m => `<option value="${m.id}">${m.nombre}</option>`).join('');
+}
+
+function mostrarTab(tab) {
+  document.getElementById('panel-autopartes').style.display = tab === 'autopartes' ? '' : 'none';
+  document.getElementById('panel-categorias').style.display = tab === 'categorias'  ? '' : 'none';
+  document.getElementById('tab-autopartes').classList.toggle('active', tab === 'autopartes');
+  document.getElementById('tab-categorias').classList.toggle('active', tab === 'categorias');
+}
+
+function renderAutopartes() {
+  const q   = document.getElementById('searchAutopartes').value.toLowerCase();
+  const cat = document.getElementById('filtroCategoria').value;
+  const fil = autopartes.filter(a => {
+    const txt = `${a.sku_codigo} ${a.nombre} ${marcaMap[a.marca_id]||''}`.toLowerCase();
+    return (q === '' || txt.includes(q)) && (cat === '' || String(a.categoria_id) === cat);
+  });
+  document.getElementById('bodyAutopartes').innerHTML = fil.map(a => {
+    const imgTag = a.imagen_url
+      ? `<img src="${a.imagen_url}" alt="${a.nombre}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;">`
+      : `<div style="width:40px;height:40px;background:#f1f5f9;border-radius:6px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-image text-muted" style="font-size:0.8rem;"></i></div>`;
+    return `<tr>
+      <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">${a.sku_codigo}</code></td>
+      <td>${imgTag}</td>
       <td class="fw-bold">${a.nombre}</td>
-      <td>${a.categoria}</td>
-      <td>${a.marca}</td>
-      <td class="text-success fw-bold">$${a.precio.toLocaleString()}</td>
-      <td>${a.estatus === 'Activo' ? '<span class="badge bg-success bg-opacity-10 text-success">Activo</span>' : '<span class="badge bg-danger bg-opacity-10 text-danger">Inactivo</span>'}</td>
+      <td><span class="badge" style="background:#ede9fe;color:#6366f1;">${catMap[a.categoria_id]||a.categoria_id}</span></td>
+      <td class="text-muted">${marcaMap[a.marca_id]||a.marca_id}</td>
+      <td class="text-success fw-bold">$${parseFloat(a.precio_unitario).toLocaleString('es-MX',{minimumFractionDigits:2})}</td>
       <td>
         <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#modalAutoparte"
-          onclick="prepEditar(${a.id},'autoparte')"><i class="fas fa-edit"></i></button>
+                onclick="prepEditar(${a.id},'autoparte')"><i class="fas fa-edit"></i></button>
         <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar"
-          onclick="prepEliminar(${a.id},'autoparte','${a.nombre}')"><i class="fas fa-trash"></i></button>
+                onclick="prepEliminar(${a.id},'autoparte','${a.nombre.replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i></button>
       </td>
-    </tr>`).join('');
-    document.getElementById('contadorAutopartes').textContent = `Mostrando ${fil.length} autopartes`;
-    actualizarKPIs();
-  }
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" class="text-center text-muted py-3">Sin resultados</td></tr>';
+  document.getElementById('contadorAutopartes').textContent = `Mostrando ${fil.length} autopartes`;
+  document.getElementById('kpiTotal').textContent      = autopartes.length;
+  document.getElementById('kpiCategorias').textContent = categorias.length;
+  document.getElementById('kpiMarcas').textContent     = marcas.length;
+  document.getElementById('kpiMostrando').textContent  = fil.length;
+}
 
-  /* ─── Render Categorias ─── */
-  function renderCategorias() {
-    const q = document.getElementById('searchCategorias').value.toLowerCase();
-    const fil = categorias.filter(c => `${c.nombre} ${c.desc}`.toLowerCase().includes(q));
-    document.getElementById('bodyCategorias').innerHTML = fil.map(c => `
+function renderCategorias() {
+  const q   = document.getElementById('searchCategorias').value.toLowerCase();
+  const fil = categorias.filter(c => c.nombre.toLowerCase().includes(q));
+  document.getElementById('bodyCategorias').innerHTML = fil.map(c => `
     <tr>
       <td><span class="badge bg-secondary bg-opacity-10 text-secondary">CAT-${c.id}</span></td>
       <td class="fw-bold">${c.nombre}</td>
-      <td class="text-muted">${c.desc}</td>
-      <td><span class="badge rounded-pill" style="background:#ede9fe;color:#6366f1;">${c.count} piezas</span></td>
       <td>
         <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#modalCategoria"
-          onclick="prepEditar(${c.id},'categoria')"><i class="fas fa-edit"></i></button>
+                onclick="prepEditar(${c.id},'categoria')"><i class="fas fa-edit"></i></button>
         <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar"
-          onclick="prepEliminar(${c.id},'categoria','${c.nombre}')"><i class="fas fa-trash"></i></button>
+                onclick="prepEliminar(${c.id},'categoria','${c.nombre}')"><i class="fas fa-trash"></i></button>
       </td>
-    </tr>`).join('');
-    document.getElementById('contadorCategorias').textContent = `Mostrando ${fil.length} categorías`;
-  }
+    </tr>`).join('') || '<tr><td colspan="3" class="text-center text-muted py-3">Sin categorías</td></tr>';
+  document.getElementById('contadorCategorias').textContent = `Mostrando ${fil.length} categorías`;
+}
 
-  function actualizarKPIs() {
-    document.getElementById('kpiTotal').textContent = autopartes.length;
-    document.getElementById('kpiCategorias').textContent = categorias.length;
-    const marcas = new Set(autopartes.map(a => a.marca));
-    document.getElementById('kpiMarcas').textContent = marcas.size;
-    document.getElementById('kpiActivos').textContent = autopartes.filter(a => a.estatus === 'Activo').length;
+function bloquearTeclaE(event) {
+  if (event.key === 'e' || event.key === 'E') {
+    event.preventDefault();
   }
+}
 
-  function filtrarAutopartes() { renderAutopartes(); }
-  function filtrarCategorias() { renderCategorias(); }
+function validarPrecio() {
+  const input = document.getElementById('aPrecio');
+  const precioError = document.getElementById('precioError');
+  const valor = parseFloat(input.value);
+  if (isNaN(valor) || valor < 1) {
+    input.classList.add('is-invalid');
+    input.classList.remove('is-valid');
+    precioError.textContent = 'El precio debe ser mayor o igual a $1.00 MXN.';
+  } else {
+    input.classList.remove('is-invalid');
+    input.classList.add('is-valid');
+    precioError.textContent = '';
+  }
+}
 
-  /* ─── Nuevo / Editar ─── */
-  function prepNueva() {
-    activoId = null; activoTipo = 'autoparte';
-    document.getElementById('modalAutoparteTitulo').innerHTML = '<i class="fas fa-cogs me-2 text-success"></i>Nueva Autoparte';
-    ['aID', 'aMarca', 'aNombre', 'aCategoria', 'aPrecio'].forEach(id => document.getElementById(id).value = '');
+function validarSKU() {
+  const input = document.getElementById('aSKU');
+  const skuError = document.getElementById('skuError');
+  const valor = input.value.trim().toUpperCase();
+  if (!valor) {
+    input.classList.remove('is-invalid', 'is-valid');
+    skuError.textContent = '';
+    return true;
   }
-  function prepNuevaCat() {
-    activoId = null; activoTipo = 'categoria';
-    document.getElementById('modalCategoriaTitulo').innerHTML = '<i class="fas fa-tag me-2 text-primary"></i>Nueva Categoría';
-    document.getElementById('cNombre').value = ''; document.getElementById('cDesc').value = '';
+  const duplicado = autopartes.some(a =>
+    a.sku_codigo.toUpperCase() === valor && a.id !== activoId
+  );
+  if (duplicado) {
+    input.classList.add('is-invalid');
+    input.classList.remove('is-valid');
+    skuError.textContent = 'Este SKU ya está en uso. Ingresa uno diferente.';
+    return false;
+  } else {
+    input.classList.remove('is-invalid');
+    input.classList.add('is-valid');
+    skuError.textContent = '';
+    return true;
   }
-  function prepEditar(id, tipo) {
-    activoId = id; activoTipo = tipo;
-    if (tipo === 'autoparte') {
-      const a = autopartes.find(x => x.id === id);
-      document.getElementById('modalAutoparteTitulo').innerHTML = '<i class="fas fa-edit me-2 text-success"></i>Editar Autoparte';
-      document.getElementById('aID').value = a.id; document.getElementById('aMarca').value = a.marca;
-      document.getElementById('aNombre').value = a.nombre; document.getElementById('aCategoria').value = a.categoria;
-      document.getElementById('aPrecio').value = a.precio;
+}
+
+function previsualizarImagen(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    imagenBase64 = e.target.result;
+    document.getElementById('imgPreview').src = imagenBase64;
+    document.getElementById('imgPreview').style.display = '';
+    document.getElementById('imgPlaceholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetImagen() {
+  imagenBase64 = null;
+  document.getElementById('aImagen').value = '';
+  document.getElementById('imgPreview').src = '';
+  document.getElementById('imgPreview').style.display = 'none';
+  document.getElementById('imgPlaceholder').style.display = '';
+}
+
+function limpiarValidacionesCampos() {
+  ['aSKU', 'aPrecio'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('is-invalid', 'is-valid');
+  });
+  document.getElementById('skuError').textContent = '';
+  document.getElementById('precioError').textContent = '';
+}
+
+function prepNueva() {
+  activoId = null; activoTipo = 'autoparte';
+  document.getElementById('modalAutoparteTitulo').innerHTML = '<i class="fas fa-cogs me-2 text-success"></i>Nueva Autoparte';
+  ['aSKU','aNombre','aPrecio','aDesc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('aCategoriaId').value = '';
+  document.getElementById('aMarcaId').value = '';
+  limpiarValidacionesCampos();
+  resetImagen();
+}
+
+function prepNuevaCat() {
+  activoId = null; activoTipo = 'categoria';
+  document.getElementById('modalCategoriaTitulo').innerHTML = '<i class="fas fa-tag me-2 text-primary"></i>Nueva Categoría';
+  document.getElementById('cNombre').value = '';
+}
+
+function prepEditar(id, tipo) {
+  activoId = id; activoTipo = tipo;
+  if (tipo === 'autoparte') {
+    const a = autopartes.find(x => x.id === id);
+    document.getElementById('modalAutoparteTitulo').innerHTML = '<i class="fas fa-edit me-2 text-success"></i>Editar Autoparte';
+    document.getElementById('aSKU').value         = a.sku_codigo;
+    document.getElementById('aNombre').value      = a.nombre;
+    document.getElementById('aCategoriaId').value = a.categoria_id;
+    document.getElementById('aMarcaId').value     = a.marca_id;
+    document.getElementById('aPrecio').value      = a.precio_unitario;
+    document.getElementById('aDesc').value        = a.descripcion || '';
+    if (a.imagen_url) {
+      document.getElementById('imgPreview').src = a.imagen_url;
+      document.getElementById('imgPreview').style.display = '';
+      document.getElementById('imgPlaceholder').style.display = 'none';
     } else {
-      const c = categorias.find(x => x.id === id);
-      document.getElementById('modalCategoriaTitulo').innerHTML = '<i class="fas fa-edit me-2 text-primary"></i>Editar Categoría';
-      document.getElementById('cNombre').value = c.nombre; document.getElementById('cDesc').value = c.desc;
+      resetImagen();
     }
+    imagenBase64 = null;
+    limpiarValidacionesCampos();
+  } else {
+    const c = categorias.find(x => x.id === id);
+    document.getElementById('modalCategoriaTitulo').innerHTML = '<i class="fas fa-edit me-2 text-primary"></i>Editar Categoría';
+    document.getElementById('cNombre').value = c.nombre;
+  }
+}
+
+function prepEliminar(id, tipo, nombre) {
+  activoId = id; activoTipo = tipo;
+  document.getElementById('eliminarNombre').textContent = nombre;
+}
+
+async function guardarAutoparte() {
+  const sku    = document.getElementById('aSKU').value.trim();
+  const nombre = document.getElementById('aNombre').value.trim();
+  const catId  = parseInt(document.getElementById('aCategoriaId').value);
+  const marcId = parseInt(document.getElementById('aMarcaId').value);
+  const precio = parseFloat(document.getElementById('aPrecio').value);
+  const desc   = document.getElementById('aDesc').value.trim() || null;
+
+  if (!sku || !nombre || !catId || !marcId || isNaN(precio)) {
+    mostrarToast('Completa SKU, nombre, categoría, marca y precio', 'warning'); return;
   }
 
-  function guardarautoparte() {
-    const id = document.getElementById('aID').value.trim();
-    const nombre = document.getElementById('aNombre').value.trim();
-    const marca = document.getElementById('aMarca').value.trim();
-    const cat = document.getElementById('aCategoria').value;
-    const precio = parseFloat(document.getElementById('aPrecio').value) || 0;
-    if (!id || !nombre || !marca || !cat) { mostrarToast('Completa todos los campos requeridos', 'warning'); return; }
+  const skuValido = validarSKU();
+  if (!skuValido) {
+    mostrarToast('El SKU ingresado ya está en uso', 'warning'); return;
+  }
+
+  if (isNaN(precio) || precio < 1) {
+    validarPrecio();
+    mostrarToast('El precio debe ser mayor o igual a $1.00 MXN', 'warning'); return;
+  }
+
+  let imgUrl = null;
+  if (imagenBase64) {
+    imgUrl = imagenBase64;
+  } else if (activoId !== null) {
+    const a = autopartes.find(x => x.id === activoId);
+    imgUrl = a?.imagen_url || null;
+  }
+
+  const payload = {
+    sku_codigo: sku,
+    nombre,
+    descripcion: desc,
+    precio_unitario: precio,
+    imagen_url: imgUrl,
+    categoria_id: catId,
+    marca_id: marcId
+  };
+
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando...';
+
+  try {
+    let res;
     if (activoId === null) {
-      autopartes.push({ id: nextAId++, id, nombre, categoria: cat, marca, precio, estatus: 'Activo' });
-      mostrarToast(`${nombre} agregada al catálogo`, 'success');
+      res = await fetch('/api/autopartes', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
     } else {
-      const idx = autopartes.findIndex(a => a.id === activoId);
-      if (idx !== -1) Object.assign(autopartes[idx], { id, nombre, categoria: cat, marca, precio });
-      mostrarToast(`${nombre} actualizada`, 'success');
+      res = await fetch(`/api/autopartes/${activoId}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
     }
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(JSON.stringify(err));
+    }
+    mostrarToast(activoId === null ? `${nombre} agregada al catálogo` : `${nombre} actualizada`, 'success');
     bootstrap.Modal.getInstance(document.getElementById('modalAutoparte')).hide();
-    renderAutopartes();
+    await cargarDatos();
+  } catch(e) {
+    mostrarToast('Error al guardar: ' + e.message, 'danger');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-save me-1"></i>Guardar';
   }
+}
 
-  function guardarCategoria() {
-    const nombre = document.getElementById('cNombre').value.trim();
-    const desc = document.getElementById('cDesc').value.trim();
-    if (!nombre) { mostrarToast('El nombre de la categoría es requerido', 'warning'); return; }
+async function guardarCategoria() {
+  const nombre = document.getElementById('cNombre').value.trim();
+  if (!nombre) { mostrarToast('El nombre es requerido', 'warning'); return; }
+  try {
+    let res;
     if (activoId === null) {
-      categorias.push({ id: nextCId++, nombre, desc, count: 0 });
-      // Agregar al filtro
-      const sel = document.getElementById('filtroCategoria');
-      const opt = document.createElement('option'); opt.textContent = nombre; sel.appendChild(opt);
-      mostrarToast(`Categoría ${nombre} creada`, 'success');
+      res = await fetch('/api/categorias', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({nombre})
+      });
     } else {
-      const idx = categorias.findIndex(c => c.id === activoId);
-      if (idx !== -1) Object.assign(categorias[idx], { nombre, desc });
-      mostrarToast(`Categoría ${nombre} actualizada`, 'success');
+      res = await fetch(`/api/categorias/${activoId}`, {
+        method: 'PUT', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({nombre})
+      });
     }
+    if (!res.ok) throw new Error(await res.text());
+    mostrarToast(activoId === null ? `Categoría ${nombre} creada` : `Categoría ${nombre} actualizada`, 'success');
     bootstrap.Modal.getInstance(document.getElementById('modalCategoria')).hide();
-    renderCategorias(); actualizarKPIs();
+    await cargarDatos();
+  } catch(e) {
+    mostrarToast('Error al guardar: ' + e.message, 'danger');
   }
+}
 
-  /* ─── Eliminar ─── */
-  function prepEliminar(id, tipo, nombre) {
-    activoId = id; activoTipo = tipo;
-    document.getElementById('eliminarNombre').textContent = nombre;
-  }
-  function confirmarEliminar() {
-    if (activoTipo === 'autoparte') {
-      autopartes = autopartes.filter(a => a.id !== activoId);
-      renderAutopartes();
-    } else {
-      categorias = categorias.filter(c => c.id !== activoId);
-      renderCategorias(); actualizarKPIs();
-    }
-    bootstrap.Modal.getInstance(document.getElementById('modalEliminar')).hide();
+async function confirmarEliminar() {
+  try {
+    const url = activoTipo === 'autoparte'
+      ? `/api/autopartes/${activoId}`
+      : `/api/categorias/${activoId}`;
+    const res = await fetch(url, { method: 'DELETE' });
+    if (!res.ok) throw new Error(await res.text());
     mostrarToast('Registro eliminado', 'danger');
+    bootstrap.Modal.getInstance(document.getElementById('modalEliminar')).hide();
+    await cargarDatos();
+  } catch(e) {
+    mostrarToast('Error al eliminar: ' + e.message, 'danger');
   }
+}
 
-  /* ─── Toast ─── */
-  function mostrarToast(msg, tipo) {
-    const icons = { success: 'fa-check-circle', warning: 'fa-exclamation-triangle', danger: 'fa-times-circle' };
-    const t = document.createElement('div');
-    t.className = `alert alert-${tipo} position-fixed shadow d-flex align-items-center gap-2`;
-    t.style.cssText = 'bottom:30px;right:30px;z-index:9999;min-width:300px;';
-    t.innerHTML = `<i class="fas ${icons[tipo] || 'fa-info-circle'}"></i>${msg}`;
-    document.body.appendChild(t);
-    setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .4s'; setTimeout(() => t.remove(), 400); }, 3000);
-  }
+function mostrarToast(msg, tipo) {
+  const icons = {success:'fa-check-circle',warning:'fa-exclamation-triangle',danger:'fa-times-circle',info:'fa-info-circle'};
+  const t = document.createElement('div');
+  t.className = `alert alert-${tipo} position-fixed shadow d-flex align-items-center gap-2`;
+  t.style.cssText = 'bottom:30px;right:30px;z-index:9999;min-width:300px;';
+  t.innerHTML = `<i class="fas ${icons[tipo]||'fa-info-circle'}"></i>${msg}`;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(()=>t.remove(),400); }, 3500);
+}
 
-  document.addEventListener('DOMContentLoaded', () => { renderAutopartes(); renderCategorias(); });
+document.addEventListener('DOMContentLoaded', cargarDatos);
 </script>
 {% endblock %}

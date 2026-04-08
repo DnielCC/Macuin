@@ -11,7 +11,7 @@ class Autoparte(Base):
     nombre = Column(String(150), nullable=False)
     descripcion = Column(Text, nullable=True)
     precio_unitario = Column(Numeric(12, 2), nullable=False)
-    imagen_url = Column(String(255), nullable=True)
+    imagen_url = Column(Text, nullable=True)
     categoria_id = Column(Integer, ForeignKey("categorias.id"), nullable=False)
     marca_id = Column(Integer, ForeignKey("marcas.id"), nullable=False)
     fecha_alta = Column(DateTime(timezone=True), server_default=func.now())
