@@ -3,7 +3,6 @@
 {% block content %}
 <div class="container-fluid py-4">
 
-  <!-- HEADER -->
   <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
       <h2 class="fw-bold" style="color:#111827;">Pedidos / Ventas</h2>
@@ -14,118 +13,69 @@
     </button>
   </div>
 
-  <!-- KPI MINI -->
+  <!-- KPIs -->
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
-        <div class="fw-bold" style="font-size:1.5rem;color:#3b82f6;">182</div>
+        <div class="fw-bold" id="kpiTotal" style="font-size:1.5rem;color:#3b82f6;">—</div>
         <small class="text-muted">Total Pedidos</small>
       </div>
     </div>
     <div class="col-6 col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
-        <div class="fw-bold text-success" style="font-size:1.5rem;">124</div>
+        <div class="fw-bold text-success" id="kpiEnviados" style="font-size:1.5rem;">—</div>
         <small class="text-muted">Enviados</small>
       </div>
     </div>
     <div class="col-6 col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
-        <div class="fw-bold text-warning" style="font-size:1.5rem;">47</div>
+        <div class="fw-bold text-warning" id="kpiProcesando" style="font-size:1.5rem;">—</div>
         <small class="text-muted">En Proceso</small>
       </div>
     </div>
     <div class="col-6 col-md-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
-        <div class="fw-bold text-danger" style="font-size:1.5rem;">11</div>
+        <div class="fw-bold text-danger" id="kpiCancelados" style="font-size:1.5rem;">—</div>
         <small class="text-muted">Cancelados</small>
       </div>
     </div>
   </div>
 
-  <!-- TABLA PEDIDOS -->
+  <!-- Tabla -->
   <div class="card border-0 shadow-sm rounded-4 p-4">
-
-    <!-- Filtros -->
     <div class="d-flex gap-3 mb-4 flex-wrap">
       <input class="form-control" style="max-width:250px;" id="searchPedidos"
-             placeholder="Buscar pedido o cliente..." oninput="filtrarPedidos()">
-      <select class="form-select w-auto" id="filtroEstado" onchange="filtrarPedidos()">
+             placeholder="Buscar pedido o cliente..." oninput="filtrarTabla()">
+      <select class="form-select w-auto" id="filtroEstado" onchange="filtrarTabla()">
         <option value="">Todos los estados</option>
-        <option>Procesando</option>
-        <option>Enviado</option>
-        <option>Recibido</option>
-        <option>Cancelado</option>
       </select>
     </div>
 
-    <div class="table-responsive">
-      <table class="table align-middle" id="tablaPedidos">
+    <div id="loadingPedidos" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="text-muted mt-2">Cargando pedidos...</p>
+    </div>
+    <div id="errorPedidos" class="alert alert-danger d-none"></div>
+
+    <div class="table-responsive d-none" id="wrapperTabla">
+      <table class="table align-middle">
         <thead class="table-light">
           <tr>
-            <th>ID Pedido</th>
-            <th>Cliente</th>
-            <th>Piezas</th>
-            <th>Total</th>
-            <th>Estado</th>
-            <th>Fecha</th>
-            <th>Acciones</th>
+            <th>ID</th><th>Cliente</th><th>Total</th><th>Estado</th><th>Fecha</th><th>Acciones</th>
           </tr>
         </thead>
-        <tbody>
-          {% set pedidos = [
-            {id:"ORD-2401", cliente:"Autopartes González", piezas:8, total:"$12,450", estado:"Enviado", fecha:"31/01/2026"},
-            {id:"ORD-2402", cliente:"Taller Mecánico Express", piezas:3, total:"$8,900", estado:"Procesando", fecha:"31/01/2026"},
-            {id:"ORD-2403", cliente:"Distribuidora del Norte", piezas:15, total:"$24,500", estado:"Recibido", fecha:"01/02/2026"},
-            {id:"ORD-2404", cliente:"Refaccionaria Omega", piezas:2, total:"$5,250", estado:"Cancelado", fecha:"02/02/2026"},
-            {id:"ORD-2405", cliente:"Servicio Rápido SA", piezas:6, total:"$9,100", estado:"Procesando", fecha:"03/02/2026"},
-            {id:"ORD-2406", cliente:"Grupo Automotriz MX", piezas:11, total:"$18,700", estado:"Enviado", fecha:"05/02/2026"}
-          ] %}
-          {% for p in pedidos %}
-          <tr class="fila-pedido">
-            <td class="fw-bold">{{ p.id }}</td>
-            <td>{{ p.cliente }}</td>
-            <td class="text-center">{{ p.piezas }}</td>
-            <td class="fw-bold" style="color:#3b82f6;">{{ p.total }}</td>
-            <td>
-              {% if p.estado == 'Enviado' %}
-              <span class="badge bg-success bg-opacity-10 text-success">Enviado</span>
-              {% elif p.estado == 'Procesando' %}
-              <span class="badge bg-primary bg-opacity-10 text-primary">Procesando</span>
-              {% elif p.estado == 'Recibido' %}
-              <span class="badge bg-warning bg-opacity-10 text-warning">Recibido</span>
-              {% else %}
-              <span class="badge bg-danger bg-opacity-10 text-danger">Cancelado</span>
-              {% endif %}
-            </td>
-            <td class="text-muted">{{ p.fecha }}</td>
-            <td>
-              {% if p.estado != 'Enviado' and p.estado != 'Cancelado' %}
-              <!-- Solo puede editar si no ha sido enviado ni cancelado -->
-              <button class="btn btn-sm btn-outline-primary me-1" title="Modificar pedido"
-                      data-bs-toggle="modal" data-bs-target="#modalEditarPedido"
-                      onclick="prepEditarPedido('{{ p.id }}','{{ p.cliente }}')">
-                <i class="fas fa-edit"></i>
-              </button>
-              {% else %}
-              <button class="btn btn-sm btn-outline-secondary me-1" title="Ver detalle">
-                <i class="fas fa-eye"></i>
-              </button>
-              {% endif %}
-              {# NUNCA se muestra botón de borrar — auditoría fiscal #}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
+        <tbody id="bodyPedidos"></tbody>
       </table>
     </div>
-
+    <div id="sinPedidos" class="text-center py-5 d-none text-muted">
+      <div style="font-size:3rem">📦</div>
+      <p>No hay pedidos registrados.</p>
+    </div>
     <small class="text-muted mt-2 d-block">
       <i class="fas fa-lock me-1 text-warning"></i>
-      Los pedidos no pueden eliminarse por política de auditoría fiscal. Solo se permite cancelar o modificar dirección antes del envío.
+      Los pedidos no pueden eliminarse por política de auditoría fiscal.
     </small>
-
   </div>
-
 </div>
 
 <!-- MODAL: NUEVO PEDIDO -->
@@ -139,56 +89,36 @@
       <div class="modal-body">
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label fw-semibold">Cliente</label>
-            <select class="form-select">
+            <label class="form-label fw-semibold">Cliente <span class="text-danger">*</span></label>
+            <select class="form-select" id="nCliente">
               <option value="">Seleccionar cliente…</option>
-              <option>Autopartes González</option>
-              <option>Taller Mecánico Express</option>
-              <option>Distribuidora del Norte</option>
-              <option>Servicio Rápido SA</option>
-              <option>Grupo Automotriz MX</option>
             </select>
           </div>
           <div class="col-md-6">
             <label class="form-label fw-semibold">Dirección de Entrega</label>
-            <input type="text" class="form-control" placeholder="Calle, Ciudad, CP">
+            <select class="form-select" id="nDireccion">
+              <option value="">Sin dirección especificada</option>
+            </select>
           </div>
           <div class="col-12">
-            <label class="form-label fw-semibold">Piezas del Pedido</label>
+            <label class="form-label fw-semibold">Piezas del Pedido <span class="text-danger">*</span></label>
             <div class="border rounded-3 p-3" style="background:#f8f9fe;">
-              <div class="row g-2 mb-2 fila-pieza">
-                <div class="col-md-5">
-                  <input type="text" class="form-control" placeholder="Código de pieza">
-                </div>
-                <div class="col-md-4">
-                  <input type="text" class="form-control" placeholder="Descripción">
-                </div>
-                <div class="col-md-3">
-                  <input type="number" class="form-control" placeholder="Cant." min="1">
-                </div>
-              </div>
-              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="agregarFilaPieza()">
+              <div id="contenedorPiezas"></div>
+              <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="agregarFilaPieza()">
                 <i class="fas fa-plus me-1"></i>Agregar pieza
               </button>
             </div>
           </div>
           <div class="col-md-6">
             <label class="form-label fw-semibold">Notas adicionales</label>
-            <textarea class="form-control" rows="2" placeholder="Instrucciones especiales…"></textarea>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Método de pago</label>
-            <select class="form-select">
-              <option>Transferencia</option>
-              <option>Crédito 30 días</option>
-              <option>Pago contra entrega</option>
-            </select>
+            <textarea class="form-control" id="nNotas" rows="2" placeholder="Instrucciones especiales…"></textarea>
           </div>
         </div>
+        <div id="errNuevoPedido" class="alert alert-danger mt-3 d-none"></div>
       </div>
       <div class="modal-footer border-0 pt-0">
         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary" onclick="guardarNuevoPedido()">
+        <button type="button" class="btn btn-primary" id="btnCrear" onclick="crearPedido()">
           <i class="fas fa-save me-1"></i>Crear Pedido
         </button>
       </div>
@@ -196,7 +126,7 @@
   </div>
 </div>
 
-<!-- MODAL: EDITAR PEDIDO (cancelar / cambiar dirección) -->
+<!-- MODAL: EDITAR PEDIDO -->
 <div class="modal fade" id="modalEditarPedido" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content border-0 shadow rounded-4">
@@ -205,40 +135,34 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <p class="text-muted mb-3">Pedido: <strong id="editPedidoId"></strong> — <span id="editPedidoCliente"></span></p>
-
+        <p class="text-muted mb-3">Pedido: <strong id="ePedidoId"></strong> — <span id="ePedidoCliente"></span></p>
         <div class="alert alert-info d-flex gap-2 align-items-start" style="font-size:0.85rem;">
           <i class="fas fa-info-circle mt-1"></i>
-          <span>Solo puedes modificar la <strong>dirección de entrega</strong> o <strong>cancelar</strong> el pedido antes de que sea enviado.</span>
+          <span>Solo puedes modificar la <strong>dirección</strong> o <strong>cancelar</strong> el pedido antes del envío.</span>
         </div>
-
         <div class="mb-3">
           <label class="form-label fw-semibold">Nueva Dirección de Entrega</label>
-          <input type="text" class="form-control" id="editDireccion" placeholder="Calle, Ciudad, CP">
+          <select class="form-select" id="eDireccion">
+            <option value="">Sin cambio</option>
+          </select>
         </div>
-
         <hr>
-
-        <div>
-          <label class="form-label fw-semibold text-danger">Cancelar Pedido</label>
-          <div class="mb-2">
-            <select class="form-select" id="motivoCancelacion">
-              <option value="">Seleccionar motivo…</option>
-              <option>Cliente solicitó cancelación</option>
-              <option>Error en el pedido</option>
-              <option>Producto sin stock</option>
-              <option>Otro</option>
-            </select>
-          </div>
-          <button class="btn btn-outline-danger btn-sm" onclick="cancelarPedido()">
-            <i class="fas fa-ban me-1"></i>Cancelar Pedido
-          </button>
-        </div>
-
+        <label class="form-label fw-semibold text-danger">Cancelar Pedido</label>
+        <select class="form-select mb-2" id="eMotivo">
+          <option value="">Seleccionar motivo…</option>
+          <option>Cliente solicitó cancelación</option>
+          <option>Error en el pedido</option>
+          <option>Producto sin stock</option>
+          <option>Otro</option>
+        </select>
+        <button class="btn btn-outline-danger btn-sm" onclick="cancelarPedido()">
+          <i class="fas fa-ban me-1"></i>Cancelar Pedido
+        </button>
+        <div id="errEditar" class="alert alert-danger mt-3 d-none"></div>
       </div>
       <div class="modal-footer border-0 pt-0">
         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-primary" onclick="guardarCambiosPedido()">
+        <button type="button" class="btn btn-primary" onclick="guardarDireccion()">
           <i class="fas fa-save me-1"></i>Guardar Dirección
         </button>
       </div>
@@ -250,59 +174,261 @@
 
 {% block scripts %}
 <script>
-function filtrarPedidos() {
-  const q = document.getElementById('searchPedidos').value.toLowerCase();
-  const est = document.getElementById('filtroEstado').value.toLowerCase();
-  document.querySelectorAll('.fila-pedido').forEach(fila => {
-    const texto = fila.textContent.toLowerCase();
-    const matchQ = q === '' || texto.includes(q);
-    const matchE = est === '' || texto.includes(est);
-    fila.style.display = matchQ && matchE ? '' : 'none';
+let pedidosTodos=[], autopartesAll=[], clientesAll=[], estatusAll=[], direccionesAll=[];
+let pedidoActivoId=null, piezaIdx=0;
+
+async function cargarTodo() {
+  try {
+    const [rP,rA,rC,rE,rD] = await Promise.all([
+      fetch('/api/pedidos'), fetch('/api/autopartes'), fetch('/api/usuarios'),
+      fetch('/api/estatus_pedido'), fetch('/api/direcciones')
+    ]);
+    pedidosTodos   = await rP.json(); if(!Array.isArray(pedidosTodos)) pedidosTodos=[];
+    autopartesAll  = await rA.json(); if(!Array.isArray(autopartesAll)) autopartesAll=[];
+    clientesAll    = await rC.json(); if(!Array.isArray(clientesAll)) clientesAll=[];
+    estatusAll     = await rE.json(); if(!Array.isArray(estatusAll)) estatusAll=[];
+    direccionesAll = await rD.json(); if(!Array.isArray(direccionesAll)) direccionesAll=[];
+
+    // Poblar selects
+    document.getElementById('nCliente').innerHTML =
+      '<option value="">Seleccionar cliente…</option>' +
+      clientesAll.map(c=>`<option value="${c.id}">${c.nombre} ${c.apellidos||''}</option>`).join('');
+
+    const selEst = document.getElementById('filtroEstado');
+    selEst.innerHTML = '<option value="">Todos los estados</option>' +
+      estatusAll.map(e=>`<option value="${e.id}">${e.nombre}</option>`).join('');
+
+    poblarDirecciones('nDireccion');
+    renderPedidos(pedidosTodos);
+    actualizarKPIs();
+  } catch(e) {
+    document.getElementById('loadingPedidos').classList.add('d-none');
+    show('errorPedidos','No se pudo conectar con la API: '+e.message);
+  }
+}
+
+function poblarDirecciones(id) {
+  document.getElementById(id).innerHTML =
+    '<option value="">Sin dirección especificada</option>' +
+    direccionesAll.map(d=>`<option value="${d.id}">${d.calle||''} ${d.ciudad||''} ${d.cp||''}</option>`).join('');
+}
+
+function nombreCliente(uid) {
+  const c=clientesAll.find(x=>x.id===uid);
+  return c?`${c.nombre} ${c.apellidos||''}`.trim():`Usuario #${uid}`;
+}
+function nombreEstatus(eid) {
+  const e=estatusAll.find(x=>x.id===eid); return e?e.nombre:`Estatus #${eid}`;
+}
+function badge(nombre) {
+  const n=(nombre||'').toLowerCase();
+  if(n.includes('envi'))   return `<span class="badge bg-success bg-opacity-10 text-success">${nombre}</span>`;
+  if(n.includes('cancel')) return `<span class="badge bg-danger bg-opacity-10 text-danger">${nombre}</span>`;
+  if(n.includes('entreg')) return `<span class="badge bg-info bg-opacity-10 text-info">${nombre}</span>`;
+  return `<span class="badge bg-warning bg-opacity-10 text-warning">${nombre}</span>`;
+}
+
+function renderPedidos(lista) {
+  document.getElementById('loadingPedidos').classList.add('d-none');
+  if(!lista||lista.length===0){
+    document.getElementById('wrapperTabla').classList.add('d-none');
+    document.getElementById('sinPedidos').classList.remove('d-none');
+    return;
+  }
+  document.getElementById('wrapperTabla').classList.remove('d-none');
+  document.getElementById('sinPedidos').classList.add('d-none');
+
+  const eCancel = estatusAll.find(e=>e.nombre.toLowerCase().includes('cancel'));
+  const eEnvio  = estatusAll.find(e=>e.nombre.toLowerCase().includes('envi'));
+
+  document.getElementById('bodyPedidos').innerHTML = lista.map(p=>{
+    const est    = nombreEstatus(p.estatus_id);
+    const bloq   = (eCancel&&p.estatus_id===eCancel.id)||(eEnvio&&p.estatus_id===eEnvio.id);
+    const fecha  = p.fecha_pedido ? new Date(p.fecha_pedido).toLocaleDateString('es-MX') : '—';
+    const total  = p.total!=null ? `$${parseFloat(p.total).toLocaleString('es-MX',{minimumFractionDigits:2})}` : '—';
+    return `<tr class="fila-pedido" data-eid="${p.estatus_id}">
+      <td class="fw-bold">#${p.id}</td>
+      <td>${nombreCliente(p.usuario_id)}</td>
+      <td class="fw-bold" style="color:#3b82f6;">${total}</td>
+      <td>${badge(est)}</td>
+      <td class="text-muted">${fecha}</td>
+      <td>${bloq
+        ?`<button class="btn btn-sm btn-outline-secondary" disabled><i class="fas fa-eye"></i></button>`
+        :`<button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalEditarPedido"
+            data-pid="${p.id}" data-cliente="${nombreCliente(p.usuario_id).replace(/"/g,'&quot;')}" data-dir="${p.direccion_envio_id||0}"
+            onclick="prepEditar(+this.dataset.pid,this.dataset.cliente,+this.dataset.dir)">
+            <i class="fas fa-edit"></i>
+          </button>`
+      }</td>
+    </tr>`;
+  }).join('');
+}
+
+function filtrarTabla() {
+  const q=document.getElementById('searchPedidos').value.toLowerCase();
+  const est=document.getElementById('filtroEstado').value;
+  const f=pedidosTodos.filter(p=>{
+    const txt=`#${p.id} ${nombreCliente(p.usuario_id)}`.toLowerCase();
+    return (q===''||txt.includes(q))&&(est===''||String(p.estatus_id)===est);
   });
+  renderPedidos(f);
 }
 
-function prepEditarPedido(id, cliente) {
-  document.getElementById('editPedidoId').textContent = id;
-  document.getElementById('editPedidoCliente').textContent = cliente;
+function actualizarKPIs() {
+  document.getElementById('kpiTotal').textContent=pedidosTodos.length;
+  const eEnv=estatusAll.find(e=>e.nombre.toLowerCase().includes('envi'));
+  const ePro=estatusAll.find(e=>e.nombre.toLowerCase().includes('proc')||e.nombre.toLowerCase().includes('pend'));
+  const eCan=estatusAll.find(e=>e.nombre.toLowerCase().includes('cancel'));
+  document.getElementById('kpiEnviados').textContent  =eEnv?pedidosTodos.filter(p=>p.estatus_id===eEnv.id).length:'—';
+  document.getElementById('kpiProcesando').textContent=ePro?pedidosTodos.filter(p=>p.estatus_id===ePro.id).length:'—';
+  document.getElementById('kpiCancelados').textContent=eCan?pedidosTodos.filter(p=>p.estatus_id===eCan.id).length:'—';
 }
 
-function guardarCambiosPedido() {
-  const dir = document.getElementById('editDireccion').value;
-  if (!dir.trim()) { mostrarToast('Ingresa la nueva dirección', 'warning'); return; }
-  bootstrap.Modal.getInstance(document.getElementById('modalEditarPedido')).hide();
-  mostrarToast('Dirección de entrega actualizada', 'success');
-}
-
-function cancelarPedido() {
-  const motivo = document.getElementById('motivoCancelacion').value;
-  if (!motivo) { mostrarToast('Selecciona un motivo de cancelación', 'warning'); return; }
-  bootstrap.Modal.getInstance(document.getElementById('modalEditarPedido')).hide();
-  mostrarToast('Pedido cancelado (el registro se conserva en auditoría)', 'warning');
-}
-
+/* ── Nuevo Pedido ── */
 function agregarFilaPieza() {
-  const cont = document.querySelector('.border.rounded-3.p-3');
-  const fila = document.createElement('div');
-  fila.className = 'row g-2 mb-2 fila-pieza';
-  fila.innerHTML = `
-    <div class="col-md-5"><input type="text" class="form-control" placeholder="Código de pieza"></div>
-    <div class="col-md-4"><input type="text" class="form-control" placeholder="Descripción"></div>
-    <div class="col-md-3"><input type="number" class="form-control" placeholder="Cant." min="1"></div>`;
-  cont.insertBefore(fila, cont.lastElementChild);
+  const idx=piezaIdx++;
+  const d=document.createElement('div');
+  d.className='row g-2 mb-2'; d.id=`p-${idx}`;
+  d.innerHTML=`
+    <div class="col-md-6">
+      <select class="form-select form-select-sm" id="pa-${idx}" onchange="setPrecio(${idx})">
+        <option value="">Seleccionar autoparte…</option>
+        ${autopartesAll.map(a=>`<option value="${a.id}" data-precio="${a.precio_unitario||0}">${a.nombre} — $${parseFloat(a.precio_unitario||0).toFixed(2)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control form-control-sm" id="pc-${idx}" placeholder="Cant." min="1" value="1">
+    </div>
+    <div class="col-md-3">
+      <input type="text" class="form-control form-control-sm" id="pp-${idx}" placeholder="Precio unit." readonly>
+    </div>
+    <div class="col-md-1">
+      <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="document.getElementById('p-${idx}').remove()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>`;
+  document.getElementById('contenedorPiezas').appendChild(d);
 }
 
-function guardarNuevoPedido() {
-  bootstrap.Modal.getInstance(document.getElementById('modalNuevoPedido')).hide();
-  mostrarToast('Pedido creado exitosamente', 'success');
+function setPrecio(idx) {
+  const sel=document.getElementById(`pa-${idx}`);
+  const opt=sel.options[sel.selectedIndex];
+  document.getElementById(`pp-${idx}`).value=opt.dataset.precio?`$${parseFloat(opt.dataset.precio).toFixed(2)}`:'';
 }
 
-function mostrarToast(msg, tipo) {
-  const t = document.createElement('div');
-  t.className = `alert alert-${tipo} position-fixed shadow`;
-  t.style.cssText = 'bottom:30px;right:30px;z-index:9999;min-width:280px;';
-  t.innerHTML = `<i class="fas fa-info-circle me-2"></i>${msg}`;
+async function crearPedido() {
+  const cid=document.getElementById('nCliente').value;
+  const did=document.getElementById('nDireccion').value;
+  const nota=document.getElementById('nNotas').value.trim();
+  if(!cid){show('errNuevoPedido','Selecciona un cliente.');return;}
+
+  const filas=document.querySelectorAll('[id^="p-"]');
+  if(filas.length===0){show('errNuevoPedido','Agrega al menos una pieza.');return;}
+
+  let total=0, detalles=[], ok=true;
+  filas.forEach(f=>{
+    const i=f.id.split('-')[1];
+    const aid=document.getElementById(`pa-${i}`)?.value;
+    const cant=parseInt(document.getElementById(`pc-${i}`)?.value||0);
+    if(!aid||cant<=0){ok=false;return;}
+    const a=autopartesAll.find(x=>String(x.id)===aid);
+    const precio=a?parseFloat(a.precio_unitario||0):0;
+    total+=precio*cant;
+    detalles.push({autoparte_id:parseInt(aid),cantidad:cant,precio_unitario:precio,subtotal:precio*cant});
+  });
+  if(!ok){show('errNuevoPedido','Completa autoparte y cantidad en cada fila.');return;}
+
+  const btn=document.getElementById('btnCrear');
+  btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Creando...';
+  document.getElementById('errNuevoPedido').classList.add('d-none');
+
+  try {
+    const eInicial=estatusAll.find(e=>e.nombre.toLowerCase().includes('pend')||e.nombre.toLowerCase().includes('proc'));
+    const payload={
+      usuario_id:parseInt(cid), estatus_id:eInicial?eInicial.id:1,
+      total, nota_pedido:nota||null,
+      direccion_envio_id:did?parseInt(did):null
+    };
+    const r=await fetch('/api/pedidos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.detail||data.error||'Error al crear pedido');
+
+    // Crear detalles
+    for(const det of detalles){
+      await fetch('/api/detalles_pedidos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pedido_id:data.id,...det})});
+    }
+
+    bootstrap.Modal.getInstance(document.getElementById('modalNuevoPedido')).hide();
+    toast(`Pedido #${data.id} creado exitosamente`,'success');
+    document.getElementById('contenedorPiezas').innerHTML=''; piezaIdx=0;
+    await cargarTodo();
+  } catch(e){show('errNuevoPedido',e.message);}
+  finally{btn.disabled=false; btn.innerHTML='<i class="fas fa-save me-1"></i>Crear Pedido';}
+}
+
+function prepEditar(id,cliente,dirId) {
+  pedidoActivoId=id;
+  document.getElementById('ePedidoId').textContent=`#${id}`;
+  document.getElementById('ePedidoCliente').textContent=cliente;
+  document.getElementById('eMotivo').value='';
+  document.getElementById('errEditar').classList.add('d-none');
+  poblarDirecciones('eDireccion');
+  if(dirId && dirId!==0) document.getElementById('eDireccion').value=String(dirId);
+}
+
+async function guardarDireccion() {
+  const did=document.getElementById('eDireccion').value;
+  if(!did){toast('Selecciona una dirección','warning');return;}
+  try {
+    const p=pedidosTodos.find(x=>x.id===pedidoActivoId);
+    if(!p) throw new Error('Pedido no encontrado');
+    const payload={
+      usuario_id:p.usuario_id, estatus_id:p.estatus_id,
+      total:p.total, direccion_envio_id:parseInt(did)
+    };
+    const r=await fetch(`/api/pedidos/${pedidoActivoId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!r.ok){const d=await r.json();throw new Error(d.detail||d.error||'Error al actualizar');}
+    bootstrap.Modal.getInstance(document.getElementById('modalEditarPedido')).hide();
+    toast('Dirección actualizada','success');
+    await cargarTodo();
+  } catch(e){show('errEditar',e.message);}
+}
+
+async function cancelarPedido() {
+  const motivo=document.getElementById('eMotivo').value;
+  if(!motivo){toast('Selecciona un motivo','warning');return;}
+  const eCan=estatusAll.find(e=>e.nombre.toLowerCase().includes('cancel'));
+  if(!eCan){toast('No se encontró estatus Cancelado en la API','danger');return;}
+  try {
+    const p=pedidosTodos.find(x=>x.id===pedidoActivoId);
+    if(!p) throw new Error('Pedido no encontrado');
+    const payload={
+      usuario_id:p.usuario_id, estatus_id:eCan.id,
+      total:p.total, direccion_envio_id:p.direccion_envio_id
+    };
+    const r=await fetch(`/api/pedidos/${pedidoActivoId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!r.ok){const d=await r.json();throw new Error(d.detail||d.error||'Error al cancelar');}
+    bootstrap.Modal.getInstance(document.getElementById('modalEditarPedido')).hide();
+    toast('Pedido cancelado','warning');
+    await cargarTodo();
+  } catch(e){show('errEditar',e.message);}
+}
+
+function show(id,msg){const el=document.getElementById(id);if(el){el.textContent=msg;el.classList.remove('d-none');}}
+function toast(msg,tipo){
+  const ic={success:'fa-check-circle',warning:'fa-exclamation-triangle',danger:'fa-times-circle',info:'fa-info-circle'};
+  const t=document.createElement('div');
+  t.className=`alert alert-${tipo} position-fixed shadow d-flex align-items-center gap-2`;
+  t.style.cssText='bottom:30px;right:30px;z-index:9999;min-width:300px;';
+  t.innerHTML=`<i class="fas ${ic[tipo]||'fa-info-circle'}"></i>${msg}`;
   document.body.appendChild(t);
-  setTimeout(() => t.remove(), 3000);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .4s';setTimeout(()=>t.remove(),400);},3000);
 }
+
+document.getElementById('modalNuevoPedido').addEventListener('show.bs.modal',()=>{
+  if(document.getElementById('contenedorPiezas').children.length===0) agregarFilaPieza();
+  document.getElementById('errNuevoPedido').classList.add('d-none');
+});
+document.addEventListener('DOMContentLoaded', cargarTodo);
 </script>
 {% endblock %}

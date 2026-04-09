@@ -291,7 +291,6 @@ def register_routes(app):
         if redir:
             return redir
         return render_template('admin_pedidos.html')
-
     @app.route('/admin/reportes', methods=['GET'])
     def admin_reportes():
         redir = solo_admin()
@@ -401,6 +400,12 @@ def register_routes(app):
         if redir:
             return redir
         return render_template('ventas_catalogo.html')
+    @app.route('/ventas/reportes', methods=['GET'])
+    def ventas_reportes():
+        redir = solo_ventas()
+        if redir:
+            return redir
+        return render_template('ventas_reportes.html')
     def solo_logistica():
         if requiere_login():
             return redirect(url_for('login'))
@@ -465,6 +470,12 @@ def register_routes(app):
         if redir:
             return redir
         return redirect(url_for('logistica_guias'))
+    @app.route('/logistica/reportes', methods=['GET'])
+    def logistica_reportes():
+        redir = solo_logistica()
+        if redir:
+            return redir
+        return render_template('logistica_reportes.html')
     def solo_almacen():
         if requiere_login():
             return redirect(url_for('login'))
@@ -569,131 +580,15 @@ def register_routes(app):
         if 'user_id' not in session:
             return jsonify({"error": "No autenticado"}), 401
         return None
-    @app.route('/api/autopartes')
+
+    # ── API PROXIES ──────────────────────────────────────────────────────────
+
+    @app.route('/api/autopartes', methods=['GET'])
     def proxy_autopartes():
         err = _check_session()
         if err:
             return err
         data, error = api_get("/v1/autopartes/")
-        if error:
-            return jsonify({"error": error}), 502
-        return jsonify(data)
-    @app.route('/api/autopartes/buscar')
-    def proxy_autopartes_buscar():
-        err = _check_session()
-        if err:
-            return err
-        nombre = request.args.get('nombre', '')
-        data, error = api_get("/v1/autopartes/buscar/", params={"nombre": nombre})
-        if error:
-            return jsonify({"error": error}), 502
-        return jsonify(data)
-    @app.route('/api/inventarios')
-    def proxy_inventarios():
-        err = _check_session()
-        if err:
-            return err
-        data, error = api_get("/v1/inventarios/")
-        if error:
-            return jsonify({"error": error}), 502
-        return jsonify(data)
-    @app.route('/api/inventarios/<int:inv_id>', methods=['GET'])
-    def proxy_inventario_get(inv_id):
-        err = _check_session()
-        if err:
-            return err
-        data, error = api_get(f"/v1/inventarios/{inv_id}")
-        if error:
-            return jsonify({"error": error}), 502
-        return jsonify(data)
-    @app.route('/api/inventarios/<int:inv_id>', methods=['PUT'])
-    def proxy_inventario_put(inv_id):
-        err = _check_session()
-        if err:
-            return err
-        data, error = api_put(f"/v1/inventarios/{inv_id}", request.get_json())
-        if error:
-            return jsonify({"error": error}), 502
-        return jsonify(data)
-    @app.route('/api/pedidos')
-    def proxy_pedidos():
-        err = _check_session()
-        if err:
-            return err
-        data, error = api_get("/v1/pedidos/")
-        if error:
-            return jsonify({"error": error}), 502
-        return jsonify(data)
-    @app.route('/api/pedidos/<int:pedido_id>', methods=['GET'])
-    def proxy_pedido_get(pedido_id):
-        err = _check_session()
-        if err:
-            return err
-        data, error = api_get(f"/v1/pedidos/{pedido_id}")
-        if error:
-            return jsonify({"error": error}), 502
-        return jsonify(data)
-    @app.route('/api/pedidos/<int:pedido_id>', methods=['PUT'])
-    def proxy_pedido_put(pedido_id):
-        err = _check_session()
-        if err:
-            return err
-        data, error = api_put(f"/v1/pedidos/{pedido_id}", request.get_json())
-        if error:
-            return jsonify({"error": error}), 502
-        return jsonify(data)
-    @app.route('/api/categorias')
-    def proxy_categorias():
-        err = _check_session()
-        if err:
-            return err
-        data, error = api_get("/v1/categorias/")
-        if error:
-            return jsonify({"error": error}), 502
-        return jsonify(data)
-    @app.route('/api/marcas')
-    def proxy_marcas():
-        err = _check_session()
-        if err:
-            return err
-        data, error = api_get("/v1/marcas/")
-        if error:
-            return jsonify({"error": error}), 502
-        return jsonify(data)
-    @app.route('/api/usuarios')
-    def proxy_usuarios():
-        err = _check_session()
-        if err:
-            return err
-        data, error = api_get("/v1/usuarios/")
-        if error:
-            return jsonify({"error": error}), 502
-        return jsonify(data)
-    @app.route('/api/estatus_pedido')
-    def proxy_estatus_pedido():
-        err = _check_session()
-        if err:
-            return err
-        data, error = api_get("/v1/estatus_pedido/")
-        if error:
-            return jsonify({"error": error}), 502
-        return jsonify(data)
-    @app.route('/api/direcciones')
-    def proxy_direcciones():
-        err = _check_session()
-        if err:
-            return err
-        data, error = api_get("/v1/direcciones/")
-        if error:
-            return jsonify({"error": error}), 502
-        return jsonify(data)
-
-    @app.route('/api/roles')
-    def proxy_roles():
-        err = _check_session()
-        if err:
-            return err
-        data, error = api_get("/v1/roles/")
         if error:
             return jsonify({"error": error}), 502
         return jsonify(data)
@@ -704,6 +599,17 @@ def register_routes(app):
         if err:
             return err
         data, error = api_post("/v1/autopartes/", request.get_json())
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/autopartes/buscar', methods=['GET'])
+    def proxy_autopartes_buscar():
+        err = _check_session()
+        if err:
+            return err
+        nombre = request.args.get('nombre', '')
+        data, error = api_get("/v1/autopartes/buscar/", params={"nombre": nombre})
         if error:
             return jsonify({"error": error}), 502
         return jsonify(data)
@@ -724,6 +630,106 @@ def register_routes(app):
         if err:
             return err
         data, error = api_delete(f"/v1/autopartes/{auto_id}")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/inventarios', methods=['GET'])
+    def proxy_inventarios():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get("/v1/inventarios/")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/inventarios/<int:inv_id>', methods=['GET'])
+    def proxy_inventario_get(inv_id):
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get(f"/v1/inventarios/{inv_id}")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/inventarios/<int:inv_id>', methods=['PUT'])
+    def proxy_inventario_put(inv_id):
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_put(f"/v1/inventarios/{inv_id}", request.get_json())
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/pedidos', methods=['GET'])
+    def proxy_pedidos():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get("/v1/pedidos/")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/pedidos', methods=['POST'])
+    def proxy_pedidos_post():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_post("/v1/pedidos/", request.get_json())
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data), 201
+
+    @app.route('/api/pedidos/<int:pedido_id>', methods=['GET'])
+    def proxy_pedido_get(pedido_id):
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get(f"/v1/pedidos/{pedido_id}")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/pedidos/<int:pedido_id>', methods=['PUT'])
+    def proxy_pedido_put(pedido_id):
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_put(f"/v1/pedidos/{pedido_id}", request.get_json())
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/detalles_pedidos', methods=['GET'])
+    def proxy_detalles_pedidos():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get("/v1/detalles_pedidos/")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/detalles_pedidos', methods=['POST'])
+    def proxy_detalles_pedidos_post():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_post("/v1/detalles_pedidos/", request.get_json())
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data), 201
+
+    @app.route('/api/categorias', methods=['GET'])
+    def proxy_categorias():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get("/v1/categorias/")
         if error:
             return jsonify({"error": error}), 502
         return jsonify(data)
@@ -758,6 +764,26 @@ def register_routes(app):
             return jsonify({"error": error}), 502
         return jsonify(data)
 
+    @app.route('/api/marcas', methods=['GET'])
+    def proxy_marcas():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get("/v1/marcas/")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/usuarios', methods=['GET'])
+    def proxy_usuarios():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get("/v1/usuarios/")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
     @app.route('/api/usuarios', methods=['POST'])
     def proxy_usuarios_post():
         err = _check_session()
@@ -778,32 +804,12 @@ def register_routes(app):
             return jsonify({"error": error}), 502
         return jsonify(data)
 
-    @app.route('/api/roles', methods=['POST'])
-    def proxy_roles_post():
+    @app.route('/api/estatus_pedido', methods=['GET'])
+    def proxy_estatus_pedido():
         err = _check_session()
         if err:
             return err
-        data, error = api_post("/v1/roles/", request.get_json())
-        if error:
-            return jsonify({"error": error}), 502
-        return jsonify(data)
-
-    @app.route('/api/roles/<int:rol_id>', methods=['PUT'])
-    def proxy_roles_put(rol_id):
-        err = _check_session()
-        if err:
-            return err
-        data, error = api_put(f"/v1/roles/{rol_id}", request.get_json())
-        if error:
-            return jsonify({"error": error}), 502
-        return jsonify(data)
-
-    @app.route('/api/roles/<int:rol_id>', methods=['DELETE'])
-    def proxy_roles_delete(rol_id):
-        err = _check_session()
-        if err:
-            return err
-        data, error = api_delete(f"/v1/roles/{rol_id}")
+        data, error = api_get("/v1/estatus_pedido/")
         if error:
             return jsonify({"error": error}), 502
         return jsonify(data)
@@ -837,13 +843,53 @@ def register_routes(app):
         if error:
             return jsonify({"error": error}), 502
         return jsonify(data)
-    
-    @app.route('/api/detalles_pedidos')
-    def proxy_detalles_pedidos():
+
+    @app.route('/api/direcciones', methods=['GET'])
+    def proxy_direcciones():
         err = _check_session()
         if err:
             return err
-        data, error = api_get("/v1/detalles_pedidos/")
+        data, error = api_get("/v1/direcciones/")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/roles', methods=['GET'])
+    def proxy_roles():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_get("/v1/roles/")
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/roles', methods=['POST'])
+    def proxy_roles_post():
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_post("/v1/roles/", request.get_json())
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/roles/<int:rol_id>', methods=['PUT'])
+    def proxy_roles_put(rol_id):
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_put(f"/v1/roles/{rol_id}", request.get_json())
+        if error:
+            return jsonify({"error": error}), 502
+        return jsonify(data)
+
+    @app.route('/api/roles/<int:rol_id>', methods=['DELETE'])
+    def proxy_roles_delete(rol_id):
+        err = _check_session()
+        if err:
+            return err
+        data, error = api_delete(f"/v1/roles/{rol_id}")
         if error:
             return jsonify({"error": error}), 502
         return jsonify(data)
