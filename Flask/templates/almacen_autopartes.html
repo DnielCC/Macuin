@@ -104,16 +104,17 @@
             </table>
           </div>
           <div class="col-md-6">
-            <div class="rounded-4 p-4 h-100 d-flex flex-column justify-content-center align-items-center"
+            <div class="rounded-4 p-4 h-100 d-flex flex-column justify-content-center align-items-center text-center"
                  style="background:#f8fafc;">
-              <i class="fas fa-cogs fa-4x mb-3" style="color:#8b5cf6;opacity:0.4;"></i>
+              <img id="dImagen" src="" alt="Imagen de la autoparte" style="max-width:100%; max-height:160px; object-fit:cover; border-radius:8px; margin-bottom:1rem; display:none;">
+              <i class="fas fa-cogs fa-4x mb-3" id="dImgPlaceholder" style="color:#8b5cf6;opacity:0.4;"></i>
               <p class="text-muted text-center mb-0" style="font-size:0.85rem;" id="dNotas"></p>
             </div>
           </div>
         </div>
         <div class="alert alert-warning d-flex gap-2 align-items-start mt-4" style="font-size:0.83rem;">
           <i class="fas fa-lock mt-1"></i>
-          <span>El precio de esta pieza no se muestra en Almacén. Si necesitas esa información, contacta al equipo de <strong>Ventas</strong>.</span>
+          <span>El precio de esta pieza no se muestra en Almacén</span>
         </div>
       </div>
       <div class="modal-footer border-0 pt-0">
@@ -130,6 +131,7 @@
     let autopartes = [];
     let categorias = {};   
     let marcas = {};  
+    
     async function cargarDatos() {
       try {
         const [resAuto, resCat, resMarca] = await Promise.all([
@@ -137,7 +139,6 @@
           fetch('/api/categorias'),
           fetch('/api/marcas'),
         ]);
-
         if (!resAuto.ok || !resCat.ok || !resMarca.ok) throw new Error('Error al obtener datos');
 
         const dataAuto = await resAuto.json();
@@ -155,7 +156,6 @@
           opt.textContent = c.nombre;
           sel.appendChild(opt);
         });
-
         renderTabla();
       } catch (e) {
         document.getElementById('bodyParts').innerHTML =
@@ -178,7 +178,6 @@
     function renderTabla() {
       const q = document.getElementById('searchParts').value.toLowerCase();
       const cat = document.getElementById('filtroCategoria').value;
-
       const filtrado = autopartes.filter(p => {
         const catNombre = categorias[p.categoria_id] || '';
         const txt = `${p.sku_codigo} ${p.nombre} ${catNombre}`.toLowerCase();
@@ -186,7 +185,6 @@
         const matchC = cat === '' || catNombre === cat;
         return matchQ && matchC;
       });
-
       document.getElementById('bodyParts').innerHTML = filtrado.map(p => {
         const catNombre = categorias[p.categoria_id] || `Cat. ${p.categoria_id}`;
         const marcaNombre = marcas[p.marca_id] || `Marca ${p.marca_id}`;
@@ -200,7 +198,6 @@
           <td class="text-muted" style="font-size:0.85rem;">${p.descripcion ? p.descripcion.substring(0,60) + '…' : '—'}</td>
         </tr>`;
       }).join('');
-
       document.getElementById('contadorParts').textContent = `Mostrando ${filtrado.length} piezas`;
       document.getElementById('kpiMostrando').textContent = filtrado.length;
 
@@ -217,6 +214,19 @@
       document.getElementById('dCat').textContent = categorias[p.categoria_id] || `Cat. ${p.categoria_id}`;
       document.getElementById('dMarca').textContent = marcas[p.marca_id] || `Marca ${p.marca_id}`;
       document.getElementById('dNotas').textContent = p.descripcion || 'Sin descripción registrada.';
+      
+      const imgPreview = document.getElementById('dImagen');
+      const imgPlaceholder = document.getElementById('dImgPlaceholder');
+      
+      if (p.imagen_url) {
+        imgPreview.src = p.imagen_url;
+        imgPreview.style.display = 'block';
+        imgPlaceholder.style.display = 'none';
+      } else {
+        imgPreview.src = '';
+        imgPreview.style.display = 'none';
+        imgPlaceholder.style.display = 'block';
+      }
     }
 
     document.addEventListener('DOMContentLoaded', cargarDatos);

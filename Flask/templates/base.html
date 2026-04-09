@@ -96,6 +96,11 @@ Módulo: {{ session.get('user_role','General') }}
   <i class="fas fa-cogs"></i>
   Autopartes
 </a>
+<a href="{{ url_for('almacen_reportes') }}"
+   class="nav-item {% if request.endpoint == 'almacen_reportes' %}active{% endif %}">
+  <i class="fas fa-chart-bar"></i>
+  Reportes
+</a>
 {% endif %}
 
 
