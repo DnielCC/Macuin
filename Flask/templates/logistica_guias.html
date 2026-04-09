@@ -3,26 +3,22 @@
 {% block content %}
 <div class="container-fluid py-4">
 
-  <!-- HEADER -->
   <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
       <h2 class="fw-bold" style="color:#111827;">Documentos de Envío <span style="font-size:1rem;font-weight:400;color:#6b7280;">(Guías)</span></h2>
-      <p class="text-muted mb-0">Sube guías de paquetería o genera etiquetas de ruta para cada pedido</p>
+      <p class="text-muted mb-0">Sube guías de paquetería o genera etiquetas para cada pedido</p>
     </div>
     <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalSubirGuia">
       <i class="fas fa-upload me-2"></i>Subir / Generar Guía
     </button>
   </div>
 
-  <!-- STATS -->
+  <!-- Stats -->
   <div class="row g-4 mb-4">
     <div class="col-md-4">
       <div class="card border-0 shadow-sm rounded-4 p-3">
         <div class="d-flex justify-content-between">
-          <div>
-            <small class="text-muted">Total Guías</small>
-            <h3 class="fw-bold" id="kpiTotal">6</h3>
-          </div>
+          <div><small class="text-muted">Total Guías</small><h3 class="fw-bold" id="kpiTotal">0</h3></div>
           <div class="p-3 rounded-3 d-flex align-items-center" style="background:#f5f3ff;">
             <i class="fas fa-file-alt" style="color:#8b5cf6;"></i>
           </div>
@@ -32,10 +28,7 @@
     <div class="col-md-4">
       <div class="card border-0 shadow-sm rounded-4 p-3">
         <div class="d-flex justify-content-between">
-          <div>
-            <small class="text-muted">PDFs Subidos</small>
-            <h3 class="fw-bold" id="kpiPDF">3</h3>
-          </div>
+          <div><small class="text-muted">PDFs Subidos</small><h3 class="fw-bold" id="kpiPDF">0</h3></div>
           <div class="p-3 rounded-3 d-flex align-items-center" style="background:#fef3c7;">
             <i class="fas fa-file-pdf" style="color:#d97706;"></i>
           </div>
@@ -45,10 +38,7 @@
     <div class="col-md-4">
       <div class="card border-0 shadow-sm rounded-4 p-3">
         <div class="d-flex justify-content-between">
-          <div>
-            <small class="text-muted">Etiquetas Generadas</small>
-            <h3 class="fw-bold" id="kpiEtiqueta">3</h3>
-          </div>
+          <div><small class="text-muted">Etiquetas Generadas</small><h3 class="fw-bold" id="kpiEtiqueta">0</h3></div>
           <div class="p-3 rounded-3 d-flex align-items-center" style="background:#ecfdf5;">
             <i class="fas fa-tag" style="color:#10b981;"></i>
           </div>
@@ -57,9 +47,8 @@
     </div>
   </div>
 
-  <!-- TABLA GUÍAS -->
+  <!-- Tabla -->
   <div class="card border-0 shadow-sm rounded-4 p-4">
-
     <div class="d-flex justify-content-between mb-3 flex-wrap gap-2 align-items-center">
       <div class="d-flex gap-2 flex-wrap">
         <input class="form-control" style="max-width:280px;" id="searchGuias"
@@ -70,33 +59,28 @@
           <option>Etiqueta Generada</option>
         </select>
       </div>
-      <small class="text-muted" id="contadorGuias">Mostrando 6 guías</small>
+      <small class="text-muted" id="contadorGuias">0 guías</small>
     </div>
 
     <div class="table-responsive">
-      <table class="table align-middle table-hover" id="tablaGuias">
+      <table class="table align-middle table-hover">
         <thead class="table-light">
           <tr>
-            <th>ID Guía</th>
-            <th>Pedido</th>
-            <th>Paquetería</th>
-            <th>Tipo</th>
-            <th>Número de Rastreo</th>
-            <th>Fecha</th>
-            <th>Acciones</th>
+            <th>ID Guía</th><th>Pedido</th><th>Paquetería</th>
+            <th>Tipo</th><th>Número de Rastreo</th><th>Fecha</th><th>Acciones</th>
           </tr>
         </thead>
-        <tbody id="bodyGuias">
-          <!-- generado por JS -->
-        </tbody>
+        <tbody id="bodyGuias"></tbody>
       </table>
     </div>
-
+    <div id="sinGuias" class="text-center py-4 text-muted d-none">
+      <div style="font-size:3rem">📄</div>
+      <p>No hay guías registradas aún.</p>
+    </div>
   </div>
-
 </div>
 
-<!-- ═══════════════ MODAL: SUBIR / GENERAR GUÍA ═══════════════ -->
+<!-- MODAL: SUBIR / GENERAR GUÍA -->
 <div class="modal fade" id="modalSubirGuia" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content border-0 shadow rounded-4">
@@ -105,16 +89,14 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-
-        <!-- Tabs -->
         <ul class="nav nav-pills mb-4" id="tabsTipoGuia">
           <li class="nav-item">
-            <button class="nav-link active" id="btnTabPDF" onclick="cambiarTab('pdf', this)">
+            <button class="nav-link active" onclick="cambiarTab('pdf',this)">
               <i class="fas fa-file-pdf me-1"></i>Subir PDF
             </button>
           </li>
           <li class="nav-item ms-2">
-            <button class="nav-link" id="btnTabEtiqueta" onclick="cambiarTab('etiqueta', this)">
+            <button class="nav-link" onclick="cambiarTab('etiqueta',this)">
               <i class="fas fa-tag me-1"></i>Generar Etiqueta
             </button>
           </li>
@@ -124,23 +106,21 @@
         <div id="panelPDF">
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label fw-semibold">Pedido Asociado</label>
-              <select class="form-select" id="nuevoPedidoPDF">
+              <label class="form-label fw-semibold">Pedido Asociado <span class="text-danger">*</span></label>
+              <select class="form-select" id="nPedidoPDF">
                 <option value="">Seleccionar pedido…</option>
-                <option value="ORD-2405">ORD-2405 — Servicio Rápido SA</option>
-                <option value="ORD-2407">ORD-2407 — Refaccionaria Omega</option>
               </select>
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold">Paquetería</label>
-              <select class="form-select" id="nuevaPaqueteriaPDF">
+              <select class="form-select" id="nPaqueteriaPDF">
                 <option>FedEx</option><option>DHL</option><option>Estafeta</option>
                 <option>Redpack</option><option>UPS</option><option>Correos de México</option>
               </select>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-semibold">Número de Rastreo</label>
-              <input type="text" class="form-control" id="nuevoRastreoPDF" placeholder="Ej. FDX-123456789">
+              <label class="form-label fw-semibold">Número de Rastreo <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="nRastreoPDF" placeholder="Ej. FDX-123456789">
             </div>
             <div class="col-12">
               <label class="form-label fw-semibold">Archivo PDF de Guía</label>
@@ -149,8 +129,7 @@
                 <i class="fas fa-file-pdf fa-2x mb-2" style="color:#dc2626;"></i>
                 <p class="mb-1 fw-semibold">Haz clic para seleccionar el PDF</p>
                 <small class="text-muted">Solo archivos .pdf • Máximo 10 MB</small>
-                <input type="file" id="inputPdf" accept=".pdf" class="d-none"
-                       onchange="mostrarNombreArchivo(this)">
+                <input type="file" id="inputPdf" accept=".pdf" class="d-none" onchange="mostrarArchivo(this)">
               </div>
               <small class="text-muted mt-1 d-block" id="nombreArchivo"></small>
             </div>
@@ -161,26 +140,24 @@
         <div id="panelEtiqueta" class="d-none">
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label fw-semibold">Pedido Asociado</label>
-              <select class="form-select" id="nuevoPedidoEtiqueta">
+              <label class="form-label fw-semibold">Pedido Asociado <span class="text-danger">*</span></label>
+              <select class="form-select" id="nPedidoEtiqueta">
                 <option value="">Seleccionar pedido…</option>
-                <option value="ORD-2405">ORD-2405 — Servicio Rápido SA</option>
-                <option value="ORD-2407">ORD-2407 — Refaccionaria Omega</option>
               </select>
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold">Paquetería</label>
-              <select class="form-select" id="nuevaPaqueteriaEtiqueta">
+              <select class="form-select" id="nPaqueteriaEtiqueta">
                 <option>FedEx</option><option>DHL</option><option>Estafeta</option><option>Redpack</option>
               </select>
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold">Peso del Paquete (kg)</label>
-              <input type="number" class="form-control" id="nuevoPeso" placeholder="Ej. 5.2" min="0.1" step="0.1">
+              <input type="number" class="form-control" id="nPeso" placeholder="Ej. 5.2" min="0.1" step="0.1">
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold">Servicio</label>
-              <select class="form-select" id="nuevoServicio">
+              <select class="form-select" id="nServicio">
                 <option>Express (1-2 días)</option>
                 <option>Estándar (3-5 días)</option>
                 <option>Económico (5-7 días)</option>
@@ -188,11 +165,11 @@
             </div>
             <div class="col-12">
               <label class="form-label fw-semibold">Notas de Entrega</label>
-              <textarea class="form-control" id="nuevasNotas" rows="2" placeholder="Ej. Frágil, no apilar…"></textarea>
+              <textarea class="form-control" id="nNotas" rows="2" placeholder="Ej. Frágil, no apilar…"></textarea>
             </div>
           </div>
         </div>
-
+        <div id="errGuia" class="alert alert-danger mt-3 d-none"></div>
       </div>
       <div class="modal-footer border-0 pt-0">
         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
@@ -204,7 +181,7 @@
   </div>
 </div>
 
-<!-- ═══════════════ MODAL: EDITAR GUÍA ═══════════════ -->
+<!-- MODAL: EDITAR GUÍA -->
 <div class="modal fade" id="modalEditarGuia" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content border-0 shadow rounded-4">
@@ -213,26 +190,21 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <p class="text-muted mb-3">Guía: <strong id="editGuiaId"></strong> — <span id="editGuiaPedido"></span></p>
+        <p class="text-muted mb-3">Guía: <strong id="eGuiaId"></strong> — <span id="eGuiaPedido"></span></p>
         <div class="mb-3">
           <label class="form-label fw-semibold">Paquetería</label>
-          <select class="form-select" id="editPaqueteria">
-            <option>FedEx</option><option>DHL</option><option>Estafeta</option>
-            <option>Redpack</option><option>UPS</option>
+          <select class="form-select" id="ePaqueteria">
+            <option>FedEx</option><option>DHL</option><option>Estafeta</option><option>Redpack</option><option>UPS</option>
           </select>
         </div>
         <div class="mb-3">
           <label class="form-label fw-semibold">Número de Rastreo</label>
-          <input type="text" class="form-control" id="editRastreo">
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Reemplazar PDF (opcional)</label>
-          <input type="file" class="form-control" accept=".pdf">
+          <input type="text" class="form-control" id="eRastreo">
         </div>
       </div>
       <div class="modal-footer border-0 pt-0">
         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary" onclick="guardarEdicionGuia()">
+        <button type="button" class="btn btn-primary" onclick="guardarEdicion()">
           <i class="fas fa-save me-1"></i>Guardar Cambios
         </button>
       </div>
@@ -240,8 +212,8 @@
   </div>
 </div>
 
-<!-- ═══════════════ MODAL: ELIMINAR GUÍA ═══════════════ -->
-<div class="modal fade" id="modalEliminarGuia" tabindex="-1">
+<!-- MODAL: ELIMINAR GUÍA -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content border-0 shadow rounded-4">
       <div class="modal-header border-0 pb-0">
@@ -249,10 +221,10 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <p>¿Estás seguro de que deseas eliminar la guía <strong id="elimGuiaId"></strong> del pedido <strong id="elimGuiaPedido"></strong>?</p>
-        <div class="alert alert-warning d-flex gap-2 align-items-start" style="font-size:0.85rem;">
+        <p>¿Eliminar la guía <strong id="delGuiaId"></strong> del pedido <strong id="delGuiaPedido"></strong>?</p>
+        <div class="alert alert-warning d-flex gap-2" style="font-size:0.85rem;">
           <i class="fas fa-exclamation-triangle mt-1"></i>
-          <span>Esta acción eliminará el documento de envío. El pedido en sí <strong>no se elimina</strong>; solo se borra la guía de paquetería asociada.</span>
+          <span>Solo se elimina el documento de envío. El pedido no se afecta.</span>
         </div>
       </div>
       <div class="modal-footer border-0 pt-0">
@@ -265,74 +237,62 @@
   </div>
 </div>
 
-<!-- MODAL: VER / DESCARGAR GUÍA -->
-<div class="modal fade" id="modalVerGuia" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content border-0 shadow rounded-4">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold"><i class="fas fa-download text-primary me-2"></i>Descargar Guía</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body text-center py-4">
-        <div class="mb-3">
-          <i class="fas fa-file-alt fa-4x" style="color:#8b5cf6;"></i>
-        </div>
-        <h6 class="fw-bold" id="verGuiaId"></h6>
-        <p class="text-muted" id="verGuiaPedido"></p>
-        <div class="d-grid gap-2 mt-3">
-          <button class="btn btn-primary" onclick="simularDescarga()">
-            <i class="fas fa-download me-2"></i>Descargar PDF
-          </button>
-          <button class="btn btn-outline-secondary" onclick="simularImprimir()">
-            <i class="fas fa-print me-2"></i>Imprimir Etiqueta
-          </button>
-        </div>
-      </div>
-      <div class="modal-footer border-0 pt-0">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 {% endblock %}
 
 {% block scripts %}
 <script>
-/* ─── Estado en memoria ─── */
-let guias = [
-  {id:"GIA-001", pedido:"ORD-2401", paqueteria:"FedEx",    tipo:"PDF Subido",        rastreo:"FDX-789456123", fecha:"31/01/2026"},
-  {id:"GIA-002", pedido:"ORD-2402", paqueteria:"DHL",      tipo:"Etiqueta Generada", rastreo:"DHL-654321987", fecha:"31/01/2026"},
-  {id:"GIA-003", pedido:"ORD-2403", paqueteria:"Estafeta", tipo:"PDF Subido",        rastreo:"EST-112233445", fecha:"01/02/2026"},
-  {id:"GIA-004", pedido:"ORD-2405", paqueteria:"Redpack",  tipo:"Etiqueta Generada", rastreo:"RPK-998877665", fecha:"03/02/2026"},
-  {id:"GIA-005", pedido:"ORD-2406", paqueteria:"FedEx",    tipo:"PDF Subido",        rastreo:"FDX-111222333", fecha:"05/02/2026"},
-  {id:"GIA-006", pedido:"ORD-2407", paqueteria:"DHL",      tipo:"Etiqueta Generada", rastreo:"DHL-444555666", fecha:"06/02/2026"}
-];
+/* Guías se manejan en memoria (la API base no tiene endpoint de guías)
+   En producción, agregar /v1/guias/ al API y reemplazar fetch. */
 
-let guiaActivaId   = null; // para editar / eliminar
-let tabActiva      = 'pdf';
-let guiaContador   = 7;    // id autoincrementado
+let guias=[], guiaActivaId=null, tabActiva='pdf', guiaIdx=7;
+let pedidosTodos=[], clientesAll=[];
 
-/* ─── Render ─── */
+async function cargarPedidos() {
+  try {
+    const [rP,rC]=await Promise.all([fetch('/api/pedidos'),fetch('/api/usuarios')]);
+    pedidosTodos=await rP.json(); if(!Array.isArray(pedidosTodos)) pedidosTodos=[];
+    clientesAll =await rC.json(); if(!Array.isArray(clientesAll)) clientesAll=[];
+
+    const opcionesPedidos='<option value="">Seleccionar pedido…</option>'+
+      pedidosTodos.map(p=>`<option value="${p.id}">#${p.id} — ${nombreCliente(p.usuario_id)}</option>`).join('');
+    document.getElementById('nPedidoPDF').innerHTML=opcionesPedidos;
+    document.getElementById('nPedidoEtiqueta').innerHTML=opcionesPedidos;
+  } catch(e){ console.warn('No se pudieron cargar pedidos:',e.message); }
+}
+
+function nombreCliente(uid) {
+  const c=clientesAll.find(x=>x.id===uid);
+  return c?`${c.nombre} ${c.apellidos||''}`.trim():`Usuario #${uid}`;
+}
+
 function badgeTipo(tipo) {
-  if (tipo === 'PDF Subido')
-    return `<span class="badge bg-warning bg-opacity-10 text-warning"><i class="fas fa-file-pdf me-1"></i>PDF Subido</span>`;
-  return `<span class="badge bg-success bg-opacity-10 text-success"><i class="fas fa-tag me-1"></i>Etiqueta Generada</span>`;
+  return tipo==='PDF Subido'
+    ?`<span class="badge bg-warning bg-opacity-10 text-warning"><i class="fas fa-file-pdf me-1"></i>PDF Subido</span>`
+    :`<span class="badge bg-success bg-opacity-10 text-success"><i class="fas fa-tag me-1"></i>Etiqueta Generada</span>`;
 }
 
 function renderTabla() {
-  const q    = document.getElementById('searchGuias').value.toLowerCase();
-  const tipo = document.getElementById('filtroTipo').value;
-
-  const filtradas = guias.filter(g => {
-    const txt = `${g.id} ${g.pedido} ${g.paqueteria} ${g.tipo} ${g.rastreo}`.toLowerCase();
-    const matchQ = q    === '' || txt.includes(q);
-    const matchT = tipo === '' || g.tipo === tipo;
-    return matchQ && matchT;
+  const q=document.getElementById('searchGuias').value.toLowerCase();
+  const tipo=document.getElementById('filtroTipo').value;
+  const f=guias.filter(g=>{
+    const txt=`${g.id} ${g.pedido} ${g.paqueteria} ${g.tipo} ${g.rastreo}`.toLowerCase();
+    return (q===''||txt.includes(q))&&(tipo===''||g.tipo===tipo);
   });
 
-  document.getElementById('bodyGuias').innerHTML = filtradas.map(g => `
-    <tr class="fila-guia" data-id="${g.id}">
+  document.getElementById('contadorGuias').textContent=`Mostrando ${f.length} guías`;
+  document.getElementById('kpiTotal').textContent=guias.length;
+  document.getElementById('kpiPDF').textContent=guias.filter(g=>g.tipo==='PDF Subido').length;
+  document.getElementById('kpiEtiqueta').textContent=guias.filter(g=>g.tipo==='Etiqueta Generada').length;
+
+  if(f.length===0){
+    document.getElementById('bodyGuias').innerHTML='';
+    document.getElementById('sinGuias').classList.remove('d-none');
+    return;
+  }
+  document.getElementById('sinGuias').classList.add('d-none');
+
+  document.getElementById('bodyGuias').innerHTML=f.map(g=>`
+    <tr>
       <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">${g.id}</code></td>
       <td class="fw-bold">${g.pedido}</td>
       <td>${g.paqueteria}</td>
@@ -340,160 +300,108 @@ function renderTabla() {
       <td><span class="text-muted" style="font-size:0.85rem;font-family:monospace;">${g.rastreo}</span></td>
       <td class="text-muted">${g.fecha}</td>
       <td>
-        <button class="btn btn-sm btn-outline-primary me-1" title="Ver / Descargar"
-                data-bs-toggle="modal" data-bs-target="#modalVerGuia"
-                onclick="verGuia('${g.id}','${g.pedido}')">
-          <i class="fas fa-download"></i>
-        </button>
-        <button class="btn btn-sm btn-outline-secondary me-1" title="Editar guía"
+        <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
                 data-bs-toggle="modal" data-bs-target="#modalEditarGuia"
-                onclick="prepEditarGuia('${g.id}','${g.pedido}','${g.paqueteria}','${g.rastreo}')">
+                onclick="prepEditar('${g.id}','${g.pedido}','${g.paqueteria}','${g.rastreo}')">
           <i class="fas fa-edit"></i>
         </button>
-        <button class="btn btn-sm btn-outline-danger" title="Eliminar guía"
-                data-bs-toggle="modal" data-bs-target="#modalEliminarGuia"
-                onclick="prepEliminarGuia('${g.id}','${g.pedido}')">
+        <button class="btn btn-sm btn-outline-danger" title="Eliminar"
+                data-bs-toggle="modal" data-bs-target="#modalEliminar"
+                onclick="prepEliminar('${g.id}','${g.pedido}')">
           <i class="fas fa-trash"></i>
         </button>
       </td>
-    </tr>
-  `).join('');
-
-  document.getElementById('contadorGuias').textContent = `Mostrando ${filtradas.length} guías`;
-  actualizarKPIs();
+    </tr>`).join('');
 }
 
-function actualizarKPIs() {
-  document.getElementById('kpiTotal').textContent    = guias.length;
-  document.getElementById('kpiPDF').textContent      = guias.filter(g=>g.tipo==='PDF Subido').length;
-  document.getElementById('kpiEtiqueta').textContent = guias.filter(g=>g.tipo==='Etiqueta Generada').length;
-}
-
-/* ─── Tab PDF / Etiqueta ─── */
-function cambiarTab(panel, btn) {
-  tabActiva = panel;
-  document.getElementById('panelPDF').classList.toggle('d-none',      panel !== 'pdf');
-  document.getElementById('panelEtiqueta').classList.toggle('d-none', panel !== 'etiqueta');
-  document.querySelectorAll('#tabsTipoGuia .nav-link').forEach(b => b.classList.remove('active'));
+function cambiarTab(panel,btn) {
+  tabActiva=panel;
+  document.getElementById('panelPDF').classList.toggle('d-none',panel!=='pdf');
+  document.getElementById('panelEtiqueta').classList.toggle('d-none',panel!=='etiqueta');
+  document.querySelectorAll('#tabsTipoGuia .nav-link').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
 }
 
-function mostrarNombreArchivo(input) {
-  if (input.files[0]) {
-    document.getElementById('nombreArchivo').textContent = '📎 ' + input.files[0].name;
-  }
+function mostrarArchivo(input) {
+  if(input.files[0]) document.getElementById('nombreArchivo').textContent='📎 '+input.files[0].name;
 }
 
-/* ─── Crear Guía ─── */
 function guardarGuia() {
-  const hoy = new Date();
-  const fecha = `${String(hoy.getDate()).padStart(2,'0')}/${String(hoy.getMonth()+1).padStart(2,'0')}/${hoy.getFullYear()}`;
+  const hoy=new Date();
+  const fecha=`${String(hoy.getDate()).padStart(2,'0')}/${String(hoy.getMonth()+1).padStart(2,'0')}/${hoy.getFullYear()}`;
 
-  if (tabActiva === 'pdf') {
-    const pedido     = document.getElementById('nuevoPedidoPDF').value;
-    const paqueteria = document.getElementById('nuevaPaqueteriaPDF').value;
-    const rastreo    = document.getElementById('nuevoRastreoPDF').value.trim();
-    if (!pedido || !rastreo) { mostrarToast('Completa el pedido y número de rastreo', 'warning'); return; }
-
-    guias.push({
-      id: `GIA-${String(guiaContador++).padStart(3,'0')}`,
-      pedido, paqueteria, tipo: 'PDF Subido', rastreo, fecha
-    });
-    // limpiar
-    document.getElementById('nuevoPedidoPDF').value = '';
-    document.getElementById('nuevoRastreoPDF').value = '';
-    document.getElementById('nombreArchivo').textContent = '';
+  if(tabActiva==='pdf') {
+    const pedido=document.getElementById('nPedidoPDF').value;
+    const paqueteria=document.getElementById('nPaqueteriaPDF').value;
+    const rastreo=document.getElementById('nRastreoPDF').value.trim();
+    if(!pedido||!rastreo){show('errGuia','Selecciona pedido y número de rastreo.');return;}
+    guias.push({id:`GIA-${String(guiaIdx++).padStart(3,'0')}`,pedido:`#${pedido}`,paqueteria,tipo:'PDF Subido',rastreo,fecha});
+    document.getElementById('nPedidoPDF').value='';
+    document.getElementById('nRastreoPDF').value='';
+    document.getElementById('nombreArchivo').textContent='';
   } else {
-    const pedido     = document.getElementById('nuevoPedidoEtiqueta').value;
-    const paqueteria = document.getElementById('nuevaPaqueteriaEtiqueta').value;
-    if (!pedido) { mostrarToast('Selecciona el pedido asociado', 'warning'); return; }
-
-    const rastreo = paqueteria.substring(0,3).toUpperCase() + '-' + Math.floor(100000000 + Math.random()*900000000);
-    guias.push({
-      id: `GIA-${String(guiaContador++).padStart(3,'0')}`,
-      pedido, paqueteria, tipo: 'Etiqueta Generada', rastreo, fecha
-    });
-    document.getElementById('nuevoPedidoEtiqueta').value = '';
-    document.getElementById('nuevoPeso').value = '';
-    document.getElementById('nuevasNotas').value = '';
+    const pedido=document.getElementById('nPedidoEtiqueta').value;
+    const paqueteria=document.getElementById('nPaqueteriaEtiqueta').value;
+    if(!pedido){show('errGuia','Selecciona el pedido asociado.');return;}
+    const rastreo=paqueteria.substring(0,3).toUpperCase()+'-'+Math.floor(100000000+Math.random()*900000000);
+    guias.push({id:`GIA-${String(guiaIdx++).padStart(3,'0')}`,pedido:`#${pedido}`,paqueteria,tipo:'Etiqueta Generada',rastreo,fecha});
+    document.getElementById('nPedidoEtiqueta').value='';
+    document.getElementById('nPeso').value='';
+    document.getElementById('nNotas').value='';
   }
 
   bootstrap.Modal.getInstance(document.getElementById('modalSubirGuia')).hide();
   renderTabla();
-  mostrarToast('Guía guardada exitosamente', 'success');
+  toast('Guía guardada exitosamente','success');
 }
 
-/* ─── Ver / Descargar ─── */
-function verGuia(id, pedido) {
-  document.getElementById('verGuiaId').textContent     = id;
-  document.getElementById('verGuiaPedido').textContent = pedido;
+function prepEditar(id,pedido,paqueteria,rastreo) {
+  guiaActivaId=id;
+  document.getElementById('eGuiaId').textContent=id;
+  document.getElementById('eGuiaPedido').textContent=pedido;
+  const sel=document.getElementById('ePaqueteria');
+  [...sel.options].forEach(o=>{o.selected=o.value===paqueteria;});
+  document.getElementById('eRastreo').value=rastreo;
 }
 
-function simularDescarga() {
-  mostrarToast('Descarga iniciada (simulada)', 'info');
-  bootstrap.Modal.getInstance(document.getElementById('modalVerGuia')).hide();
-}
-
-function simularImprimir() {
-  mostrarToast('Enviando a impresora (simulado)', 'info');
-  bootstrap.Modal.getInstance(document.getElementById('modalVerGuia')).hide();
-}
-
-/* ─── Editar Guía ─── */
-function prepEditarGuia(id, pedido, paqueteria, rastreo) {
-  guiaActivaId = id;
-  document.getElementById('editGuiaId').textContent = id;
-  document.getElementById('editGuiaPedido').textContent = pedido;
-  // Seleccionar paquetería actual
-  const sel = document.getElementById('editPaqueteria');
-  [...sel.options].forEach(o => { o.selected = o.value === paqueteria; });
-  document.getElementById('editRastreo').value = rastreo;
-}
-
-function guardarEdicionGuia() {
-  const rastreo    = document.getElementById('editRastreo').value.trim();
-  const paqueteria = document.getElementById('editPaqueteria').value;
-  if (!rastreo) { mostrarToast('Ingresa el número de rastreo', 'warning'); return; }
-
-  const idx = guias.findIndex(g => g.id === guiaActivaId);
-  if (idx !== -1) {
-    guias[idx].rastreo    = rastreo;
-    guias[idx].paqueteria = paqueteria;
-  }
-
+function guardarEdicion() {
+  const rastreo=document.getElementById('eRastreo').value.trim();
+  const paqueteria=document.getElementById('ePaqueteria').value;
+  if(!rastreo){toast('Ingresa el número de rastreo','warning');return;}
+  const idx=guias.findIndex(g=>g.id===guiaActivaId);
+  if(idx!==-1){guias[idx].rastreo=rastreo;guias[idx].paqueteria=paqueteria;}
   bootstrap.Modal.getInstance(document.getElementById('modalEditarGuia')).hide();
   renderTabla();
-  mostrarToast('Guía actualizada correctamente', 'success');
-  guiaActivaId = null;
+  toast('Guía actualizada correctamente','success');
 }
 
-/* ─── Eliminar Guía ─── */
-function prepEliminarGuia(id, pedido) {
-  guiaActivaId = id;
-  document.getElementById('elimGuiaId').textContent     = id;
-  document.getElementById('elimGuiaPedido').textContent = pedido;
+function prepEliminar(id,pedido) {
+  guiaActivaId=id;
+  document.getElementById('delGuiaId').textContent=id;
+  document.getElementById('delGuiaPedido').textContent=pedido;
 }
 
 function confirmarEliminar() {
-  guias = guias.filter(g => g.id !== guiaActivaId);
-  bootstrap.Modal.getInstance(document.getElementById('modalEliminarGuia')).hide();
+  guias=guias.filter(g=>g.id!==guiaActivaId);
+  bootstrap.Modal.getInstance(document.getElementById('modalEliminar')).hide();
   renderTabla();
-  mostrarToast('Guía eliminada correctamente', 'warning');
-  guiaActivaId = null;
+  toast('Guía eliminada correctamente','warning');
 }
 
-/* ─── Toast ─── */
-function mostrarToast(msg, tipo) {
-  const icons = {success:'fa-check-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle',danger:'fa-times-circle'};
-  const t = document.createElement('div');
-  t.className = `alert alert-${tipo} position-fixed shadow d-flex align-items-center gap-2`;
-  t.style.cssText = 'bottom:30px;right:30px;z-index:9999;min-width:300px;transition:opacity .4s;';
-  t.innerHTML = `<i class="fas ${icons[tipo]||'fa-info-circle'}"></i>${msg}`;
+function show(id,msg){const el=document.getElementById(id);if(el){el.textContent=msg;el.classList.remove('d-none');}}
+function toast(msg,tipo){
+  const ic={success:'fa-check-circle',warning:'fa-exclamation-triangle',danger:'fa-times-circle',info:'fa-info-circle'};
+  const t=document.createElement('div');
+  t.className=`alert alert-${tipo} position-fixed shadow d-flex align-items-center gap-2`;
+  t.style.cssText='bottom:30px;right:30px;z-index:9999;min-width:300px;';
+  t.innerHTML=`<i class="fas ${ic[tipo]||'fa-info-circle'}"></i>${msg}`;
   document.body.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3000);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .4s';setTimeout(()=>t.remove(),400);},3000);
 }
 
-// Inicializar
-document.addEventListener('DOMContentLoaded', renderTabla);
+document.getElementById('modalSubirGuia').addEventListener('show.bs.modal',()=>{
+  document.getElementById('errGuia').classList.add('d-none');
+});
+document.addEventListener('DOMContentLoaded',()=>{ cargarPedidos(); renderTabla(); });
 </script>
 {% endblock %}
