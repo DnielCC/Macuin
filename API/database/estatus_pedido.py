@@ -6,3 +6,5 @@ class EstatusPedido(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String(50), nullable=False, unique=True)
+    modulo = Column(String(50), nullable=True)
+    color = Column(String(30), nullable=True)

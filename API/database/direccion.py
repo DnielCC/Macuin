@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy.orm import relationship
 from database.db import Base
 
 class Direccion(Base):
@@ -13,3 +14,6 @@ class Direccion(Base):
     estado = Column(String(100), nullable=False)
     cp = Column(String(10), nullable=False, index=True)
     referencias = Column(Text, nullable=True)
+    cliente_id = Column(Integer, ForeignKey("clientes.id"), nullable=True, index=True)
+
+    cliente = relationship("Cliente", backref="direcciones")

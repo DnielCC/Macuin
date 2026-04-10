@@ -10,3 +10,4 @@ class DireccionBase(BaseModel):
     estado: str
     cp: str
     referencias: Optional[str] = None
+    cliente_id: Optional[int] = None

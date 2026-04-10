@@ -145,13 +145,8 @@ success "Caché limpiada"
 # ── 7. Crear tablas en PostgreSQL (API) ──────────────────────
 header "Inicializando base de datos"
 
-info "Creando tablas desde los modelos de SQLAlchemy..."
-docker exec macuin_api python -c "
-from database.db import engine, Base
-from database import *
-Base.metadata.create_all(bind=engine)
-print('Tablas creadas exitosamente')
-" 2>/dev/null && success "Tablas de la base de datos creadas" || warn "No se pudieron crear las tablas automáticamente. Verifica los modelos."
+info "Creando tablas y seed FASE 1 (SQLAlchemy + scripts/init_db.py)..."
+docker exec macuin_api python scripts/init_db.py 2>/dev/null && success "Base de datos inicializada (tablas + seed si aplica)" || warn "No se pudo inicializar la BD. Revisa: docker compose logs api"
 
 # ── 8. Verificar que Flask está corriendo ────────────────────
 header "Verificando Flask"

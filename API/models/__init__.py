@@ -1,4 +1,5 @@
 from .direccion import DireccionBase
+from .cliente import ClienteBase
 from .rol import RolBase
 from .usuario import UsuarioBase
 from .categoria import CategoriaBase
