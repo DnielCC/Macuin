@@ -31,6 +31,9 @@ services:
     environment:
       - ENV=development
       - DATABASE_URL=postgresql://macuin:123456@postgres:5432/DB_macuin
+      - CORS_ORIGINS=http://localhost:5001,http://localhost:8003,http://macuin_flask:5001,http://macuin_laravel:8000
+      - API_BASIC_USER=alidaniel
+      - API_BASIC_PASSWORD=123456
     volumes:
       - ./API:/app
     depends_on:

@@ -1,19 +1,19 @@
-from fastapi import status, HTTPException, Depends, APIRouter
-from typing import List
-from models.rol import RolBase
-from security.auth import varificar_peticion
-from database.db import get_db
-from database.rol import Rol
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-routerrol = APIRouter(
-    prefix = "/v1/roles",
-    tags = ["CRUD ROLES"]
-)
+from database.db import get_db
+from database.db_utils import commit_or_raise
+from database.rol import Rol
+from models.rol import RolBase
+from security.auth import varificar_peticion
+
+routerrol = APIRouter(prefix="/v1/roles", tags=["CRUD ROLES"])
+
 
 @routerrol.get("/")
 def obtener_roles(db: Session = Depends(get_db)):
-    return db.query(Rol).all()
+    return db.query(Rol).order_by(Rol.id).all()
+
 
 @routerrol.get("/{rol_id}")
 def obtener_rol_por_id(rol_id: int, db: Session = Depends(get_db)):
@@ -22,13 +22,15 @@ def obtener_rol_por_id(rol_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Rol no encontrado")
     return rol
 
-@routerrol.post("/")
+
+@routerrol.post("/", status_code=status.HTTP_201_CREATED, dependencies=[Depends(varificar_peticion)])
 def crear_rol(rol: RolBase, db: Session = Depends(get_db)):
     nuevo_rol = Rol(**rol.model_dump())
     db.add(nuevo_rol)
-    db.commit()
+    commit_or_raise(db)
     db.refresh(nuevo_rol)
-    return {"mensaje": "Rol creado", "rol": nuevo_rol}
+    return nuevo_rol
+
 
 @routerrol.put("/{rol_id}", dependencies=[Depends(varificar_peticion)])
 def actualizar_rol(rol_id: int, rol_actualizado: RolBase, db: Session = Depends(get_db)):
@@ -37,9 +39,10 @@ def actualizar_rol(rol_id: int, rol_actualizado: RolBase, db: Session = Depends(
         raise HTTPException(status_code=404, detail="Rol no encontrado")
     for key, value in rol_actualizado.model_dump().items():
         setattr(rol, key, value)
-    db.commit()
+    commit_or_raise(db)
     db.refresh(rol)
-    return {"mensaje": "Rol actualizado", "rol": rol}
+    return rol
+
 
 @routerrol.delete("/{rol_id}", dependencies=[Depends(varificar_peticion)])
 def borrar_rol(rol_id: int, db: Session = Depends(get_db)):
@@ -47,5 +50,5 @@ def borrar_rol(rol_id: int, db: Session = Depends(get_db)):
     if not rol:
         raise HTTPException(status_code=404, detail="Rol no encontrado")
     db.delete(rol)
-    db.commit()
+    commit_or_raise(db)
     return {"mensaje": "Rol eliminado"}

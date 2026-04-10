@@ -101,6 +101,16 @@ Laravel tiene sus propias migraciones en `Laravel/database/migrations/` (por eje
 
 **Criterio de “FASE 2 lista”:** Los flujos críticos de negocio (usuarios internos, catálogo, inventario, pedidos, direcciones) tienen endpoints probados contra PostgreSQL.
 
+**Implementación actual (FASE 2 en curso / base lista):**
+
+- **Nuevos routers** (prefijo `/v1/…`): `clientes`, `ubicaciones`, `guias-envio`, `inventarios/{id}/movimientos` (entrada/merma con actualización de stock), `parametros-sistema`, `carritos` (+ líneas), `pagos`, `estatus-pedido`.
+- **Pedidos ampliados:** líneas bajo `GET|POST|DELETE /pedidos/{id}/detalles`, `PATCH .../estatus`, `PATCH .../cancelar`.
+- **Mutaciones protegidas** con HTTP Basic (usuario/contraseña por variables `API_BASIC_USER` y `API_BASIC_PASSWORD`, por defecto `alidaniel` / `123456`).
+- **CORS** configurable con `CORS_ORIGINS` (en `docker-compose` ya incluye Flask y Laravel en red Docker).
+- **Conflictos de BD:** `commit_or_raise` + manejador global `409` ante `IntegrityError`.
+- **Autopartes:** búsqueda en `GET /v1/autopartes/buscar?nombre=...` (ruta antigua `/buscar/` sustituida).
+- **Documentación OpenAPI:** `http://localhost:8000/docs`.
+
 ---
 
 ## FASE 3 — Flask (`Flask/`)
