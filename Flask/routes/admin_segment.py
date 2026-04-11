@@ -32,6 +32,18 @@ def register(app):
             return redirect(url_for("index"))
         return None
 
+    @app.context_processor
+    def _inject_portal_contacto_unread():
+        if "user_id" not in session or session.get("user_role") != "Administrador":
+            return {"portal_contacto_unread": 0}
+        try:
+            api = get_api()
+            c = api.get("/v1/portal-contacto/mensajes/no-leidos/count")
+            n = int(c.get("count", 0)) if isinstance(c, dict) else 0
+            return {"portal_contacto_unread": n}
+        except Exception:
+            return {"portal_contacto_unread": 0}
+
     @app.route("/admin")
     @app.route("/admin/dashboard")
     def admin_dashboard():
@@ -601,3 +613,61 @@ def register(app):
             estatus_opts=estatus_opts,
             kpi_pedidos=kpi_pedidos,
         )
+
+    @app.route("/admin/contacto-portal", methods=["GET"])
+    def admin_contacto_portal():
+        redir = solo_admin()
+        if redir:
+            return redir
+        api = get_api()
+        try:
+            mensajes = api.get("/v1/portal-contacto/mensajes")
+            if not isinstance(mensajes, list):
+                mensajes = []
+        except ApiError as e:
+            flash(str(e.message), "danger")
+            mensajes = []
+        return render_template("admin_contacto_portal.html", mensajes=mensajes)
+
+    @app.route("/admin/contacto-portal/<int:mid>/leido", methods=["POST"])
+    def admin_contacto_portal_leido(mid):
+        redir = solo_admin()
+        if redir:
+            return redir
+        api = get_api()
+        try:
+            api.patch(f"/v1/portal-contacto/mensajes/{mid}/leido", json={})
+            flash("Mensaje marcado como leído.", "success")
+        except ApiError as e:
+            flash(str(e.message), "danger")
+        return redirect(url_for("admin_contacto_portal"))
+
+    @app.route("/admin/contacto-portal/<int:mid>/responder", methods=["POST"])
+    def admin_contacto_portal_responder(mid):
+        redir = solo_admin()
+        if redir:
+            return redir
+        texto = (request.form.get("admin_reply") or "").strip()
+        if not texto:
+            flash("La respuesta no puede estar vacía.", "danger")
+            return redirect(url_for("admin_contacto_portal"))
+        api = get_api()
+        try:
+            api.patch(f"/v1/portal-contacto/mensajes/{mid}/responder", json={"admin_reply": texto})
+            flash("Respuesta guardada y visible para el cliente en su cuenta.", "success")
+        except ApiError as e:
+            flash(str(e.message), "danger")
+        return redirect(url_for("admin_contacto_portal"))
+
+    @app.route("/admin/contacto-portal/<int:mid>/eliminar", methods=["POST"])
+    def admin_contacto_portal_eliminar(mid):
+        redir = solo_admin()
+        if redir:
+            return redir
+        api = get_api()
+        try:
+            api.delete(f"/v1/portal-contacto/mensajes/{mid}")
+            flash("Mensaje eliminado.", "success")
+        except ApiError as e:
+            flash(str(e.message), "danger")
+        return redirect(url_for("admin_contacto_portal"))

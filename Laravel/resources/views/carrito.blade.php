@@ -39,13 +39,13 @@
                                 <h3 class="font-medium text-gray-900">{{ $ap?->nombre ?? 'Producto' }}</h3>
                                 <p class="text-sm text-gray-500">{{ $ap?->categoria?->nombre }} · SKU {{ $ap?->sku_codigo }}</p>
                                 <div class="flex flex-wrap items-center gap-3 mt-3">
-                                    <form method="post" action="{{ route('carrito.cantidad', $linea->id) }}" class="flex items-center gap-2">
+                                    <form method="post" action="{{ route('carrito.cantidad', $linea->id) }}" class="flex items-center gap-2" onsubmit="var b=this.querySelector('button[type=submit]'); if(b){ b.disabled=true; b.textContent='…'; }">
                                         @csrf
                                         <label class="text-sm text-gray-600">Cant.</label>
                                         <input type="number" name="cantidad" value="{{ $linea->cantidad }}" min="1" max="999" class="w-20 rounded border-gray-300 text-sm">
                                         <button type="submit" class="text-sm text-amber-700 underline">Actualizar</button>
                                     </form>
-                                    <form method="post" action="{{ route('carrito.quitar', $linea->id) }}" onsubmit="return confirm('¿Quitar este producto?');">
+                                    <form method="post" action="{{ route('carrito.quitar', $linea->id) }}" onsubmit="if(!confirm('¿Quitar este producto?')) return false; var b=this.querySelector('button[type=submit]'); if(b){ b.disabled=true; b.textContent='…'; } return true;">
                                         @csrf
                                         <button type="submit" class="text-sm text-red-600 hover:underline">Quitar</button>
                                     </form>

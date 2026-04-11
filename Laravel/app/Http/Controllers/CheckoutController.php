@@ -36,6 +36,7 @@ class CheckoutController extends Controller
             'subtotal' => $subtotal,
             'envio' => $envio,
             'total' => $subtotal + $envio,
+            'estadosMexico' => config('estados_mexico', []),
         ]);
     }
 

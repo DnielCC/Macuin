@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+      <h2 class="fw-bold" style="color:#111827;">Mensajes de contacto (portal web)</h2>
+      <p class="text-muted mb-0">Formularios enviados desde Laravel; lectura y respuesta vía API.</p>
+    </div>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary btn-sm">Volver al panel</a>
+  </div>
+
+  <div class="modal fade" id="modalResponder" tabindex="-1" aria-labelledby="modalResponderLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <form method="post" id="formResponderContacto" action="#">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalResponderLabel">Responder mensaje</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <p class="small text-muted mb-2" id="modalResponderMeta"></p>
+            <div class="border rounded p-3 mb-3 bg-light small" id="modalResponderMensaje"></div>
+            <label for="admin_reply" class="form-label fw-semibold">Respuesta para el cliente</label>
+            <textarea class="form-control" name="admin_reply" id="admin_reply" rows="6" required maxlength="5000" placeholder="Escribe aquí la respuesta…"></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar respuesta</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Asunto</th>
+            <th>Estado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in mensajes %}
+          {% set reply_txt = (m.get('admin_reply') or '')|trim %}
+          {% set contestado = reply_txt|length > 0 %}
+          <tr class="{{ '' if m.get('is_read') or contestado else 'table-warning' }}">
+            <td class="fw-bold">#{{ m.get('id') }}</td>
+            <td class="text-muted small">{{ (m.get('creado_en') or '')[:19] }}</td>
+            <td>{{ m.get('nombre') }}</td>
+            <td><a href="mailto:{{ m.get('email') }}">{{ m.get('email') }}</a></td>
+            <td>{{ m.get('asunto') }}</td>
+            <td>
+              {% if contestado %}
+                <span class="badge bg-success">Contestado</span>
+              {% elif m.get('is_read') %}
+                <span class="badge bg-secondary">Leído</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">No leído</span>
+              {% endif %}
+            </td>
+            <td class="text-end text-nowrap">
+              <button type="button"
+                class="btn btn-sm btn-primary btn-abrir-responder"
+                data-bs-toggle="modal"
+                data-bs-target="#modalResponder"
+                data-id="{{ m.get('id') }}"
+                data-action="{{ url_for('admin_contacto_portal_responder', mid=m.get('id')) }}"
+                data-asunto="{{ m.get('asunto')|e }}"
+                data-nombre="{{ m.get('nombre')|e }}"
+                data-email="{{ m.get('email')|e }}"
+                data-mensaje="{{ m.get('mensaje')|e }}"
+                data-reply-actual="{{ reply_txt|e }}">
+                Responder
+              </button>
+              {% if not m.get('is_read') and not contestado %}
+              <form method="post" action="{{ url_for('admin_contacto_portal_leido', mid=m.get('id')) }}" class="d-inline">
+                <button type="submit" class="btn btn-sm btn-outline-primary">Marcar leído</button>
+              </form>
+              {% endif %}
+              <form method="post" action="{{ url_for('admin_contacto_portal_eliminar', mid=m.get('id')) }}" class="d-inline" onsubmit="return confirm('¿Eliminar este mensaje de forma permanente?');">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+          <tr class="{{ '' if m.get('is_read') or contestado else 'table-warning' }} border-0">
+            <td colspan="7" class="pt-0 pb-3 small text-secondary">
+              <strong>Mensaje:</strong> {{ m.get('mensaje') }}
+              {% if m.get('telefono') %}<br><strong>Tel.:</strong> {{ m.get('telefono') }}{% endif %}
+              {% if contestado %}
+                <br><strong class="text-success">Respuesta al cliente:</strong> {{ reply_txt }}
+                {% if m.get('replied_at') %}<span class="text-muted">({{ (m.get('replied_at') or '')[:19] }})</span>{% endif %}
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center text-muted py-5">No hay mensajes sincronizados aún.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var modal = document.getElementById('modalResponder');
+  if (!modal) return;
+  modal.addEventListener('show.bs.modal', function (event) {
+    var btn = event.relatedTarget;
+    if (!btn || !btn.classList || !btn.classList.contains('btn-abrir-responder')) return;
+    var form = document.getElementById('formResponderContacto');
+    var ta = document.getElementById('admin_reply');
+    var meta = document.getElementById('modalResponderMeta');
+    var cuerpo = document.getElementById('modalResponderMensaje');
+    form.action = btn.getAttribute('data-action') || '#';
+    var asunto = btn.getAttribute('data-asunto') || '';
+    var nombre = btn.getAttribute('data-nombre') || '';
+    var email = btn.getAttribute('data-email') || '';
+    meta.textContent = '#' + (btn.getAttribute('data-id') || '') + ' · ' + nombre + ' · ' + email + (asunto ? ' · ' + asunto : '');
+    cuerpo.textContent = btn.getAttribute('data-mensaje') || '';
+    var prev = btn.getAttribute('data-reply-actual') || '';
+    ta.value = prev;
+  });
+})();
+</script>
+{% endblock %}

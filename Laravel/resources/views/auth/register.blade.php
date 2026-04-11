@@ -21,7 +21,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('registro.store') }}" method="post" class="space-y-4">
+            <form action="{{ route('registro.store') }}" method="post" class="space-y-4" onsubmit="var b=this.querySelector('button[type=submit]'); if(b){ b.disabled=true; b.textContent='Creando cuenta…'; }">
                 @csrf
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>

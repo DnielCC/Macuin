@@ -12,6 +12,13 @@
     </div>
   </div>
 
+  {% if (portal_contacto_unread|default(0)) > 0 %}
+  <div class="alert alert-warning border-0 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4" role="alert">
+    <span><i class="fas fa-bell me-2"></i>Tienes <strong>{{ portal_contacto_unread }}</strong> mensaje(s) nuevo(s) del portal de clientes.</span>
+    <a href="{{ url_for('admin_contacto_portal') }}" class="btn btn-sm btn-dark">Abrir bandeja</a>
+  </div>
+  {% endif %}
+
   <div class="row g-4 mb-4">
 
     <div class="col-md-3">

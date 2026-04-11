@@ -8,10 +8,15 @@
         <h1 class="text-3xl font-bold text-gray-900">Contáctanos</h1>
         <a href="{{ route('catalogo') }}" class="text-amber-600 hover:underline font-medium">Volver al catálogo</a>
     </div>
+    @if (session('status'))
+        <div class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900" role="status">
+            {{ session('status') }}
+        </div>
+    @endif
     <p class="text-gray-600 mb-10">Estamos aquí para ayudarte con tus necesidades automotrices.</p>
 
-    <div class="grid lg:grid-cols-3 gap-8 lg:gap-10 items-start">
-        {{-- Panel izquierdo (estructura original) --}}
+    <div class="grid lg:grid-cols-3 gap-8 lg:gap-10 items-start lg:items-stretch">
+        {{-- Panel izquierdo (datos de contacto) --}}
         <div class="lg:col-span-1 space-y-4">
             <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
                 <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-3">
@@ -49,45 +54,45 @@
             </div>
         </div>
 
-        {{-- Formulario en rejilla (más horizontal, menos alto) --}}
-        <div class="lg:col-span-2 flex justify-center lg:justify-end">
-            <div class="w-full max-w-xl rounded-2xl border border-gray-200/90 bg-white shadow-sm ring-1 ring-gray-900/[0.04] p-5 sm:p-6">
+        {{-- Formulario: ancho completo de la columna (2/3 del layout) --}}
+        <div class="lg:col-span-2 w-full min-w-0">
+            <div class="w-full rounded-2xl border border-gray-200/90 bg-white shadow-sm ring-1 ring-gray-900/[0.04] p-5 sm:p-6 lg:p-7">
                 <h2 class="text-base font-semibold text-gray-900 tracking-tight">Envíanos un mensaje</h2>
-                <p class="text-gray-500 text-[11px] mt-0.5 mb-3 leading-snug">Te responderemos pronto; tu mensaje queda registrado para nuestro equipo.</p>
+                <p class="text-gray-500 text-[11px] mt-0.5 mb-4 leading-snug">Te responderemos pronto; tu mensaje queda registrado para nuestro equipo.</p>
 
-                <form method="post" action="{{ route('contacto.store') }}" class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2.5">
+                <form method="post" action="{{ route('contacto.store') }}" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-4 gap-y-3 xl:gap-x-5" onsubmit="var b=this.querySelector('button[type=submit]'); if(b){ b.disabled=true; b.textContent='Enviando…'; }">
                     @csrf
-                    <div class="min-w-0">
+                    <div class="min-w-0 xl:col-span-1">
                         <label for="contact-name" class="block text-[11px] font-medium text-gray-500 uppercase tracking-wide">Nombre</label>
                         <input id="contact-name" type="text" name="name" value="{{ old('name', auth()->user()?->name) }}" required maxlength="200" placeholder="Tu nombre"
                                class="mt-0.5 w-full rounded-lg border-gray-200 bg-gray-50/50 px-2.5 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-amber-400 focus:bg-white focus:ring-1 focus:ring-amber-400 @error('name') border-red-400 ring-1 ring-red-200 @enderror">
                         @error('name')<p class="text-red-600 text-[11px] mt-0.5">{{ $message }}</p>@enderror
                     </div>
-                    <div class="min-w-0">
+                    <div class="min-w-0 xl:col-span-1">
                         <label for="contact-email" class="block text-[11px] font-medium text-gray-500 uppercase tracking-wide">Correo</label>
                         <input id="contact-email" type="email" name="email" value="{{ old('email', auth()->user()?->email) }}" required maxlength="255" placeholder="correo@ejemplo.com"
                                class="mt-0.5 w-full rounded-lg border-gray-200 bg-gray-50/50 px-2.5 py-1.5 text-sm focus:border-amber-400 focus:bg-white focus:ring-1 focus:ring-amber-400 @error('email') border-red-400 ring-1 ring-red-200 @enderror">
                         @error('email')<p class="text-red-600 text-[11px] mt-0.5">{{ $message }}</p>@enderror
                     </div>
-                    <div class="min-w-0">
+                    <div class="min-w-0 xl:col-span-1">
                         <label for="contact-phone" class="block text-[11px] font-medium text-gray-500 uppercase tracking-wide">Teléfono <span class="normal-case font-normal text-gray-400">(opc.)</span></label>
                         <input id="contact-phone" type="text" name="phone" value="{{ old('phone', auth()->user()?->phone) }}" maxlength="40" placeholder="+52 …"
                                class="mt-0.5 w-full rounded-lg border-gray-200 bg-gray-50/50 px-2.5 py-1.5 text-sm focus:border-amber-400 focus:bg-white focus:ring-1 focus:ring-amber-400">
                         @error('phone')<p class="text-red-600 text-[11px] mt-0.5">{{ $message }}</p>@enderror
                     </div>
-                    <div class="min-w-0">
+                    <div class="min-w-0 sm:col-span-2 xl:col-span-1">
                         <label for="contact-subject" class="block text-[11px] font-medium text-gray-500 uppercase tracking-wide">Asunto</label>
                         <input id="contact-subject" type="text" name="subject" value="{{ old('subject') }}" required maxlength="200" placeholder="Consulta breve"
                                class="mt-0.5 w-full rounded-lg border-gray-200 bg-gray-50/50 px-2.5 py-1.5 text-sm focus:border-amber-400 focus:bg-white focus:ring-1 focus:ring-amber-400 @error('subject') border-red-400 ring-1 ring-red-200 @enderror">
                         @error('subject')<p class="text-red-600 text-[11px] mt-0.5">{{ $message }}</p>@enderror
                     </div>
-                    <div class="sm:col-span-2 min-w-0">
+                    <div class="sm:col-span-2 xl:col-span-4 min-w-0">
                         <label for="contact-message" class="block text-[11px] font-medium text-gray-500 uppercase tracking-wide">Mensaje</label>
-                        <textarea id="contact-message" name="message" rows="3" required maxlength="5000" placeholder="Escribe tu mensaje…"
-                                  class="mt-0.5 w-full resize-y min-h-[4.25rem] max-h-32 rounded-lg border-gray-200 bg-gray-50/50 px-2.5 py-1.5 text-sm leading-snug focus:border-amber-400 focus:bg-white focus:ring-1 focus:ring-amber-400 @error('message') border-red-400 ring-1 ring-red-200 @enderror">{{ old('message') }}</textarea>
+                        <textarea id="contact-message" name="message" rows="4" required maxlength="5000" placeholder="Escribe tu mensaje…"
+                                  class="mt-0.5 w-full resize-y min-h-[5.5rem] rounded-lg border-gray-200 bg-gray-50/50 px-2.5 py-2 text-sm leading-snug focus:border-amber-400 focus:bg-white focus:ring-1 focus:ring-amber-400 @error('message') border-red-400 ring-1 ring-red-200 @enderror">{{ old('message') }}</textarea>
                         @error('message')<p class="text-red-600 text-[11px] mt-0.5">{{ $message }}</p>@enderror
                     </div>
-                    <div class="sm:col-span-2 flex justify-stretch sm:justify-end pt-0.5">
+                    <div class="sm:col-span-2 xl:col-span-4 flex justify-stretch sm:justify-end pt-1">
                         <button type="submit" class="w-full sm:w-auto min-w-[10rem] rounded-lg bg-[var(--color-macuin-yellow)] px-5 py-2 text-sm font-semibold text-black shadow-sm transition hover:bg-amber-500">
                             Enviar mensaje
                         </button>
@@ -95,6 +100,74 @@
                 </form>
             </div>
         </div>
+    </div>
+
+    {{-- Historial de mensajes (misma tarjeta que el formulario) --}}
+    <div class="mt-10 w-full rounded-2xl border border-gray-200/90 bg-white shadow-sm ring-1 ring-gray-900/[0.04] p-5 sm:p-6 lg:p-7">
+        <h2 class="text-base font-semibold text-gray-900 tracking-tight">Tus mensajes recientes</h2>
+        <p class="text-gray-500 text-[11px] mt-0.5 mb-5 leading-snug">
+            @auth
+                Consultas asociadas a tu sesión o correo. El estado se actualiza cuando el equipo revisa o responde tu mensaje.
+            @else
+                <a href="{{ route('login') }}" class="text-amber-700 font-medium hover:underline">Inicia sesión</a> para ver aquí el historial de lo que envías con tu cuenta.
+            @endauth
+        </p>
+
+        @auth
+            @if ($mensajesContacto->isEmpty())
+                <p class="text-sm text-gray-600">Aún no hay mensajes. Cuando envíes uno desde el formulario de arriba, aparecerá en esta tabla.</p>
+            @else
+                <div class="overflow-x-auto rounded-lg border border-gray-200 -mx-px">
+                    <table class="min-w-full text-sm text-left">
+                        <thead class="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200">
+                            <tr>
+                                <th class="px-4 py-3 whitespace-nowrap">Fecha</th>
+                                <th class="px-4 py-3">Tu mensaje</th>
+                                <th class="px-4 py-3">Respuesta del administrador</th>
+                                <th class="px-4 py-3 whitespace-nowrap">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach ($mensajesContacto as $msg)
+                                @php
+                                    $reply = trim((string) ($msg->admin_reply ?? ''));
+                                    $estado = $reply !== '' ? 'Contestado' : ($msg->is_read ? 'Leído' : 'No leído');
+                                    $badgeClass = $reply !== ''
+                                        ? 'bg-green-100 text-green-800 border border-green-200'
+                                        : ($msg->is_read
+                                            ? 'bg-gray-100 text-gray-800 border border-gray-200'
+                                            : 'bg-amber-100 text-amber-900 border border-amber-200');
+                                @endphp
+                                <tr class="align-top hover:bg-gray-50/80">
+                                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
+                                        {{ $msg->created_at?->format('Y-m-d H:i') ?? '—' }}
+                                    </td>
+                                    <td class="px-4 py-3 text-gray-800 max-w-xs sm:max-w-md">
+                                        <span class="font-medium text-gray-900">{{ $msg->subject }}</span>
+                                        <p class="mt-1 text-gray-700 whitespace-pre-wrap break-words">{{ \Illuminate\Support\Str::limit($msg->message, 400) }}</p>
+                                    </td>
+                                    <td class="px-4 py-3 text-gray-700 max-w-md">
+                                        @if ($reply !== '')
+                                            <span class="text-gray-900 whitespace-pre-wrap break-words">{{ $reply }}</span>
+                                            @if ($msg->replied_at)
+                                                <p class="text-xs text-gray-500 mt-1">{{ $msg->replied_at->format('Y-m-d H:i') }}</p>
+                                            @endif
+                                        @else
+                                            <span class="text-gray-400">Pendiente de respuesta</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $badgeClass }}">
+                                            {{ $estado }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        @endauth
     </div>
 </div>
 @endsection

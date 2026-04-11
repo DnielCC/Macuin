@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AddCartLineRequest;
 use App\Http\Requests\UpdateCartLineRequest;
 use App\Services\PortalCartService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -37,13 +38,23 @@ class CartController extends Controller
         ]);
     }
 
-    public function add(AddCartLineRequest $request): RedirectResponse
+    public function add(AddCartLineRequest $request): RedirectResponse|JsonResponse
     {
         $r = $this->cart->addLine(
             (int) $request->user()->id,
             (int) $request->validated('autoparte_id'),
             (int) $request->validated('cantidad')
         );
+
+        if ($request->ajax() || $request->wantsJson()) {
+            $count = $this->cart->lineCount((int) $request->user()->id);
+
+            return response()->json([
+                'ok' => $r['ok'],
+                'message' => $r['message'],
+                'cart_count' => $count,
+            ], $r['ok'] ? 200 : 422);
+        }
 
         return redirect()
             ->route('carrito')

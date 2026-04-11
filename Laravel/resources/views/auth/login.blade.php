@@ -23,7 +23,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('login.store') }}" method="post" class="space-y-4">
+            <form action="{{ route('login.store') }}" method="post" class="space-y-4" onsubmit="var b=this.querySelector('button[type=submit]'); if(b){ b.disabled=true; b.textContent='Entrando…'; }">
                 @csrf
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>

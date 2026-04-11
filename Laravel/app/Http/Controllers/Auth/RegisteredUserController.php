@@ -24,8 +24,8 @@ class RegisteredUserController extends Controller
         $validated = $request->validate(
             [
                 'name' => ['required', 'string', 'min:3', 'max:120', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/u'],
-                'email' => ['required', 'string', 'email:rfc', 'max:255', 'unique:'.User::class],
-                'phone' => ['nullable', 'string', 'max:20', 'regex:/^\+?[0-9\s\-]{10,20}$/'],
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
+                'phone' => ['nullable', 'string', 'max:20', 'regex:/^$|^\+?[0-9\s\-]{10,20}$/'],
                 'company' => ['nullable', 'string', 'min:2', 'max:150'],
                 'address' => ['nullable', 'string', 'min:5', 'max:255'],
                 'password' => ['required', 'confirmed', 'max:72', Password::min(8)->letters()->numbers()->symbols()],
@@ -64,12 +64,15 @@ class RegisteredUserController extends Controller
         );
 
         $validated['email'] = Str::lower(trim($validated['email']));
+        $validated['phone'] = isset($validated['phone']) && trim((string) $validated['phone']) !== ''
+            ? trim((string) $validated['phone'])
+            : null;
 
         // La contraseña la hashea el cast 'hashed' del modelo User (evita doble hash y alinea con Eloquent).
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
+            'phone' => $validated['phone'],
             'company' => $validated['company'] ?? null,
             'address' => $validated['address'] ?? null,
             'password' => $validated['password'],

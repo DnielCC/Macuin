@@ -15,8 +15,8 @@ class StoreContactMessageRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'min:3', 'max:200'],
-            'email' => ['required', 'email:rfc', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:40', 'regex:/^[\d\s+\-().]{10,40}$/'],
+            'email' => ['required', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:40', 'regex:/^$|^[\d\s+\-().]{10,40}$/'],
             'subject' => ['required', 'string', 'min:3', 'max:200'],
             'message' => ['required', 'string', 'min:10', 'max:5000'],
         ];
@@ -31,7 +31,7 @@ class StoreContactMessageRequest extends FormRequest
             'subject.required' => 'Escribe un asunto breve.',
             'message.required' => 'Escribe tu mensaje.',
             'message.min' => 'El mensaje debe tener al menos 10 caracteres.',
-            'phone.regex' => 'El teléfono solo puede incluir dígitos y símbolos + - ( ).',
+            'phone.regex' => 'Si indicas teléfono, usa entre 10 y 40 caracteres (dígitos y + - ( ) .).',
         ];
     }
 }

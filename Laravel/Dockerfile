@@ -69,4 +69,4 @@ EXPOSE 8000
 
 # Sin script externo: en Windows un .sh con CRLF provoca "not found" al ejecutar el shebang.
 # docker-php-entrypoint recibe "sh -c …" y arranca nginx en primer plano.
-CMD ["sh", "-c", "cd /var/www/html && (php artisan optimize:clear >/dev/null 2>&1 || true); php-fpm & exec nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "cd /var/www/html && (php artisan optimize:clear >/dev/null 2>&1 || true); php artisan migrate --force; php-fpm & exec nginx -g 'daemon off;'"]

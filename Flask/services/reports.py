@@ -59,6 +59,7 @@ def available_sections_for_role(rol: str) -> List[Dict[str, str]]:
             {"id": "autopartes", "label": "Catálogo de autopartes (primeras N filas)"},
             {"id": "pedidos", "label": "Pedidos (primeras N filas)"},
             {"id": "parametros", "label": "Parámetros de sistema"},
+            {"id": "mensajes_contacto", "label": "Mensajes de contacto del portal web"},
         ]
     elif rol == "Ventas":
         base += [
@@ -310,6 +311,35 @@ def build_report_context(
             pars = api.get("/v1/parametros-sistema/") or []
             rows = [[_safe(p.get("tipo")), _safe(p.get("clave")), _safe(p.get("valor")), "Sí" if p.get("activo") else "No"] for p in pars]
             add_table("Parámetros de sistema", ["Tipo", "Clave", "Valor", "Activo"], rows)
+
+        if "mensajes_contacto" in chosen and rol == "Administrador":
+            msgs = api.get("/v1/portal-contacto/mensajes") or []
+            rows = []
+            for m in msgs:
+                if not isinstance(m, dict):
+                    continue
+                ar = (m.get("admin_reply") or "").strip()
+                reply_snip = (ar[:200] + "…") if len(ar) > 200 else (ar or "—")
+                msg_txt = _safe(m.get("mensaje"))
+                msg_snip = (msg_txt[:120] + "…") if len(msg_txt) > 120 else msg_txt
+                estado = "Contestado" if ar else ("Leído" if m.get("is_read") else "No leído")
+                rows.append(
+                    [
+                        _safe(m.get("id")),
+                        (_safe(m.get("creado_en"))[:19] if m.get("creado_en") else "—"),
+                        _safe(m.get("nombre")),
+                        _safe(m.get("email")),
+                        _safe(m.get("asunto")),
+                        estado,
+                        msg_snip,
+                        reply_snip,
+                    ]
+                )
+            add_table(
+                "Mensajes de contacto (portal web)",
+                ["ID", "Fecha", "Nombre", "Correo", "Asunto", "Estado", "Mensaje (extracto)", "Respuesta admin (extracto)"],
+                rows,
+            )
 
         if "guias" in chosen and rol in ("Administrador", "Logística"):
             guias = api.get("/v1/guias-envio/") or []

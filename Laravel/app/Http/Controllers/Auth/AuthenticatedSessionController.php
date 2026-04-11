@@ -20,7 +20,7 @@ class AuthenticatedSessionController extends Controller
     {
         $credentials = $request->validate(
             [
-                'email' => ['required', 'string', 'email:rfc', 'max:255'],
+                'email' => ['required', 'string', 'email', 'max:255'],
                 'password' => ['required', 'string', 'min:8', 'max:72'],
             ],
             [

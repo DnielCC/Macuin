@@ -29,7 +29,7 @@
                 @if($agotado)
                     <button type="button" disabled class="w-full mt-3 py-2.5 rounded-lg bg-gray-200 text-gray-500 text-sm font-medium cursor-not-allowed">Sin stock</button>
                 @else
-                    <form method="post" action="{{ route('carrito.agregar') }}" class="mt-3">
+                    <form method="post" action="{{ route('carrito.agregar') }}" class="mt-3 macuin-cart-add-ajax">
                         @csrf
                         <input type="hidden" name="autoparte_id" value="{{ $p->id }}">
                         <div class="flex gap-2 items-center">

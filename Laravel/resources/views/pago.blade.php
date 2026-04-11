@@ -49,20 +49,26 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700">Colonia</label>
-                <input name="colonia" value="{{ old('colonia') }}" required maxlength="100" class="mt-1 w-full rounded-lg border-gray-300">
+                <input id="pago-colonia" name="colonia" value="{{ old('colonia') }}" required maxlength="100" class="mt-1 w-full rounded-lg border-gray-300">
                 @error('colonia')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700">Municipio / Ciudad</label>
-                <input name="municipio" value="{{ old('municipio') }}" required maxlength="100" class="mt-1 w-full rounded-lg border-gray-300">
+                <input id="pago-municipio" name="municipio" value="{{ old('municipio') }}" required maxlength="100" class="mt-1 w-full rounded-lg border-gray-300">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700">Estado</label>
-                <input name="estado" value="{{ old('estado') }}" required maxlength="100" class="mt-1 w-full rounded-lg border-gray-300">
+                <label class="block text-sm font-medium text-gray-700">Estado (México)</label>
+                <select name="estado" required class="mt-1 w-full rounded-lg border-gray-300 @error('estado') border-red-500 @enderror">
+                    <option value="" disabled {{ old('estado') ? '' : 'selected' }}>Selecciona…</option>
+                    @foreach($estadosMexico ?? [] as $edo)
+                        <option value="{{ $edo }}" @selected(old('estado') === $edo)>{{ $edo }}</option>
+                    @endforeach
+                </select>
+                @error('estado')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700">C.P.</label>
-                <input name="cp" value="{{ old('cp') }}" required pattern="\d{4,5}" maxlength="5" class="mt-1 w-full rounded-lg border-gray-300" placeholder="01000">
+                <input name="cp" value="{{ old('cp') }}" required pattern="\d{4,5}" maxlength="5" inputmode="numeric" autocomplete="postal-code" class="mt-1 w-full rounded-lg border-gray-300" placeholder="44100">
                 @error('cp')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
             <div class="sm:col-span-2">
@@ -85,7 +91,8 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700">Vencimiento (MM/AA)</label>
-                <input name="expira" value="{{ old('expira') }}" maxlength="7" class="mt-1 w-full rounded-lg border-gray-300" placeholder="12/28">
+                <input id="pago-expira" name="expira" value="{{ old('expira') }}" maxlength="5" inputmode="numeric" autocomplete="off" class="mt-1 w-full rounded-lg border-gray-300 font-mono" placeholder="1228">
+                <p class="text-xs text-gray-500 mt-1">Escribe 4 dígitos (mes y año); la barra se añade sola.</p>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700">CVV</label>
@@ -105,9 +112,20 @@
 </div>
 @push('scripts')
 <script>
+(function () {
+    var ex = document.getElementById('pago-expira');
+    ex?.addEventListener('input', function () {
+        var d = String(this.value || '').replace(/\D/g, '').slice(0, 4);
+        var next = d.length <= 2 ? d : d.slice(0, 2) + '/' + d.slice(2);
+        this.value = next;
+        try { this.setSelectionRange(next.length, next.length); } catch (e) {}
+    });
+})();
+
 document.getElementById('form-pago')?.addEventListener('submit', function () {
     document.getElementById('pago-loading')?.classList.remove('hidden');
     document.getElementById('btn-pagar')?.setAttribute('disabled', 'disabled');
+    if (window.macuinPushToast) window.macuinPushToast('Procesando tu pago…', 'info');
 });
 </script>
 @endpush

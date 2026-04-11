@@ -21,11 +21,13 @@
             @if (!empty($macuinShowContactInbox ?? false))
                 <a href="{{ route('admin.contacto.inbox') }}" class="hover:text-[var(--color-macuin-yellow)] transition text-amber-200 text-sm">Bandeja</a>
             @endif
-            <a href="{{ route('carrito') }}" class="relative p-1.5 rounded hover:bg-white/10 {{ request()->routeIs('carrito') ? 'text-[var(--color-macuin-yellow)] ring-1 ring-[var(--color-macuin-yellow)]/40' : '' }}" title="Carrito">
+            <a href="{{ route('carrito') }}" id="macuin-nav-carrito" class="relative p-1.5 rounded hover:bg-white/10 {{ request()->routeIs('carrito') ? 'text-[var(--color-macuin-yellow)] ring-1 ring-[var(--color-macuin-yellow)]/40' : '' }}" title="Carrito">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 @auth
                     @if(($macuinCarritoCount ?? 0) > 0)
-                        <span class="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-[var(--color-macuin-yellow)] text-black text-[10px] font-bold flex items-center justify-center">{{ $macuinCarritoCount > 99 ? '99+' : $macuinCarritoCount }}</span>
+                        <span id="macuin-cart-badge" class="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-[var(--color-macuin-yellow)] text-black text-[10px] font-bold flex items-center justify-center">{{ $macuinCarritoCount > 99 ? '99+' : $macuinCarritoCount }}</span>
+                    @else
+                        <span id="macuin-cart-badge" class="hidden absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-[var(--color-macuin-yellow)] text-black text-[10px] font-bold flex items-center justify-center">0</span>
                     @endif
                 @endauth
             </a>

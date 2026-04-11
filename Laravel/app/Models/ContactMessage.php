@@ -14,6 +14,8 @@ class ContactMessage extends Model
         'phone',
         'subject',
         'message',
+        'admin_reply',
+        'replied_at',
         'is_read',
         'read_at',
     ];
@@ -23,6 +25,7 @@ class ContactMessage extends Model
         return [
             'is_read' => 'boolean',
             'read_at' => 'datetime',
+            'replied_at' => 'datetime',
         ];
     }
 

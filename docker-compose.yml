@@ -34,6 +34,7 @@ services:
       - CORS_ORIGINS=http://localhost:5001,http://localhost:8003,http://macuin_flask:5001,http://macuin_laravel:8000
       - API_BASIC_USER=alidaniel
       - API_BASIC_PASSWORD=123456
+      - PORTAL_CONTACTO_SYNC_TOKEN=macuin_dev_portal_contact_sync
     volumes:
       - ./API:/app
     depends_on:
@@ -83,6 +84,8 @@ services:
       - DB_DATABASE=DB_macuin
       - DB_USERNAME=macuin
       - DB_PASSWORD=123456
+      - API_BASE_URL=http://macuin_api:8000
+      - MACUIN_PORTAL_CONTACT_SYNC_TOKEN=macuin_dev_portal_contact_sync
     volumes:
       - ./Laravel:/var/www/html
       # zz- fuerza que este .ini gane sobre docker-php-ext-opcache.ini (revalidación en caliente).

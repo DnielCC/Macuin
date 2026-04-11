@@ -92,3 +92,32 @@ body {
     justify-content: center;
     font-size: 1.2rem;
 }
+
+/* Aviso flotante junto a «Contacto web» cuando hay mensajes sin leer */
+.sidebar .nav-item.macuin-nav-contacto-alert {
+    position: relative;
+}
+.sidebar .macuin-contacto-toast-hint {
+    position: absolute;
+    left: calc(100% - 4px);
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 6px;
+    white-space: nowrap;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: #ef4444;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 999px;
+    box-shadow: 0 4px 18px rgba(239, 68, 68, 0.45);
+    animation: macuinContactoHint 2s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 5;
+}
+@keyframes macuinContactoHint {
+    0%, 100% { opacity: 1; transform: translateY(-50%) translateX(0); }
+    50% { opacity: 0.85; transform: translateY(-50%) translateX(5px); }
+}

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\CartController;
@@ -48,7 +49,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::view('/mi-cuenta', 'auth.account')->name('cuenta');
+    Route::get('/mi-cuenta', [AccountController::class, 'show'])->name('cuenta');
     Route::post('/salir', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
 
@@ -77,4 +78,6 @@ Route::middleware(['auth', 'macuin.admin.contact', 'throttle:60,1'])->prefix('ad
     Route::get('/mensajes-contacto', [ContactInboxController::class, 'index'])->name('admin.contacto.inbox');
     Route::post('/mensajes-contacto/{mensaje}/leido', [ContactInboxController::class, 'marcarLeido'])
         ->name('admin.contacto.leido');
+    Route::post('/mensajes-contacto/{mensaje}/responder', [ContactInboxController::class, 'responder'])
+        ->name('admin.contacto.responder');
 });

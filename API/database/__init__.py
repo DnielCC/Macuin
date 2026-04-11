@@ -16,3 +16,4 @@ from .movimiento_inventario import MovimientoInventario
 from .parametro_sistema import ParametroSistema
 from .carrito import Carrito, CarritoLinea
 from .pago import Pago
+from .contact_messages import CustomerContactMessage

@@ -62,6 +62,17 @@ Módulo: {{ session.get('user_role','General') }}
   <i class="fas fa-clipboard-list"></i>
   Pedidos
 </a>
+<a href="{{ url_for('admin_contacto_portal') }}"
+   id="nav-contacto-web"
+   class="nav-item {% if request.endpoint in ['admin_contacto_portal','admin_contacto_portal_leido'] %}active{% endif %} {% if (portal_contacto_unread|default(0)) > 0 %}macuin-nav-contacto-alert{% endif %}"
+   {% if (portal_contacto_unread|default(0)) > 0 %}title="Tienes {{ portal_contacto_unread }} mensaje(s) nuevo(s) del portal web"{% endif %}>
+  <i class="fas fa-envelope-open-text"></i>
+  Contacto web
+  {% if (portal_contacto_unread|default(0)) > 0 %}
+  <span class="badge bg-warning text-dark ms-1">{{ portal_contacto_unread }}</span>
+  <span class="macuin-contacto-toast-hint" aria-hidden="true">Nuevo</span>
+  {% endif %}
+</a>
 {% endif %}
 
 
