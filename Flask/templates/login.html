@@ -92,22 +92,6 @@ color:#facc15;
 
 <div class="mb-3">
 
-<label class="form-label">Departamento</label>
-
-<select name="perfil" class="form-select">
-
-<option value="">Seleccionar departamento...</option>
-<option value="ventas">Ventas</option>
-<option value="logistica">Logística</option>
-<option value="almacen">Almacén</option>
-<option value="admin">Administrador</option>
-
-</select>
-
-</div>
-
-<div class="mb-3">
-
 <label class="form-label">Correo Institucional</label>
 
 <input type="email" name="correo" class="form-control" placeholder="nombre@macuin.com">
@@ -128,15 +112,10 @@ color:#facc15;
 
 <div class="mt-4 p-3 bg-light rounded">
 
-<strong>Credenciales de prueba</strong>
-
-<ul style="font-size:13px">
-
-<li>ventas@macuin.com / ventas123</li>
-<li>logistica@macuin.com / logistica123</li>
-<li>almacen@macuin.com / almacen123</li>
-<li>admin@macuin.com / admin123</li>
-
+<strong>Usuarios demo</strong>
+<p class="small mb-2 text-muted">El login valida contra la API (PostgreSQL). Tras <code>setup.sh</code>, las cuentas y contraseñas están en el archivo <code>README-CREDENCIALES.md</code> en la raíz del repositorio.</p>
+<ul style="font-size:13px" class="mb-0">
+<li>admin@macuin.com · ventas@macuin.com · logistica@macuin.com · almacen@macuin.com</li>
 </ul>
 
 </div>
@@ -177,6 +156,10 @@ color:#facc15;
 </div>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/macuin-notify.js') }}"></script>
+{% include 'partials/flash_toasts.html' %}
 
 </body>
 

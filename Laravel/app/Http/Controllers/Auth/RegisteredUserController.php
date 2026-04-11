@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Macuin\Cliente;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -76,6 +77,20 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+
+        try {
+            Cliente::query()->firstOrCreate(
+                ['email' => $user->email],
+                [
+                    'nombre' => $user->name,
+                    'telefono' => $user->phone,
+                    'activo' => true,
+                    'notas' => 'Registro portal Laravel — users.id '.$user->id,
+                ]
+            );
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return redirect()->route('cuenta')->with('status', 'Tu cuenta fue creada correctamente.');
     }

@@ -19,7 +19,7 @@
             <div>
                 <h4 class="font-semibold text-white mb-3">Recursos</h4>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="/catalogo" class="hover:text-[var(--color-macuin-yellow)]">Catálogo</a></li>
+                    <li><a href="{{ route('catalogo') }}" class="hover:text-[var(--color-macuin-yellow)]">Catálogo</a></li>
                     <li><a href="#" class="hover:text-[var(--color-macuin-yellow)]">Guías</a></li>
                     <li><a href="#" class="hover:text-[var(--color-macuin-yellow)]">FAQ</a></li>
                 </ul>

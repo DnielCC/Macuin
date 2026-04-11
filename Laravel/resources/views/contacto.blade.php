@@ -6,54 +6,55 @@
 <div class="container mx-auto px-4 py-12">
     <div class="flex flex-col lg:flex-row justify-between gap-4 mb-8">
         <h1 class="text-3xl font-bold text-gray-900">Contáctanos</h1>
-        <a href="/catalogo" class="text-amber-600 hover:underline font-medium">Volver al Catálogo</a>
+        <a href="{{ route('catalogo') }}" class="text-amber-600 hover:underline font-medium">Volver al catálogo</a>
     </div>
-    <p class="text-gray-600 mb-10">Estamos aquí para ayudarte con tus necesidades automotrices.</p>
+    <p class="text-gray-600 mb-10">Tu mensaje queda guardado en la base de datos para que el equipo administrador lo revise en la bandeja del portal.</p>
 
     <div class="grid lg:grid-cols-3 gap-8">
         <div class="lg:col-span-1 space-y-4">
             <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-                <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-3">
-                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                </div>
-                <h3 class="font-semibold text-gray-900 mb-2">Teléfono</h3>
-                <p class="text-gray-600 text-sm">+52 55 1234 5678</p>
-                <p class="text-gray-600 text-sm">+52 55 8765 4321</p>
-            </div>
-            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-                <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-3">
-                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                </div>
-                <h3 class="font-semibold text-gray-900 mb-2">Email</h3>
+                <h3 class="font-semibold text-gray-900 mb-2">Correo</h3>
                 <p class="text-gray-600 text-sm">ventas@macuin.com</p>
                 <p class="text-gray-600 text-sm">soporte@macuin.com</p>
             </div>
-            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-                <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-3">
-                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                </div>
-                <h3 class="font-semibold text-gray-900 mb-2">Dirección</h3>
-                <p class="text-gray-600 text-sm">Av. Industrial #1234</p>
-                <p class="text-gray-600 text-sm">Col. Zona Industrial</p>
-                <p class="text-gray-600 text-sm">Ciudad de México, 01234</p>
-            </div>
-            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-                <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-3">
-                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-                <h3 class="font-semibold text-gray-900 mb-2">Horario de Atención</h3>
-                <p class="text-gray-600 text-sm">Lunes - Viernes: 8:00 - 18:00</p>
-                <p class="text-gray-600 text-sm">Sábado: 9:00 - 14:00</p>
-                <p class="text-gray-600 text-sm">Domingo: Cerrado</p>
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-sm text-gray-600">
+                <p>Los mensajes del formulario se listan en <strong class="text-gray-800">Bandeja</strong> (solo cuentas administrador configuradas en <code class="text-xs">MACUIN_ADMIN_CONTACT_EMAILS</code>).</p>
             </div>
         </div>
         <div class="lg:col-span-2">
             <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-8">
-                <h2 class="text-xl font-semibold text-gray-900 mb-1">Envíanos un Mensaje</h2>
-                <p class="text-gray-500 text-sm mb-6">Responderemos a la brevedad posible</p>
-                <p class="text-sm text-gray-600 border border-dashed border-gray-200 rounded-lg px-4 py-8 text-center bg-gray-50">
-                    Vista estática: aquí irá el formulario de contacto cuando se active la funcionalidad. Usa los datos de la columna izquierda para comunicarte por ahora.
-                </p>
+                <h2 class="text-xl font-semibold text-gray-900 mb-1">Envíanos un mensaje</h2>
+                <p class="text-gray-500 text-sm mb-6">Responderemos lo antes posible.</p>
+
+                <form method="post" action="{{ route('contacto.store') }}" class="space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Nombre</label>
+                        <input type="text" name="name" value="{{ old('name', auth()->user()?->name) }}" required maxlength="200" class="mt-1 w-full rounded-lg border-gray-300 @error('name') border-red-500 @enderror">
+                        @error('name')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Correo</label>
+                        <input type="email" name="email" value="{{ old('email', auth()->user()?->email) }}" required maxlength="255" class="mt-1 w-full rounded-lg border-gray-300 @error('email') border-red-500 @enderror">
+                        @error('email')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Teléfono (opcional)</label>
+                        <input type="text" name="phone" value="{{ old('phone', auth()->user()?->phone) }}" maxlength="40" class="mt-1 w-full rounded-lg border-gray-300">
+                        @error('phone')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Asunto</label>
+                        <input type="text" name="subject" value="{{ old('subject') }}" required maxlength="200" class="mt-1 w-full rounded-lg border-gray-300">
+                        @error('subject')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Mensaje</label>
+                        <textarea name="message" rows="6" required maxlength="5000" class="mt-1 w-full rounded-lg border-gray-300">{{ old('message') }}</textarea>
+                        @error('message')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <button type="submit" class="w-full sm:w-auto px-6 py-3 rounded-lg bg-[var(--color-macuin-yellow)] hover:bg-amber-500 text-black font-semibold transition">Enviar mensaje</button>
+                </form>
             </div>
         </div>
     </div>

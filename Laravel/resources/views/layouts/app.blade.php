@@ -31,6 +31,28 @@
         </main>
         @include('layouts.partials.footer')
     @endif
+    <div id="macuin-toast-host" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm pointer-events-none" aria-live="polite"></div>
+    <script>
+    (function () {
+        function pushToast(msg, type) {
+            var host = document.getElementById('macuin-toast-host');
+            if (!host || !msg) return;
+            var el = document.createElement('div');
+            el.className = 'pointer-events-auto rounded-lg shadow-lg px-4 py-3 text-sm font-medium border ' +
+                (type === 'error' ? 'bg-red-50 text-red-900 border-red-200' : 'bg-emerald-50 text-emerald-900 border-emerald-200');
+            el.textContent = msg;
+            host.appendChild(el);
+            setTimeout(function () { el.style.opacity = '0'; el.style.transition = 'opacity .4s'; }, 4200);
+            setTimeout(function () { el.remove(); }, 4800);
+        }
+        @if (session('status'))
+            pushToast(@json(session('status')), 'ok');
+        @endif
+        @if (session('error'))
+            pushToast(@json(session('error')), 'error');
+        @endif
+    })();
+    </script>
     @stack('scripts')
 </body>
 </html>

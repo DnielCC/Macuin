@@ -31,8 +31,8 @@
           </div>
           <span class="badge rounded-pill text-success" style="background:#d1fae5;">+9.4%</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">Envíos del Mes</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">158</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Pedidos (sistema)</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">{{ kpi.get('total_pedidos', 0) }}</h3>
       </div>
     </div>
 
@@ -46,7 +46,7 @@
           <span class="badge rounded-pill text-success" style="background:#d1fae5;">+11.2%</span>
         </div>
         <p class="text-muted mb-1" style="font-size:0.9rem;">Entregados</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">134</h3>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">{{ kpi.get('entregados', 0) }}</h3>
       </div>
     </div>
 
@@ -59,8 +59,8 @@
           </div>
           <span class="badge rounded-pill text-warning" style="background:#fef3c7;">En tránsito</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">En Tránsito</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">18</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Enviados</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">{{ kpi.get('enviados', 0) }}</h3>
       </div>
     </div>
 
@@ -73,8 +73,8 @@
           </div>
           <span class="badge rounded-pill text-info" style="background:#e0e7ff;">6 nuevas</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">Guías Generadas</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">158</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Guías registradas</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">{{ guias_total|default(0) }}</h3>
       </div>
     </div>
 
@@ -167,34 +167,17 @@
               </tr>
             </thead>
             <tbody>
+              {% for g in guias_recientes %}
               <tr>
-                <td class="fw-bold">ORD-2401</td>
-                <td>Autopartes González</td>
-                <td class="text-muted">CDMX</td>
-                <td><span class="badge bg-success bg-opacity-10 text-success">Entregado</span></td>
-                <td class="text-muted">31/01/2026</td>
+                <td class="fw-bold">#{{ g.pedido_id }}</td>
+                <td>{{ g.paqueteria or '—' }}</td>
+                <td class="text-muted text-truncate" style="max-width:140px;">{{ g.numero_rastreo or '—' }}</td>
+                <td><span class="badge bg-secondary bg-opacity-10 text-secondary">{{ g.tipo or '—' }}</span></td>
+                <td class="text-muted small">Guía #{{ g.id }}</td>
               </tr>
-              <tr>
-                <td class="fw-bold">ORD-2402</td>
-                <td>Taller Mecánico Express</td>
-                <td class="text-muted">Guadalajara</td>
-                <td><span class="badge bg-warning bg-opacity-10 text-warning">Enviado</span></td>
-                <td class="text-muted">31/01/2026</td>
-              </tr>
-              <tr>
-                <td class="fw-bold">ORD-2403</td>
-                <td>Distribuidora del Norte</td>
-                <td class="text-muted">Monterrey</td>
-                <td><span class="badge bg-primary bg-opacity-10 text-primary">Enviado</span></td>
-                <td class="text-muted">01/02/2026</td>
-              </tr>
-              <tr>
-                <td class="fw-bold">ORD-2406</td>
-                <td>Grupo Automotriz MX</td>
-                <td class="text-muted">Puebla</td>
-                <td><span class="badge bg-success bg-opacity-10 text-success">Entregado</span></td>
-                <td class="text-muted">05/02/2026</td>
-              </tr>
+              {% else %}
+              <tr><td colspan="5" class="text-muted">Sin guías registradas aún.</td></tr>
+              {% endfor %}
             </tbody>
           </table>
         </div>
@@ -207,14 +190,21 @@
 </div>
 
 <script>
-// Envíos chart
+const lblM = {{ (chart_mes_labels or [])|tojson }};
+const datM = {{ (chart_mes_data or [])|tojson }};
+const lblE = {{ (chart_estatus_labels or [])|tojson }};
+const datE = {{ (chart_estatus_data or [])|tojson }};
+const mL = lblM.length ? lblM : ['Sin datos'];
+const mD = lblM.length ? datM : [0];
+const eL = lblE.length ? lblE : ['Sin datos'];
+const eD = lblE.length ? datE : [1];
 new Chart(document.getElementById('enviosChart'), {
   type: 'line',
   data: {
-    labels: ['Ene','Feb','Mar','Abr','May','Jun'],
+    labels: mL,
     datasets: [{
-      label: 'Envíos',
-      data: [98, 112, 105, 130, 145, 158],
+      label: 'Pedidos / mes',
+      data: mD,
       borderColor: '#10b981',
       backgroundColor: 'rgba(16,185,129,0.1)',
       fill: true,
@@ -232,15 +222,13 @@ new Chart(document.getElementById('enviosChart'), {
     }
   }
 });
-
-// Estatus chart
 new Chart(document.getElementById('estatusChart'), {
   type: 'doughnut',
   data: {
-    labels: ['Entregados','Enviados','En Tránsito','Pendientes'],
+    labels: eL,
     datasets: [{
-      data: [134, 12, 18, 6],
-      backgroundColor: ['#10b981','#3b82f6','#f59e0b','#9ca3af'],
+      data: eD,
+      backgroundColor: ['#10b981','#3b82f6','#f59e0b','#6366f1','#94a3b8','#ec4899','#eab308'],
       borderWidth: 0
     }]
   },

@@ -15,15 +15,16 @@ RUN apt-get update && apt-get install -y \
     nginx \
     && docker-php-ext-install pdo_mysql pdo_pgsql mbstring exif pcntl bcmath zip opcache
 
-# Enable and configure OPcache for maximum performance
+# OPcache: en desarrollo (volumen ./Laravel) los timestamps deben revalidarse; si validate_timestamps=0
+# PHP sigue sirviendo bytecode viejo y las vistas Blade parecen “atascadas” aunque el disco esté actualizado.
 RUN docker-php-ext-enable opcache \
     && echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
     && echo "opcache.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
     && echo "opcache.memory_consumption=256" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
     && echo "opcache.interned_strings_buffer=16" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
     && echo "opcache.max_accelerated_files=20000" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
-    && echo "opcache.revalidate_freq=0" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
-    && echo "opcache.validate_timestamps=0" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.revalidate_freq=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.validate_timestamps=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
     && echo "opcache.save_comments=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
     && echo "opcache.fast_shutdown=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
 
@@ -64,7 +65,9 @@ decorate_workers_output = no' > /etc/php/8.4/fpm/pool.d/www.conf
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/sites-available/default
 
+COPY docker-laravel-start.sh /usr/local/bin/docker-laravel-start.sh
+RUN chmod +x /usr/local/bin/docker-laravel-start.sh
+
 EXPOSE 8000
 
-# Start nginx and php-fpm
-CMD ["sh", "-c", "php-fpm & nginx -g 'daemon off;'"]
+CMD ["/usr/local/bin/docker-laravel-start.sh"]

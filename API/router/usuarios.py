@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from database.db import get_db
@@ -8,6 +8,27 @@ from models.usuario import UsuarioBase
 from security.auth import varificar_peticion
 
 routerusu = APIRouter(prefix="/v1/usuarios", tags=["CRUD USUARIOS"])
+
+
+@routerusu.get("/por-email", dependencies=[Depends(varificar_peticion)])
+def usuario_por_email(
+    email: str = Query(..., min_length=3, max_length=120),
+    db: Session = Depends(get_db),
+):
+    """Datos públicos mínimos (sin hash). Pensado para integración BFF (Flask)."""
+    u = db.query(Usuario).filter(Usuario.email == email.strip().lower()).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return {
+        "id": u.id,
+        "nombre": u.nombre,
+        "apellidos": u.apellidos,
+        "email": u.email,
+        "rol_id": u.rol_id,
+        "activo": u.activo,
+        "telefono": u.telefono,
+        "direccion_id": u.direccion_id,
+    }
 
 
 @routerusu.get("/")

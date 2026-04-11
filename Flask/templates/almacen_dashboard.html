@@ -11,12 +11,6 @@
       <h2 class="fw-bold" style="color:#111827;">Panel de Almacén</h2>
       <p class="text-muted mb-0">Bienvenido, {{ session.get('user_name') }} &mdash; <span style="color:#f59e0b;">Módulo Almacén</span></p>
     </div>
-    <select class="form-select w-auto" id="filtro-tiempo">
-      <option>Hoy</option>
-      <option>Semana</option>
-      <option selected>Mes</option>
-      <option>Año</option>
-    </select>
   </div>
 
   <!-- KPI CARDS -->
@@ -29,10 +23,9 @@
                style="background:#f59e0b;width:45px;height:45px;">
             <i class="fas fa-cubes text-white"></i>
           </div>
-          <span class="badge rounded-pill text-success" style="background:#d1fae5;">+3.2%</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">SKUs en Stock</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">1,248</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Líneas de inventario</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">{{ skus_stock|default(0) }}</h3>
       </div>
     </div>
 
@@ -43,10 +36,9 @@
                style="background:#10b981;width:45px;height:45px;">
             <i class="fas fa-map-signs text-white"></i>
           </div>
-          <span class="badge rounded-pill text-success" style="background:#d1fae5;">Activas</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">Ubicaciones Activas</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">84</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Ubicaciones activas</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">{{ ubicaciones_activas|default(0) }}</h3>
       </div>
     </div>
 
@@ -57,10 +49,9 @@
                style="background:#3b82f6;width:45px;height:45px;">
             <i class="fas fa-dolly text-white"></i>
           </div>
-          <span class="badge rounded-pill text-warning" style="background:#fef3c7;">Pendientes</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">Pedidos por Surtir</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">23</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Pedidos en «Surtiendo»</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">{{ kpi.get('surtiendo', 0) }}</h3>
       </div>
     </div>
 
@@ -71,10 +62,9 @@
                style="background:#ef4444;width:45px;height:45px;">
             <i class="fas fa-exclamation-triangle text-white"></i>
           </div>
-          <span class="badge rounded-pill text-danger" style="background:#fee2e2;">Este mes</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">Mermas Registradas</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">7</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">SKU con stock ≤ mínimo</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">{{ kpi.get('alertas_stock', 0) }}</h3>
       </div>
     </div>
 
@@ -85,18 +75,26 @@
 
     <div class="col-md-7">
       <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
-        <h6 class="fw-bold mb-4">Movimientos de Inventario</h6>
-        <div style="position:relative;height:250px;">
+        <h6 class="fw-bold mb-4">Movimientos de inventario (por mes)</h6>
+        <div style="position:relative;min-height:220px;">
+          {% if chart_mes_labels and chart_mes_data and chart_mes_labels|length > 0 %}
           <canvas id="inventarioChart"></canvas>
+          {% else %}
+          <p class="text-muted small mb-0 py-5 text-center">Sin movimientos registrados. Los registros aparecen al usar «Entrada» o «Merma» en Inventario.</p>
+          {% endif %}
         </div>
       </div>
     </div>
 
     <div class="col-md-5">
       <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
-        <h6 class="fw-bold mb-4">Estado de Pedidos en Almacén</h6>
-        <div style="position:relative;height:250px;">
+        <h6 class="fw-bold mb-4">Pedidos por estatus</h6>
+        <div style="position:relative;min-height:220px;">
+          {% if chart_estatus_labels and chart_estatus_data and chart_estatus_labels|length > 0 %}
           <canvas id="pedidosChart"></canvas>
+          {% else %}
+          <p class="text-muted small mb-0 py-5 text-center">Sin pedidos en la base de datos.</p>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -178,34 +176,32 @@
               </tr>
             </thead>
             <tbody>
+              {% for a in actividades_recientes %}
               <tr>
-                <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">FRE-001</code></td>
-                <td>Disco de Freno Delantero</td>
-                <td><span class="badge bg-success bg-opacity-10 text-success">Entrada</span></td>
-                <td class="fw-bold">+50</td>
-                <td class="text-muted">14/03/2026</td>
+                <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">{{ a.sku_codigo or '—' }}</code></td>
+                <td>{{ a.autoparte_nombre or '—' }}</td>
+                <td>
+                  {% if a.tipo == 'entrada' %}
+                  <span class="badge bg-success bg-opacity-10 text-success">Entrada</span>
+                  {% elif a.tipo == 'merma' %}
+                  <span class="badge bg-danger bg-opacity-10 text-danger">Merma</span>
+                  {% else %}
+                  <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ a.tipo or '—' }}</span>
+                  {% endif %}
+                </td>
+                <td class="fw-bold {% if a.tipo == 'merma' %}text-danger{% elif a.tipo == 'entrada' %}text-success{% endif %}">
+                  {% if a.tipo == 'entrada' %}+{% elif a.tipo == 'merma' %}-{% endif %}{{ a.cantidad or 0 }}
+                </td>
+                <td class="text-muted">
+                  {% set fe = (a.creado_en or '')[:10] %}
+                  {% if fe|length == 10 %}{{ fe[8:10] }}/{{ fe[5:7] }}/{{ fe[0:4] }}{% else %}—{% endif %}
+                </td>
               </tr>
+              {% else %}
               <tr>
-                <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">SUS-014</code></td>
-                <td>Amortiguador Trasero</td>
-                <td><span class="badge bg-warning bg-opacity-10 text-warning">Salida</span></td>
-                <td class="fw-bold text-warning">-12</td>
-                <td class="text-muted">14/03/2026</td>
+                <td colspan="5" class="text-muted py-4 text-center">Sin actividad reciente. Los movimientos de inventario aparecerán aquí al registrarlos.</td>
               </tr>
-              <tr>
-                <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">MOT-088</code></td>
-                <td>Filtro de Aceite</td>
-                <td><span class="badge bg-success bg-opacity-10 text-success">Entrada</span></td>
-                <td class="fw-bold">+200</td>
-                <td class="text-muted">13/03/2026</td>
-              </tr>
-              <tr>
-                <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.82rem;">FRE-009</code></td>
-                <td>Pastilla de Freno</td>
-                <td><span class="badge bg-danger bg-opacity-10 text-danger">Merma</span></td>
-                <td class="fw-bold text-danger">-3</td>
-                <td class="text-muted">12/03/2026</td>
-              </tr>
+              {% endfor %}
             </tbody>
           </table>
         </div>
@@ -218,57 +214,58 @@
 </div>
 
 <script>
-// Inventario chart
-new Chart(document.getElementById('inventarioChart'), {
-  type: 'bar',
-  data: {
-    labels: ['Ene','Feb','Mar','Abr','May','Jun'],
-    datasets: [
-      {
-        label: 'Entradas',
-        data: [320, 410, 375, 490, 460, 520],
-        backgroundColor: 'rgba(16,185,129,0.75)',
-        borderRadius: 6
-      },
-      {
-        label: 'Salidas',
-        data: [280, 360, 310, 420, 400, 470],
-        backgroundColor: 'rgba(245,158,11,0.75)',
-        borderRadius: 6
-      }
-    ]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { position: 'top', labels: { padding: 15, font: { size: 12 } } } },
-    scales: {
-      y: { grid: { color: 'rgba(0,0,0,0.04)' } },
-      x: { grid: { display: false } }
-    }
-  }
-});
-
-// Pedidos chart
-new Chart(document.getElementById('pedidosChart'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Pendiente','Surtiendo','Empacado','Enviado'],
-    datasets: [{
-      data: [23, 14, 9, 112],
-      backgroundColor: ['#3b82f6','#f59e0b','#10b981','#9ca3af'],
-      borderWidth: 0
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } }
+const lblM = {{ (chart_mes_labels or [])|tojson }};
+const datM = {{ (chart_mes_data or [])|tojson }};
+const lblE = {{ (chart_estatus_labels or [])|tojson }};
+const datE = {{ (chart_estatus_data or [])|tojson }};
+const elInv = document.getElementById('inventarioChart');
+if (elInv && lblM.length && datM.length) {
+  new Chart(elInv, {
+    type: 'bar',
+    data: {
+      labels: lblM,
+      datasets: [
+        {
+          label: 'Movimientos registrados',
+          data: datM,
+          backgroundColor: 'rgba(245,158,11,0.75)',
+          borderRadius: 6
+        }
+      ]
     },
-    cutout: '65%'
-  }
-});
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { padding: 15, font: { size: 12 } } } },
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(0,0,0,0.04)' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+const elPed = document.getElementById('pedidosChart');
+if (elPed && lblE.length && datE.length) {
+  new Chart(elPed, {
+    type: 'doughnut',
+    data: {
+      labels: lblE,
+      datasets: [{
+        data: datE,
+        backgroundColor: ['#3b82f6','#f59e0b','#10b981','#6366f1','#94a3b8','#ec4899','#eab308'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } }
+      },
+      cutout: '65%'
+    }
+  });
+}
 </script>
 
 {% endblock %}

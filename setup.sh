@@ -148,6 +148,9 @@ header "Inicializando base de datos"
 info "Creando tablas y seed FASE 1 (SQLAlchemy + scripts/init_db.py)..."
 docker exec macuin_api python scripts/init_db.py 2>/dev/null && success "Base de datos inicializada (tablas + seed si aplica)" || warn "No se pudo inicializar la BD. Revisa: docker compose logs api"
 
+info "Usuarios demo para login Flask (bcrypt)..."
+docker exec macuin_api python scripts/seed_macuin_demo_users.py 2>/dev/null && success "Usuarios demo listos (ver README-CREDENCIALES.md)" || warn "No se pudo ejecutar seed de usuarios demo"
+
 # ── 8. Verificar que Flask está corriendo ────────────────────
 header "Verificando Flask"
 

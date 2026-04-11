@@ -31,8 +31,8 @@
           </div>
           <span class="badge rounded-pill text-success" style="background:#d1fae5;">+12.5%</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">Ventas del Mes</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">$67,000</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Ventas acumuladas (pedidos)</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">${{ "{:,.0f}".format(ventas_acumulado) }}</h3>
       </div>
     </div>
 
@@ -45,8 +45,8 @@
           </div>
           <span class="badge rounded-pill text-success" style="background:#d1fae5;">+8.2%</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">Pedidos del Mes</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">182</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Pedidos totales</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">{{ kpi.get('total_pedidos', 0) }}</h3>
       </div>
     </div>
 
@@ -59,8 +59,8 @@
           </div>
           <span class="badge rounded-pill text-success" style="background:#d1fae5;">+15.3%</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">Clientes Activos</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">87</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Clientes activos</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">{{ kpi.get('clientes_activos', 0) }}</h3>
       </div>
     </div>
 
@@ -73,8 +73,8 @@
           </div>
           <span class="badge rounded-pill text-danger" style="background:#fee2e2;">3 hoy</span>
         </div>
-        <p class="text-muted mb-1" style="font-size:0.9rem;">Pedidos Cancelados</p>
-        <h3 class="fw-bold mb-0" style="color:#1f2937;">11</h3>
+        <p class="text-muted mb-1" style="font-size:0.9rem;">Pedidos cancelados</p>
+        <h3 class="fw-bold mb-0" style="color:#1f2937;">{{ kpi.get('pedidos_cancelados', 0) }}</h3>
       </div>
     </div>
 
@@ -85,7 +85,7 @@
 
     <div class="col-md-7">
       <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
-        <h6 class="fw-bold mb-4">Tendencia de Ventas</h6>
+        <h6 class="fw-bold mb-4">Tendencia de ventas (total por mes)</h6>
         <div style="position:relative;height:250px;">
           <canvas id="salesChart"></canvas>
         </div>
@@ -94,7 +94,7 @@
 
     <div class="col-md-5">
       <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
-        <h6 class="fw-bold mb-4">Categorías Más Vendidas</h6>
+        <h6 class="fw-bold mb-4">Pedidos por estatus</h6>
         <div style="position:relative;height:250px;">
           <canvas id="categoryChart"></canvas>
         </div>
@@ -167,34 +167,17 @@
               </tr>
             </thead>
             <tbody>
+              {% for p in pedidos_recientes %}
               <tr>
-                <td class="fw-bold">ORD-2401</td>
-                <td>Autopartes González</td>
-                <td class="fw-bold" style="color:#3b82f6;">$12,450</td>
-                <td><span class="badge bg-success bg-opacity-10 text-success">Enviado</span></td>
-                <td class="text-muted">31/01/2026</td>
+                <td class="fw-bold">#{{ p.id }}{% if p.folio %} / {{ p.folio }}{% endif %}</td>
+                <td>{{ p._cliente_nombre }}</td>
+                <td class="fw-bold" style="color:#3b82f6;">{{ p._total_fmt }}</td>
+                <td><span class="badge bg-secondary bg-opacity-10 text-secondary">{{ p._estatus_nombre or '—' }}</span></td>
+                <td class="text-muted">{{ p._fecha_corta }}</td>
               </tr>
-              <tr>
-                <td class="fw-bold">ORD-2402</td>
-                <td>Taller Mecánico Express</td>
-                <td class="fw-bold" style="color:#3b82f6;">$8,900</td>
-                <td><span class="badge bg-primary bg-opacity-10 text-primary">Procesando</span></td>
-                <td class="text-muted">31/01/2026</td>
-              </tr>
-              <tr>
-                <td class="fw-bold">ORD-2403</td>
-                <td>Distribuidora del Norte</td>
-                <td class="fw-bold" style="color:#3b82f6;">$24,500</td>
-                <td><span class="badge bg-warning bg-opacity-10 text-warning">Recibido</span></td>
-                <td class="text-muted">01/02/2026</td>
-              </tr>
-              <tr>
-                <td class="fw-bold">ORD-2404</td>
-                <td>Refaccionaria Omega</td>
-                <td class="fw-bold" style="color:#3b82f6;">$5,250</td>
-                <td><span class="badge bg-danger bg-opacity-10 text-danger">Cancelado</span></td>
-                <td class="text-muted">02/02/2026</td>
-              </tr>
+              {% else %}
+              <tr><td colspan="5" class="text-muted">Sin pedidos aún.</td></tr>
+              {% endfor %}
             </tbody>
           </table>
         </div>
@@ -207,14 +190,21 @@
 </div>
 
 <script>
-// Ventas chart
+const lblM = {{ (chart_mes_labels or [])|tojson }};
+const datM = {{ (chart_mes_data or [])|tojson }};
+const lblE = {{ (chart_estatus_labels or [])|tojson }};
+const datE = {{ (chart_estatus_data or [])|tojson }};
+const mL = lblM.length ? lblM : ['Sin datos'];
+const mD = lblM.length ? datM : [0];
+const eL = lblE.length ? lblE : ['Sin datos'];
+const eD = lblE.length ? datE : [1];
 new Chart(document.getElementById('salesChart'), {
   type: 'line',
   data: {
-    labels: ['Ene','Feb','Mar','Abr','May','Jun'],
+    labels: mL,
     datasets: [{
-      label: 'Ventas ($)',
-      data: [45000, 52000, 48000, 62000, 58000, 68000],
+      label: 'Total ($)',
+      data: mD,
       borderColor: '#3b82f6',
       backgroundColor: 'rgba(59,130,246,0.1)',
       fill: true,
@@ -232,15 +222,13 @@ new Chart(document.getElementById('salesChart'), {
     }
   }
 });
-
-// Categorías chart
 new Chart(document.getElementById('categoryChart'), {
   type: 'doughnut',
   data: {
-    labels: ['Frenos','Motor','Suspensión','Lubricantes'],
+    labels: eL,
     datasets: [{
-      data: [35, 28, 22, 15],
-      backgroundColor: ['#eab308','#3b82f6','#64748b','#9ca3af'],
+      data: eD,
+      backgroundColor: ['#eab308','#3b82f6','#64748b','#10b981','#6366f1','#ec4899','#94a3b8'],
       borderWidth: 0
     }]
   },

@@ -2,51 +2,49 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ContactInboxController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PedidosController;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| MACUIN - Rutas web
-|--------------------------------------------------------------------------
-*/
-
-// Página de selección de tipo de usuario (entrada principal)
 Route::get('/', function () {
     return view('selector');
 })->name('selector');
 
-// Acceso Personal - Redirige a través de la API siguiendo las mejores prácticas
 Route::get('/personal/ingresar', function () {
     try {
         $apiBaseUrl = env('API_BASE_URL', 'http://localhost:8000');
-        $response = Http::get("{$apiBaseUrl}/v1/redirect/personal");
-        
+        $response = Http::timeout(8)->get("{$apiBaseUrl}/v1/redirect/personal");
+
         if ($response->successful()) {
             $data = $response->json();
+
             return redirect()->away($data['url']);
         }
-        
-        // Fallback o manejo de error si la API no responde
-        return redirect()->away(env('FLASK_URL', 'http://localhost:5000') . '/login');
-        
+
+        return redirect()->away(env('FLASK_URL', 'http://localhost:5000').'/login');
     } catch (\Exception $e) {
-        // En caso de error crítico, usar valor por defecto configurado
-        return redirect()->away(env('FLASK_URL', 'http://localhost:5000') . '/login');
+        return redirect()->away(env('FLASK_URL', 'http://localhost:5000').'/login');
     }
 })->name('personal.login');
 
-// Área clientes - Páginas principales
-Route::get('/inicio', function () {
-    return view('home');
-})->name('inicio');
+Route::get('/inicio', [HomeController::class, 'index'])->name('inicio');
 
 Route::middleware('guest')->group(function () {
     Route::get('/ingresar', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('/ingresar', [AuthenticatedSessionController::class, 'store'])->name('login.store');
+    Route::post('/ingresar', [AuthenticatedSessionController::class, 'store'])
+        ->middleware('throttle:12,1')
+        ->name('login.store');
 
     Route::get('/registro', [RegisteredUserController::class, 'create'])->name('registro');
-    Route::post('/registro', [RegisteredUserController::class, 'store'])->name('registro.store');
+    Route::post('/registro', [RegisteredUserController::class, 'store'])
+        ->middleware('throttle:8,1')
+        ->name('registro.store');
 });
 
 Route::middleware('auth')->group(function () {
@@ -54,22 +52,29 @@ Route::middleware('auth')->group(function () {
     Route::post('/salir', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
 
-Route::get('/catalogo', function () {
-    return view('catalogo');
-})->name('catalogo');
+Route::get('/catalogo', [CatalogController::class, 'index'])->name('catalogo');
 
-Route::get('/pedidos', function () {
-    return view('pedidos');
-})->name('pedidos');
+Route::middleware(['auth', 'throttle:40,1'])->group(function () {
+    Route::get('/carrito', [CartController::class, 'index'])->name('carrito');
+    Route::post('/carrito/agregar', [CartController::class, 'add'])->name('carrito.agregar');
+    Route::post('/carrito/linea/{linea}/quitar', [CartController::class, 'remove'])->name('carrito.quitar');
+    Route::post('/carrito/linea/{linea}/cantidad', [CartController::class, 'updateQty'])->name('carrito.cantidad');
 
-Route::get('/contacto', function () {
-    return view('contacto');
-})->name('contacto');
+    Route::get('/pago', [CheckoutController::class, 'show'])->name('pago');
+    Route::post('/pago/procesar', [CheckoutController::class, 'procesar'])
+        ->middleware('throttle:10,1')
+        ->name('pago.procesar');
 
-Route::get('/carrito', function () {
-    return view('carrito');
-})->name('carrito');
+    Route::get('/pedidos', [PedidosController::class, 'index'])->name('pedidos');
+});
 
-Route::get('/pago', function () {
-    return view('pago');
-})->name('pago');
+Route::get('/contacto', [ContactController::class, 'create'])->name('contacto');
+Route::post('/contacto', [ContactController::class, 'store'])
+    ->middleware('throttle:8,1')
+    ->name('contacto.store');
+
+Route::middleware(['auth', 'macuin.admin.contact', 'throttle:60,1'])->prefix('admin-portal')->group(function () {
+    Route::get('/mensajes-contacto', [ContactInboxController::class, 'index'])->name('admin.contacto.inbox');
+    Route::post('/mensajes-contacto/{mensaje}/leido', [ContactInboxController::class, 'marcarLeido'])
+        ->name('admin.contacto.leido');
+});

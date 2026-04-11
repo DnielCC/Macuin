@@ -1,328 +1,76 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container-fluid py-4">
-
-  <!-- HEADER -->
-  <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
-    <div>
-      <h2 class="fw-bold" style="color:#111827;">Ubicaciones <span style="font-size:1rem;font-weight:400;color:#6b7280;">(Pasillos y Estantes)</span></h2>
-      <p class="text-muted mb-0">Organiza físicamente el almacén: crea, edita y elimina ubicaciones</p>
-    </div>
-    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalNuevaUbi">
-      <i class="fas fa-plus me-2"></i>Nueva Ubicación
-    </button>
+  <div class="d-flex justify-content-between flex-wrap gap-2 mb-3">
+    <h2 class="fw-bold mb-0">Ubicaciones</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevaUb">Nueva</button>
   </div>
-
-  <!-- STATS -->
-  <div class="row g-4 mb-4">
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm rounded-4 p-3">
-        <div class="d-flex justify-content-between">
-          <div>
-            <small class="text-muted">Total Ubicaciones</small>
-            <h3 class="fw-bold" id="kpiTotal">6</h3>
-          </div>
-          <div class="p-3 rounded-3 d-flex align-items-center" style="background:#ecfdf5;">
-            <i class="fas fa-map-signs" style="color:#10b981;"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm rounded-4 p-3">
-        <div class="d-flex justify-content-between">
-          <div>
-            <small class="text-muted">Pasillos</small>
-            <h3 class="fw-bold" id="kpiPasillos">3</h3>
-          </div>
-          <div class="p-3 rounded-3 d-flex align-items-center" style="background:#eff6ff;">
-            <i class="fas fa-road" style="color:#3b82f6;"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm rounded-4 p-3">
-        <div class="d-flex justify-content-between">
-          <div>
-            <small class="text-muted">Con Stock Asignado</small>
-            <h3 class="fw-bold" id="kpiConStock">5</h3>
-          </div>
-          <div class="p-3 rounded-3 d-flex align-items-center" style="background:#fef3c7;">
-            <i class="fas fa-box" style="color:#d97706;"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TABLA UBICACIONES -->
   <div class="card border-0 shadow-sm rounded-4 p-4">
-
-    <div class="d-flex justify-content-between mb-3 flex-wrap gap-2 align-items-center">
-      <div class="d-flex gap-2 flex-wrap">
-        <input class="form-control" style="max-width:280px;" id="searchUbi"
-               placeholder="Buscar ubicación o pasillo..." oninput="renderTabla()">
-        <select class="form-select w-auto" id="filtroPasillo" onchange="renderTabla()">
-          <option value="">Todos los pasillos</option>
-          <option>A</option><option>B</option><option>C</option>
-        </select>
-      </div>
-      <small class="text-muted" id="contadorUbi">Mostrando 6 ubicaciones</small>
-    </div>
-
-    <div class="table-responsive">
-      <table class="table align-middle table-hover" id="tablaUbi">
-        <thead class="table-light">
-          <tr>
-            <th>Código</th>
-            <th>Pasillo</th>
-            <th>Estante</th>
-            <th>Capacidad</th>
-            <th>Descripción</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="bodyUbi">
-          <!-- generado por JS -->
-        </tbody>
-      </table>
-    </div>
-
+    <table class="table">
+      <thead><tr><th>ID</th><th>Pasillo</th><th>Estante</th><th>Nivel</th><th>Cap.</th><th>Activo</th><th></th></tr></thead>
+      <tbody>
+        {% for u in ubicaciones %}
+        <tr>
+          <td>{{ u.id }}</td>
+          <td>{{ u.pasillo }}</td>
+          <td>{{ u.estante }}</td>
+          <td>{{ u.nivel or '—' }}</td>
+          <td>{{ u.capacidad or '—' }}</td>
+          <td>{{ 'Sí' if u.activo else 'No' }}</td>
+          <td>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modUb{{ u.id }}">Editar</button>
+            <form method="post" class="d-inline" onsubmit="return confirm('¿Eliminar ubicación?');">
+              <input type="hidden" name="_action" value="eliminar">
+              <input type="hidden" name="ubicacion_id" value="{{ u.id }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-muted">Sin ubicaciones.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-
 </div>
 
-<!-- ═══════════════ MODAL: NUEVA UBICACIÓN ═══════════════ -->
-<div class="modal fade" id="modalNuevaUbi" tabindex="-1">
+{% for u in ubicaciones %}
+<div class="modal fade" id="modUb{{ u.id }}" tabindex="-1">
   <div class="modal-dialog">
-    <div class="modal-content border-0 shadow rounded-4">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle text-success me-2"></i>Nueva Ubicación</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Pasillo</label>
-            <select class="form-select" id="nuevoPasillo">
-              <option>A</option><option>B</option><option>C</option><option>D</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Estante</label>
-            <input type="text" class="form-control" id="nuevoEstante" placeholder="Ej. 03" maxlength="2">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Capacidad (piezas)</label>
-            <input type="number" class="form-control" id="nuevoCapacidad" placeholder="Ej. 200" min="1">
-          </div>
-          <div class="col-12">
-            <label class="form-label fw-semibold">Descripción</label>
-            <input type="text" class="form-control" id="nuevoDescripcion" placeholder="Ej. Zona frenos y suspensión">
-          </div>
+    <div class="modal-content">
+      <form method="post">
+        <input type="hidden" name="_action" value="editar">
+        <input type="hidden" name="ubicacion_id" value="{{ u.id }}">
+        <div class="modal-header"><h5 class="modal-title">Ubicación #{{ u.id }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="mb-2"><label>Pasillo</label><input name="pasillo" class="form-control" value="{{ u.pasillo }}" maxlength="40"></div>
+          <div class="mb-2"><label>Estante</label><input name="estante" class="form-control" value="{{ u.estante }}" maxlength="40"></div>
+          <div class="mb-2"><label>Capacidad</label><input name="capacidad" type="number" class="form-control" value="{{ u.capacidad or '' }}" min="0"></div>
+          <div class="mb-2"><label>Descripción</label><input name="descripcion" class="form-control" value="{{ u.descripcion or '' }}" maxlength="500"></div>
         </div>
-      </div>
-      <div class="modal-footer border-0 pt-0">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-success" onclick="guardarNuevaUbi()">
-          <i class="fas fa-save me-1"></i>Crear Ubicación
-        </button>
-      </div>
+        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button><button type="submit" class="btn btn-primary">Guardar</button></div>
+      </form>
     </div>
   </div>
 </div>
+{% endfor %}
 
-<!-- ═══════════════ MODAL: EDITAR UBICACIÓN ═══════════════ -->
-<div class="modal fade" id="modalEditarUbi" tabindex="-1">
+<div class="modal fade" id="modalNuevaUb" tabindex="-1">
   <div class="modal-dialog">
-    <div class="modal-content border-0 shadow rounded-4">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold"><i class="fas fa-edit text-primary me-2"></i>Editar Ubicación</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p class="text-muted mb-3">Código: <strong id="editCodigo"></strong></p>
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Capacidad (piezas)</label>
-            <input type="number" class="form-control" id="editCapacidad" min="1">
-          </div>
-          <div class="col-12">
-            <label class="form-label fw-semibold">Descripción</label>
-            <input type="text" class="form-control" id="editDescripcion">
-          </div>
+    <div class="modal-content">
+      <form method="post">
+        <input type="hidden" name="_action" value="nueva">
+        <div class="modal-header"><h5>Nueva ubicación</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="mb-2"><label>Pasillo</label><input name="pasillo" class="form-control" required maxlength="40"></div>
+          <div class="mb-2"><label>Estante</label><input name="estante" class="form-control" required maxlength="40"></div>
+          <div class="mb-2"><label>Nivel</label><input name="nivel" class="form-control" maxlength="20"></div>
+          <div class="mb-2"><label>Capacidad</label><input name="capacidad" type="number" class="form-control" min="0"></div>
+          <div class="mb-2"><label>Descripción</label><textarea name="descripcion" class="form-control" maxlength="500"></textarea></div>
         </div>
-      </div>
-      <div class="modal-footer border-0 pt-0">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary" onclick="guardarEdicion()">
-          <i class="fas fa-save me-1"></i>Guardar Cambios
-        </button>
-      </div>
+        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button><button type="submit" class="btn btn-primary">Crear</button></div>
+      </form>
     </div>
   </div>
 </div>
-
-<!-- ═══════════════ MODAL: ELIMINAR UBICACIÓN ═══════════════ -->
-<div class="modal fade" id="modalEliminar" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content border-0 shadow rounded-4">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold text-danger"><i class="fas fa-trash me-2"></i>Eliminar Ubicación</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p>¿Estás seguro de que deseas eliminar la ubicación <strong id="elimCodigo"></strong>?</p>
-        <div class="alert alert-warning d-flex gap-2 align-items-start" style="font-size:0.85rem;">
-          <i class="fas fa-exclamation-triangle mt-1"></i>
-          <span>Solo puedes eliminar ubicaciones que <strong>no tengan piezas asignadas</strong>. Reasigna el stock antes de continuar.</span>
-        </div>
-      </div>
-      <div class="modal-footer border-0 pt-0">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-danger" onclick="confirmarEliminar()">
-          <i class="fas fa-trash me-1"></i>Eliminar
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-{% endblock %}
-
-{% block scripts %}
-<script>
-/* ─── Estado en memoria ─── */
-let ubicaciones = [
-  {codigo:"A-01", pasillo:"A", estante:"01", capacidad:200, descripcion:"Frenos y fricción",       conStock:true},
-  {codigo:"A-02", pasillo:"A", estante:"02", capacidad:150, descripcion:"Suspensión y dirección",  conStock:true},
-  {codigo:"B-01", pasillo:"B", estante:"01", capacidad:300, descripcion:"Motor y filtros",          conStock:true},
-  {codigo:"B-02", pasillo:"B", estante:"02", capacidad:250, descripcion:"Bujías y encendido",       conStock:true},
-  {codigo:"C-01", pasillo:"C", estante:"01", capacidad:100, descripcion:"Electricidad y baterías",  conStock:true},
-  {codigo:"C-02", pasillo:"C", estante:"02", capacidad:180, descripcion:"Lubricantes (disponible)", conStock:false},
-];
-
-let ubiActiva   = null;
-let ubiCounter  = 3; // para nuevos pasillos
-
-/* ─── Render ─── */
-function renderTabla() {
-  const q       = document.getElementById('searchUbi').value.toLowerCase();
-  const pasillo = document.getElementById('filtroPasillo').value;
-
-  const filtrado = ubicaciones.filter(u => {
-    const txt     = `${u.codigo} ${u.descripcion} ${u.pasillo}`.toLowerCase();
-    const matchQ  = q       === '' || txt.includes(q);
-    const matchP  = pasillo === '' || u.pasillo === pasillo;
-    return matchQ && matchP;
-  });
-
-  document.getElementById('bodyUbi').innerHTML = filtrado.map(u => `
-    <tr>
-      <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.85rem;">${u.codigo}</code></td>
-      <td><span class="badge rounded-pill" style="background:#e0e7ff;color:#4338ca;font-size:0.82rem;">Pasillo ${u.pasillo}</span></td>
-      <td>Estante ${u.estante}</td>
-      <td>${u.capacidad} piezas</td>
-      <td class="text-muted">${u.descripcion}</td>
-      <td>
-        <button class="btn btn-sm btn-outline-secondary me-1" title="Editar"
-                data-bs-toggle="modal" data-bs-target="#modalEditarUbi"
-                onclick="prepEditar('${u.codigo}',${u.capacidad},'${u.descripcion}')">
-          <i class="fas fa-edit"></i>
-        </button>
-        <button class="btn btn-sm ${u.conStock ? 'btn-outline-secondary' : 'btn-outline-danger'}" title="${u.conStock ? 'Con stock — reasigna primero' : 'Eliminar'}"
-                ${u.conStock ? '' : 'data-bs-toggle="modal" data-bs-target="#modalEliminar" onclick="prepEliminar(\'' + u.codigo + '\')"'}>
-          <i class="fas fa-trash"></i>
-        </button>
-      </td>
-    </tr>
-  `).join('');
-
-  document.getElementById('contadorUbi').textContent = `Mostrando ${filtrado.length} ubicaciones`;
-  actualizarKPIs();
-}
-
-function actualizarKPIs() {
-  document.getElementById('kpiTotal').textContent    = ubicaciones.length;
-  const pasillos = new Set(ubicaciones.map(u => u.pasillo));
-  document.getElementById('kpiPasillos').textContent = pasillos.size;
-  document.getElementById('kpiConStock').textContent = ubicaciones.filter(u => u.conStock).length;
-}
-
-/* ─── Crear ─── */
-function guardarNuevaUbi() {
-  const pasillo   = document.getElementById('nuevoPasillo').value;
-  const estante   = document.getElementById('nuevoEstante').value.trim().padStart(2,'0');
-  const capacidad = parseInt(document.getElementById('nuevoCapacidad').value);
-  const descripcion = document.getElementById('nuevoDescripcion').value.trim();
-
-  if (!estante || !capacidad) { mostrarToast('Completa el estante y la capacidad', 'warning'); return; }
-
-  const codigo = `${pasillo}-${estante}`;
-  if (ubicaciones.find(u => u.codigo === codigo)) { mostrarToast('Esa ubicación ya existe', 'danger'); return; }
-
-  ubicaciones.push({codigo, pasillo, estante, capacidad, descripcion: descripcion || '—', conStock:false});
-
-  document.getElementById('nuevoEstante').value   = '';
-  document.getElementById('nuevoCapacidad').value = '';
-  document.getElementById('nuevoDescripcion').value = '';
-
-  bootstrap.Modal.getInstance(document.getElementById('modalNuevaUbi')).hide();
-  renderTabla();
-  mostrarToast(`Ubicación ${codigo} creada correctamente`, 'success');
-}
-
-/* ─── Editar ─── */
-function prepEditar(codigo, capacidad, descripcion) {
-  ubiActiva = codigo;
-  document.getElementById('editCodigo').textContent  = codigo;
-  document.getElementById('editCapacidad').value     = capacidad;
-  document.getElementById('editDescripcion').value   = descripcion;
-}
-
-function guardarEdicion() {
-  const capacidad   = parseInt(document.getElementById('editCapacidad').value);
-  const descripcion = document.getElementById('editDescripcion').value.trim();
-  if (!capacidad) { mostrarToast('Ingresa la capacidad', 'warning'); return; }
-
-  const idx = ubicaciones.findIndex(u => u.codigo === ubiActiva);
-  if (idx !== -1) {
-    ubicaciones[idx].capacidad   = capacidad;
-    ubicaciones[idx].descripcion = descripcion || '—';
-  }
-  bootstrap.Modal.getInstance(document.getElementById('modalEditarUbi')).hide();
-  renderTabla();
-  mostrarToast('Ubicación actualizada correctamente', 'success');
-  ubiActiva = null;
-}
-
-/* ─── Eliminar ─── */
-function prepEliminar(codigo) {
-  ubiActiva = codigo;
-  document.getElementById('elimCodigo').textContent = codigo;
-}
-
-function confirmarEliminar() {
-  ubicaciones = ubicaciones.filter(u => u.codigo !== ubiActiva);
-  bootstrap.Modal.getInstance(document.getElementById('modalEliminar')).hide();
-  renderTabla();
-  mostrarToast('Ubicación eliminada correctamente', 'warning');
-  ubiActiva = null;
-}
-
-/* ─── Toast ─── */
-function mostrarToast(msg, tipo) {
-  const icons = {success:'fa-check-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle',danger:'fa-times-circle'};
-  const t = document.createElement('div');
-  t.className = `alert alert-${tipo} position-fixed shadow d-flex align-items-center gap-2`;
-  t.style.cssText = 'bottom:30px;right:30px;z-index:9999;min-width:300px;transition:opacity .4s;';
-  t.innerHTML = `<i class="fas ${icons[tipo]||'fa-info-circle'}"></i>${msg}`;
-  document.body.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3000);
-}
-
-document.addEventListener('DOMContentLoaded', renderTabla);
-</script>
 {% endblock %}

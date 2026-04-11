@@ -52,12 +52,17 @@ services:
     environment:
       - FLASK_ENV=development
       - FLASK_PORT=5001
+      - API_BASE_URL=http://macuin_api:8000
+      - API_BASIC_USER=alidaniel
+      - API_BASIC_PASSWORD=123456
     volumes:
       - ./Flask:/app
     command: gunicorn --reload -w 4 --threads 2 -b 0.0.0.0:5001 "main:create_app()"
     depends_on:
       postgres:
         condition: service_healthy
+      api:
+        condition: service_started
     networks:
       - macuin_network
     restart: unless-stopped
@@ -80,7 +85,8 @@ services:
       - DB_PASSWORD=123456
     volumes:
       - ./Laravel:/var/www/html
-      - ./Laravel/php-dev.ini:/usr/local/etc/php/conf.d/docker-php-ext-opcache-dev.ini
+      # zz- fuerza que este .ini gane sobre docker-php-ext-opcache.ini (revalidación en caliente).
+      - ./Laravel/php-dev.ini:/usr/local/etc/php/conf.d/zz-macuin-opcache.ini
     depends_on:
       postgres:
         condition: service_healthy

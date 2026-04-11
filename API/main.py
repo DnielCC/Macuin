@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 
 from router import (
+    auth,
     autopartes,
     carritos,
     categorias,
@@ -16,6 +17,7 @@ from router import (
     inventarios,
     marcas,
     movimientos_inventario,
+    movimientos_inventario_feed,
     pagos,
     parametros_sistema,
     pedidos,
@@ -54,6 +56,7 @@ async def integrity_exception_handler(request: Request, exc: IntegrityError):
     )
 
 
+app.include_router(auth.router_auth)
 app.include_router(usuarios.routerusu)
 app.include_router(autopartes.routerauto)
 app.include_router(pedidos.routerped)
@@ -67,6 +70,7 @@ app.include_router(clientes.router_clientes)
 app.include_router(ubicaciones.router_ubicaciones)
 app.include_router(guias_envio.router_guias)
 app.include_router(movimientos_inventario.router_movimientos)
+app.include_router(movimientos_inventario_feed.router_mov_feed)
 app.include_router(parametros_sistema.router_parametros)
 app.include_router(carritos.router_carritos)
 app.include_router(pagos.router_pagos)

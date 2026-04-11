@@ -51,7 +51,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('cuenta'))->with('status', 'Sesion iniciada correctamente.');
+        return redirect()->intended(route('cuenta'))->with('status', 'Sesión iniciada correctamente.');
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -61,6 +61,6 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('status', 'Sesion cerrada correctamente.');
+        return redirect()->route('login')->with('status', 'Sesión cerrada correctamente.');
     }
 }

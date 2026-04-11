@@ -3,25 +3,23 @@
 {% block content %}
 <div class="container-fluid py-4">
 
-  <!-- HEADER -->
   <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
       <h2 class="fw-bold" style="color:#111827;">Clientes</h2>
-      <p class="text-muted mb-0">Gestión de clientes externos de Laravel</p>
+      <p class="text-muted mb-0">Alta, edición de correo y baja lógica (API Macuin)</p>
     </div>
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoCliente">
       <i class="fas fa-user-plus me-2"></i>Nuevo Cliente
     </button>
   </div>
 
-  <!-- STATS -->
   <div class="row g-4 mb-4">
     <div class="col-md-4">
       <div class="card border-0 shadow-sm rounded-4 p-3">
         <div class="d-flex justify-content-between">
           <div>
-            <small class="text-muted">Total Clientes</small>
-            <h3 class="fw-bold">87</h3>
+            <small class="text-muted">Total clientes</small>
+            <h3 class="fw-bold">{{ total_clientes }}</h3>
           </div>
           <div class="bg-primary bg-opacity-10 p-3 rounded-3 d-flex align-items-center">
             <i class="fas fa-users text-primary"></i>
@@ -33,8 +31,8 @@
       <div class="card border-0 shadow-sm rounded-4 p-3">
         <div class="d-flex justify-content-between">
           <div>
-            <small class="text-muted">Clientes Activos</small>
-            <h3 class="fw-bold">82</h3>
+            <small class="text-muted">Activos</small>
+            <h3 class="fw-bold">{{ clientes_activos }}</h3>
           </div>
           <div class="bg-success bg-opacity-10 p-3 rounded-3 d-flex align-items-center">
             <i class="fas fa-user-check text-success"></i>
@@ -46,8 +44,8 @@
       <div class="card border-0 shadow-sm rounded-4 p-3">
         <div class="d-flex justify-content-between">
           <div>
-            <small class="text-muted">Dados de Baja</small>
-            <h3 class="fw-bold">5</h3>
+            <small class="text-muted">Inactivos</small>
+            <h3 class="fw-bold">{{ clientes_baja }}</h3>
           </div>
           <div class="bg-danger bg-opacity-10 p-3 rounded-3 d-flex align-items-center">
             <i class="fas fa-user-slash text-danger"></i>
@@ -57,16 +55,10 @@
     </div>
   </div>
 
-  <!-- TABLA -->
   <div class="card border-0 shadow-sm rounded-4 p-4">
-
     <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
       <input class="form-control" style="max-width:280px;" id="searchClientes"
              placeholder="Buscar cliente..." oninput="filtrarClientes()">
-      <small class="text-muted align-self-center">
-        <i class="fas fa-info-circle me-1 text-primary"></i>
-        Puedes editar el correo o dar de baja a un cliente
-      </small>
     </div>
 
     <div class="table-responsive">
@@ -82,138 +74,104 @@
           </tr>
         </thead>
         <tbody>
-          {% set clientes_data = [
-            {id: "CLI-001", nombre: "Autopartes González", correo: "gonzalez@autopartes.com", telefono: "555-1001", estado: "Activo"},
-            {id: "CLI-002", nombre: "Taller Mecánico Express", correo: "express@taller.com", telefono: "555-1002", estado: "Activo"},
-            {id: "CLI-003", nombre: "Distribuidora del Norte", correo: "norte@distribuidora.com", telefono: "555-1003", estado: "Activo"},
-            {id: "CLI-004", nombre: "Refaccionaria Omega", correo: "omega@refaccionaria.com", telefono: "555-1004", estado: "Inactivo"},
-            {id: "CLI-005", nombre: "Servicio Rápido SA", correo: "rapido@servicio.com", telefono: "555-1005", estado: "Activo"},
-            {id: "CLI-006", nombre: "Grupo Automotriz MX", correo: "info@grupomx.com", telefono: "555-1006", estado: "Activo"}
-          ] %}
-          {% for c in clientes_data %}
+          {% for c in clientes %}
           <tr class="fila-cliente">
             <td class="text-muted" style="font-size:0.85rem;">{{ c.id }}</td>
             <td><strong>{{ c.nombre }}</strong></td>
-            <td>{{ c.correo }}</td>
-            <td>{{ c.telefono }}</td>
+            <td>{{ c.email }}</td>
+            <td>{{ c.telefono or '—' }}</td>
             <td>
-              {% if c.estado == 'Activo' %}
+              {% if c.activo %}
               <span class="badge bg-success bg-opacity-10 text-success">Activo</span>
               {% else %}
               <span class="badge bg-danger bg-opacity-10 text-danger">Inactivo</span>
               {% endif %}
             </td>
             <td>
-              <button class="btn btn-sm btn-outline-primary me-1" title="Editar correo"
+              <button type="button" class="btn btn-sm btn-outline-primary me-1" title="Editar correo"
                       data-bs-toggle="modal" data-bs-target="#modalEditarCliente"
-                      onclick="prepEditarCliente('{{ c.id }}','{{ c.nombre }}','{{ c.correo }}')">
+                      data-id="{{ c.id }}" data-nombre="{{ c.nombre|e }}" data-correo="{{ c.email|e }}">
                 <i class="fas fa-edit"></i>
               </button>
-              {% if c.estado == 'Activo' %}
-              <button class="btn btn-sm btn-outline-danger" title="Dar de baja"
-                      data-bs-toggle="modal" data-bs-target="#modalDarDeBaja"
-                      onclick="prepDarDeBaja('{{ c.id }}','{{ c.nombre }}')">
-                <i class="fas fa-ban"></i>
-              </button>
+              {% if c.activo %}
+              <form method="post" class="d-inline" onsubmit="return confirm('¿Dar de baja a este cliente?');">
+                <input type="hidden" name="_action" value="baja">
+                <input type="hidden" name="cliente_id" value="{{ c.id }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Dar de baja"><i class="fas fa-ban"></i></button>
+              </form>
               {% endif %}
             </td>
           </tr>
+          {% else %}
+          <tr><td colspan="6" class="text-muted">No hay clientes. Crea el primero.</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-
   </div>
 </div>
 
-<!-- MODAL: NUEVO CLIENTE -->
 <div class="modal fade" id="modalNuevoCliente" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content border-0 shadow rounded-4">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold"><i class="fas fa-user-plus text-primary me-2"></i>Nuevo Cliente</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form id="formNuevoCliente">
+      <form method="post">
+        <input type="hidden" name="_action" value="nuevo">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold"><i class="fas fa-user-plus text-primary me-2"></i>Nuevo Cliente</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
           <div class="mb-3">
             <label class="form-label fw-semibold">Nombre / Empresa</label>
-            <input type="text" class="form-control" placeholder="Ej. Autopartes González" required>
+            <input type="text" name="nombre" class="form-control" maxlength="200" required>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-semibold">Correo Electrónico</label>
-            <input type="email" class="form-control" placeholder="correo@empresa.com" required>
+            <label class="form-label fw-semibold">Correo</label>
+            <input type="email" name="correo" class="form-control" maxlength="120" required>
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold">Teléfono</label>
-            <input type="tel" class="form-control" placeholder="555-0000">
+            <input type="text" name="telefono" class="form-control" maxlength="30">
           </div>
           <div class="mb-3">
-            <label class="form-label fw-semibold">Dirección de Entrega</label>
-            <textarea class="form-control" rows="2" placeholder="Calle, Ciudad, CP"></textarea>
+            <label class="form-label fw-semibold">Notas</label>
+            <textarea name="notas" class="form-control" rows="2" maxlength="2000" placeholder="Opcional"></textarea>
           </div>
-        </form>
-      </div>
-      <div class="modal-footer border-0 pt-0">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary" onclick="guardarNuevoCliente()">
-          <i class="fas fa-save me-1"></i>Guardar Cliente
-        </button>
-      </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Guardar</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
 
-<!-- MODAL: EDITAR CORREO -->
 <div class="modal fade" id="modalEditarCliente" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content border-0 shadow rounded-4">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold"><i class="fas fa-edit text-primary me-2"></i>Editar Cliente</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p class="text-muted mb-3">Editando: <strong id="editNombre"></strong> (<span id="editId" class="text-muted"></span>)</p>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Correo Electrónico</label>
-          <input type="email" class="form-control" id="editCorreo" required>
+      <form method="post" id="formEditarCliente">
+        <input type="hidden" name="_action" value="editar">
+        <input type="hidden" name="cliente_id" id="edit_cliente_id">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold"><i class="fas fa-edit text-primary me-2"></i>Editar correo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-      </div>
-      <div class="modal-footer border-0 pt-0">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary" onclick="guardarEdicion()">
-          <i class="fas fa-save me-1"></i>Guardar Cambios
-        </button>
-      </div>
+        <div class="modal-body">
+          <p class="text-muted mb-3">Cliente: <strong id="edit_nombre_display"></strong></p>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Correo</label>
+            <input type="email" name="correo" id="edit_correo_input" class="form-control" required maxlength="120">
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Guardar</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
-
-<!-- MODAL: DAR DE BAJA (SOFT DELETE) -->
-<div class="modal fade" id="modalDarDeBaja" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content border-0 shadow rounded-4">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold text-danger"><i class="fas fa-ban me-2"></i>Dar de Baja</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p>¿Estás segura de que deseas dar de baja al cliente <strong id="bajaClienteNombre"></strong>?</p>
-        <div class="alert alert-warning d-flex gap-2 align-items-start" style="font-size:0.85rem;">
-          <i class="fas fa-exclamation-triangle mt-1"></i>
-          <span>Esta acción marcará al cliente como <strong>Inactivo</strong>. No se eliminarán sus datos ni su historial de pedidos.</span>
-        </div>
-      </div>
-      <div class="modal-footer border-0 pt-0">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-danger" onclick="confirmarBaja()">
-          <i class="fas fa-ban me-1"></i>Confirmar Baja
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
 {% endblock %}
 
 {% block scripts %}
@@ -224,46 +182,12 @@ function filtrarClientes() {
     fila.style.display = fila.textContent.toLowerCase().includes(q) ? '' : 'none';
   });
 }
-
-function prepEditarCliente(id, nombre, correo) {
-  document.getElementById('editId').textContent = id;
-  document.getElementById('editNombre').textContent = nombre;
-  document.getElementById('editCorreo').value = correo;
-}
-
-function guardarEdicion() {
-  const correo = document.getElementById('editCorreo').value;
-  if (!correo) return;
-  // Integrar con backend Laravel aquí
-  bootstrap.Modal.getInstance(document.getElementById('modalEditarCliente')).hide();
-  mostrarToast('Correo actualizado correctamente', 'success');
-}
-
-let clienteBajaId = null;
-function prepDarDeBaja(id, nombre) {
-  clienteBajaId = id;
-  document.getElementById('bajaClienteNombre').textContent = nombre;
-}
-
-function confirmarBaja() {
-  // Integrar con backend Laravel aquí
-  bootstrap.Modal.getInstance(document.getElementById('modalDarDeBaja')).hide();
-  mostrarToast('Cliente marcado como Inactivo', 'warning');
-}
-
-function guardarNuevoCliente() {
-  // Integrar con backend Laravel aquí
-  bootstrap.Modal.getInstance(document.getElementById('modalNuevoCliente')).hide();
-  mostrarToast('Cliente registrado exitosamente', 'success');
-}
-
-function mostrarToast(msg, tipo) {
-  const toast = document.createElement('div');
-  toast.className = `alert alert-${tipo} position-fixed shadow`;
-  toast.style.cssText = 'bottom:30px;right:30px;z-index:9999;min-width:280px;animation:fadeInUp 0.3s ease;';
-  toast.innerHTML = `<i class="fas fa-check-circle me-2"></i>${msg}`;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
-}
+document.getElementById('modalEditarCliente')?.addEventListener('show.bs.modal', function (ev) {
+  const btn = ev.relatedTarget;
+  if (!btn) return;
+  document.getElementById('edit_cliente_id').value = btn.getAttribute('data-id');
+  document.getElementById('edit_nombre_display').textContent = btn.getAttribute('data-nombre');
+  document.getElementById('edit_correo_input').value = btn.getAttribute('data-correo');
+});
 </script>
 {% endblock %}

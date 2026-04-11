@@ -9,10 +9,16 @@ class ClientPortalPagesTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_can_open_pedidos_carrito_contacto_and_pago(): void
+    public function test_guest_can_open_catalogo_and_contacto(): void
     {
-        foreach (['/pedidos', '/carrito', '/contacto', '/pago'] as $path) {
-            $this->get($path)->assertOk();
+        $this->get('/catalogo')->assertOk();
+        $this->get('/contacto')->assertOk();
+    }
+
+    public function test_guest_is_redirected_from_portal_protegido(): void
+    {
+        foreach (['/pedidos', '/carrito', '/pago'] as $path) {
+            $this->get($path)->assertRedirect(route('login'));
         }
     }
 }

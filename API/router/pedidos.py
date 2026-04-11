@@ -1,12 +1,16 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func as sa_func
 from sqlalchemy.orm import Session
 
 from database.autoparte import Autoparte
+from database.cliente import Cliente
 from database.db import get_db
 from database.db_utils import commit_or_raise
 from database.detalle_pedido import DetallePedido
+from database.direccion import Direccion
+from database.estatus_pedido import EstatusPedido
 from database.pedido import Pedido
 from models.detalle_pedido import DetallePedidoLineaCreate
 from models.pedido import PedidoBase
@@ -19,6 +23,54 @@ routerped = APIRouter(prefix="/v1/pedidos", tags=["CRUD PEDIDOS"])
 @routerped.get("/")
 def obtener_pedidos(db: Session = Depends(get_db)):
     return db.query(Pedido).order_by(Pedido.id.desc()).limit(500).all()
+
+
+@routerped.get("/admin/vista")
+def pedidos_admin_vista(
+    limit: int = Query(300, ge=1, le=500),
+    db: Session = Depends(get_db),
+):
+    """Listado enriquecido para panel Admin (Flask): cliente, destino, piezas, estatus."""
+    piezas_sq = (
+        db.query(
+            DetallePedido.pedido_id.label("pedido_id"),
+            sa_func.coalesce(sa_func.sum(DetallePedido.cantidad), 0).label("piezas"),
+        )
+        .group_by(DetallePedido.pedido_id)
+        .subquery()
+    )
+    rows = (
+        db.query(Pedido, Cliente, Direccion, EstatusPedido, piezas_sq.c.piezas)
+        .outerjoin(Cliente, Pedido.cliente_id == Cliente.id)
+        .outerjoin(Direccion, Pedido.direccion_envio_id == Direccion.id)
+        .join(EstatusPedido, Pedido.estatus_id == EstatusPedido.id)
+        .outerjoin(piezas_sq, piezas_sq.c.pedido_id == Pedido.id)
+        .order_by(Pedido.id.desc())
+        .limit(limit)
+        .all()
+    )
+    out = []
+    for ped, cli, dire, est, piezas in rows:
+        dest = "—"
+        if dire is not None:
+            m, e = (dire.municipio or "").strip(), (dire.estado or "").strip()
+            dest = ", ".join(x for x in (m, e) if x) or "—"
+        fp = ped.fecha_pedido
+        out.append(
+            {
+                "id": ped.id,
+                "folio": ped.folio,
+                "total": float(ped.total or 0),
+                "cliente_nombre": (cli.nombre if cli else None) or "—",
+                "destino": dest,
+                "piezas": int(piezas or 0),
+                "estatus": est.nombre,
+                "estatus_modulo": (est.modulo or "").strip() or "—",
+                "fecha_pedido": fp.isoformat() if fp else None,
+                "motivo_cancelacion": ped.motivo_cancelacion,
+            }
+        )
+    return out
 
 
 @routerped.get("/{pedido_id}/detalles")
