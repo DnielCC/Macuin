@@ -6,7 +6,15 @@
 --
 --   docker exec -i macuin_db psql -U macuin -d DB_macuin < scripts/seed_datos_reales_macuin.sql
 --   psql -h 127.0.0.1 -p 5433 -U macuin -d DB_macuin -f scripts/seed_datos_reales_macuin.sql
+--
+-- Este archivo debe estar guardado en UTF-8. En Windows, usa
+--   .\scripts\ejecutar_seed_datos_reales.ps1
+-- (copia el SQL al contenedor) para no corromper tildes al canalizar desde PowerShell.
+-- Si ya insertaste textos mal (??), ejecuta una vez:
+--   .\scripts\ejecutar_seed_datos_reales.ps1 -SqlFile reparar_textos_utf8_datos_reales.sql
 -- =============================================================================
+
+SET client_encoding TO 'UTF8';
 
 BEGIN;
 

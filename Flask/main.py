@@ -14,9 +14,17 @@ def create_app():
 
     @app.after_request
     def _charset_utf8(response):
-        ct = response.headers.get("Content-Type", "")
-        if ct.startswith("text/html") and "charset" not in ct.lower():
+        ct = response.headers.get("Content-Type", "") or ""
+        if not ct or "charset=" in ct.lower():
+            return response
+        lowered = ct.lower()
+        base = ct.split(";")[0].strip()
+        if lowered.startswith("text/html"):
             response.headers["Content-Type"] = "text/html; charset=utf-8"
+        elif lowered.startswith("application/json"):
+            response.headers["Content-Type"] = f"{base}; charset=utf-8"
+        elif lowered.startswith("text/"):
+            response.headers["Content-Type"] = f"{base}; charset=utf-8"
         return response
 
     app.secret_key = 'macuin_super_secreto'
