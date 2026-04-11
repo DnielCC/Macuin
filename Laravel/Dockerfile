@@ -65,9 +65,8 @@ decorate_workers_output = no' > /etc/php/8.4/fpm/pool.d/www.conf
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/sites-available/default
 
-COPY docker-laravel-start.sh /usr/local/bin/docker-laravel-start.sh
-RUN chmod +x /usr/local/bin/docker-laravel-start.sh
-
 EXPOSE 8000
 
-CMD ["/usr/local/bin/docker-laravel-start.sh"]
+# Sin script externo: en Windows un .sh con CRLF provoca "not found" al ejecutar el shebang.
+# docker-php-entrypoint recibe "sh -c …" y arranca nginx en primer plano.
+CMD ["sh", "-c", "cd /var/www/html && (php artisan optimize:clear >/dev/null 2>&1 || true); php-fpm & exec nginx -g 'daemon off;'"]
