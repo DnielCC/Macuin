@@ -8,8 +8,11 @@ DATABASE_URL = os.getenv(
     "postgresql://macuin:123456@localhost:5433/DB_macuin"
 )
 
-# 2. Crear el motor de conexion
-engine = create_engine(DATABASE_URL)
+# 2. Crear el motor de conexion (PostgreSQL: UTF-8 explícito en el cliente)
+_engine_kwargs = {"pool_pre_ping": True}
+if DATABASE_URL.startswith("postgresql"):
+    _engine_kwargs["connect_args"] = {"options": "-c client_encoding=UTF8"}
+engine = create_engine(DATABASE_URL, **_engine_kwargs)
 
 # 3. Preparamos el gestionador de sesiones
 SessionLocal = sessionmaker(

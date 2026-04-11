@@ -1,5 +1,9 @@
 FROM python:3.11-slim
 
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV PYTHONUTF8=1
+
 WORKDIR /app
 
 COPY requirements.txt .

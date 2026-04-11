@@ -48,6 +48,16 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def _charset_utf8_json(request, call_next):
+    """Asegura charset=utf-8 en JSON para clientes que no asumen UTF-8 por defecto."""
+    response = await call_next(request)
+    ct = response.headers.get("content-type", "")
+    if ct.startswith("application/json") and "charset" not in ct.lower():
+        response.headers["content-type"] = "application/json; charset=utf-8"
+    return response
+
+
 @app.exception_handler(IntegrityError)
 async def integrity_exception_handler(request: Request, exc: IntegrityError):
     return JSONResponse(

@@ -9,6 +9,15 @@ from routes import register_routes
 
 def create_app():
     app = Flask(__name__)
+    # JSON (jsonify) sin escapar \uXXXX; plantillas Jinja ya son UTF-8.
+    app.config["JSON_AS_ASCII"] = False
+
+    @app.after_request
+    def _charset_utf8(response):
+        ct = response.headers.get("Content-Type", "")
+        if ct.startswith("text/html") and "charset" not in ct.lower():
+            response.headers["Content-Type"] = "text/html; charset=utf-8"
+        return response
 
     app.secret_key = 'macuin_super_secreto'
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
