@@ -23,6 +23,7 @@ from router import (
     pedidos,
     portal_contacto,
     redireccion,
+    reportes,
     roles,
     ubicaciones,
     usuarios,
@@ -87,3 +88,4 @@ app.include_router(carritos.router_carritos)
 app.include_router(pagos.router_pagos)
 app.include_router(estatus_pedido.router_estatus)
 app.include_router(portal_contacto.router_portal_contacto)
+app.include_router(reportes.router_reportes)

@@ -132,8 +132,8 @@ Módulo: {{ session.get('user_role','General') }}
 {% if session.get('user_id') %}
 <a href="{{ url_for('reportes_index') }}"
    class="nav-item {% if request.endpoint == 'reportes_index' %}active{% endif %}">
-  <i class="fas fa-file-pdf"></i>
-  Reportes PDF
+  <i class="fas fa-file-export"></i>
+  Reportes
 </a>
 {% endif %}
 

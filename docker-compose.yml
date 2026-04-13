@@ -58,7 +58,12 @@ services:
       - API_BASIC_PASSWORD=123456
     volumes:
       - ./Flask:/app
-    command: gunicorn --reload -w 4 --threads 2 -b 0.0.0.0:5001 "main:create_app()"
+    # Sincroniza dependencias con requirements.txt en cada arranque (el volumen
+    # sobrescribe /app y no vuelve a ejecutar el RUN pip del Dockerfile).
+    command:
+      - sh
+      - -c
+      - pip install --no-cache-dir -q -r requirements.txt && exec gunicorn --reload -w 4 --threads 2 -b 0.0.0.0:5001 'main:create_app()'
     depends_on:
       postgres:
         condition: service_healthy

@@ -1,70 +1,118 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container-fluid py-4">
-  <h2 class="fw-bold">Reportes PDF</h2>
-  <p class="text-muted">Personaliza secciones, título, notas y límite de filas. Genera vista previa y descarga el PDF a tu equipo.</p>
+  <div class="mb-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
+    <div>
+      <h2 class="fw-bold" style="color:#0f172a;">Reportes MACUIN</h2>
+      <p class="text-muted mb-0" style="max-width:640px;">
+        Personaliza secciones, título y notas. Genera <strong>vista previa</strong> y descarga el mismo contenido en
+        <strong class="text-danger">PDF</strong>, <strong style="color:#1e3a5f;">Word</strong> o
+        <strong class="text-success">Excel</strong>, con formato corporativo (azul marino y dorado).
+        Opcionalmente incluye <strong>gráficas</strong> de inventario y pedidos.
+      </p>
+    </div>
+    <div class="rounded-3 px-3 py-2 text-white small" style="background:#1e3a5f;border:2px solid #fbbf24;">
+      <span class="fw-bold" style="color:#fbbf24;">M</span> Perfil: {{ rol }}
+    </div>
+  </div>
+
   <div class="row g-4">
     <div class="col-lg-5">
-      <div class="card border-0 shadow-sm rounded-4 p-4">
-        <h5 class="fw-bold mb-3">Opciones (perfil: {{ rol }})</h5>
-        <form method="post">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="border-left:4px solid #fbbf24 !important;">
+        <h5 class="fw-bold mb-3" style="color:#1e3a5f;">Opciones del reporte</h5>
+
+        <form method="post" action="{{ url_for('reportes_index') }}" id="formReporte">
           <input type="hidden" name="_action" value="preview">
+
           <div class="mb-3">
-            <label class="form-label">Título del reporte</label>
-            <input type="text" name="title" class="form-control" maxlength="200" placeholder="Ej. Corte semanal de ventas">
+            <label class="form-label fw-semibold">Título del reporte</label>
+            <input type="text" name="title" class="form-control" maxlength="200" placeholder="Ej. Corte semanal de operaciones"
+                   value="{{ request.form.title or '' }}">
           </div>
           <div class="mb-3">
-            <label class="form-label">Notas / resumen ejecutivo</label>
-            <textarea name="notes" class="form-control" rows="4" maxlength="2000" placeholder="Texto que aparecerá en la sección resumen"></textarea>
+            <label class="form-label fw-semibold">Notas / resumen ejecutivo</label>
+            <textarea name="notes" class="form-control" rows="4" maxlength="2000" placeholder="Texto en la sección resumen">{{ request.form.notes or '' }}</textarea>
           </div>
           <div class="mb-3">
-            <label class="form-label">Máximo de filas por tabla</label>
-            <input type="number" name="max_rows" class="form-control" value="80" min="5" max="500">
+            <label class="form-label fw-semibold">Máximo de filas por tabla</label>
+            <input type="number" name="max_rows" class="form-control" value="{{ request.form.max_rows or '80' }}" min="5" max="500">
           </div>
+
+          <div class="mb-3 p-3 rounded-3" style="background:#f8fafc;border:1px solid #e2e8f0;">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" name="include_charts" value="on" id="include_charts"
+                     {% if request.method == 'POST' and request.form.get('include_charts') == 'on' %}checked{% endif %}>
+              <label class="form-check-label fw-semibold" for="include_charts">Incluir gráficas en el reporte</label>
+            </div>
+            <p class="small text-muted mb-0 mt-1">Movimientos de inventario por mes y distribución de pedidos por estatus (datos de la API).</p>
+          </div>
+
           <div class="mb-3">
-            <label class="form-label fw-bold">Secciones a incluir</label>
+            <label class="form-label fw-semibold">Secciones a incluir <span class="text-muted fw-normal">(orden de aparición)</span></label>
             {% for s in secciones_disponibles %}
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="sections" value="{{ s.id }}" id="sec_{{ s.id }}"
-                     {% if s.id in ['portada','resumen'] %}checked{% endif %}>
+                     {% if request.method == 'POST' %}
+                       {% if s.id in request.form.getlist('sections') %}checked{% endif %}
+                     {% else %}
+                       {% if s.id in ['portada','resumen'] %}checked{% endif %}
+                     {% endif %}>
               <label class="form-check-label" for="sec_{{ s.id }}">{{ s.label }}</label>
             </div>
             {% endfor %}
           </div>
-          <button type="submit" class="btn btn-outline-primary me-2">Vista previa</button>
+
+          <button type="submit" class="btn btn-outline-primary me-2">
+            <i class="fas fa-eye me-1"></i> Vista previa
+          </button>
         </form>
-        <form method="post" action="{{ url_for('reportes_pdf') }}" class="mt-3 border-top pt-3" id="formPdf">
-          <p class="small text-muted mb-2">Copia las mismas opciones: marca de nuevo las secciones y pulsa descargar.</p>
-          <div class="mb-2"><input type="text" name="title" class="form-control form-control-sm" placeholder="Título" maxlength="200"></div>
-          <div class="mb-2"><textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="Notas" maxlength="2000"></textarea></div>
-          <div class="mb-2"><input type="number" name="max_rows" class="form-control form-control-sm" value="80" min="5" max="500"></div>
-          {% for s in secciones_disponibles %}
-          <div class="form-check form-check-sm">
-            <input class="form-check-input" type="checkbox" name="sections" value="{{ s.id }}" id="pdf_{{ s.id }}"
-                   {% if s.id in ['portada','resumen'] %}checked{% endif %}>
-            <label class="form-check-label small" for="pdf_{{ s.id }}">{{ s.label }}</label>
+
+        <div class="mt-4 pt-4 border-top">
+          <p class="small text-muted mb-2">Usa las mismas opciones de arriba y descarga en el formato que necesites:</p>
+          <div class="d-flex flex-wrap gap-2">
+            <button type="submit" name="fmt" value="pdf" form="formReporte" formaction="{{ url_for('reportes_descargar') }}" formmethod="post"
+                    class="btn btn-danger">
+              <i class="fas fa-file-pdf me-1"></i> Descargar PDF
+            </button>
+            <button type="submit" name="fmt" value="docx" form="formReporte" formaction="{{ url_for('reportes_descargar') }}" formmethod="post"
+                    class="btn text-white" style="background:#1e3a5f;">
+              <i class="fas fa-file-lines me-1"></i> Descargar Word
+            </button>
+            <button type="submit" name="fmt" value="xlsx" form="formReporte" formaction="{{ url_for('reportes_descargar') }}" formmethod="post"
+                    class="btn btn-success">
+              <i class="fas fa-table me-1"></i> Descargar Excel
+            </button>
           </div>
-          {% endfor %}
-          <button type="submit" class="btn btn-success mt-3"><i class="fas fa-file-pdf me-1"></i>Descargar PDF</button>
-        </form>
+        </div>
       </div>
     </div>
+
     <div class="col-lg-7">
-      <div class="card border-0 shadow-sm rounded-4 p-4" style="min-height:320px;">
-        <h5 class="fw-bold mb-3">Vista previa</h5>
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="min-height:360px;border-top:3px solid #1e3a5f;">
+        <h5 class="fw-bold mb-3" style="color:#1e3a5f;">Vista previa</h5>
         {% if preview_ctx %}
-        <h4 class="text-primary">{{ preview_ctx.title }}</h4>
-        <p class="text-muted small">Rol: {{ preview_ctx.rol }} · {{ preview_ctx.generated_at }}</p>
+        <div class="rounded-3 p-3 mb-3" style="background:linear-gradient(90deg,#fbbf24 0%,#fde68a 100%);border:1px solid #ca8a04;">
+          <h4 class="fw-bold mb-0" style="color:#0f172a;">{{ preview_ctx.title }}</h4>
+          <p class="small mb-0 mt-1" style="color:#334155;">Rol: {{ preview_ctx.rol }} · {{ preview_ctx.generated_at }}</p>
+        </div>
         {% for sec in preview_ctx.sections %}
           {% if sec.type == 'text' %}
-            <h6 class="mt-3">{{ sec.title }}</h6>
-            <pre class="bg-light p-3 rounded small" style="white-space:pre-wrap;">{{ sec.body }}</pre>
+            <h6 class="mt-3 fw-bold" style="color:#1e3a5f;">{{ sec.title }}</h6>
+            <pre class="bg-light p-3 rounded small border" style="white-space:pre-wrap;color:#334155;">{{ sec.body }}</pre>
+          {% elif sec.type == 'chart' %}
+            <h6 class="mt-3 fw-bold" style="color:#1e3a5f;">{{ sec.title }}</h6>
+            {% if sec.subtitle %}<p class="small text-muted">{{ sec.subtitle }}</p>{% endif %}
+            {% if sec.png_b64 %}
+            <div class="text-center p-2 rounded-3 bg-white border">
+              <img src="data:image/png;base64,{{ sec.png_b64 }}" alt="{{ sec.title }}" class="img-fluid" style="max-height:320px;">
+            </div>
+            {% endif %}
           {% elif sec.type == 'table' %}
-            <h6 class="mt-3">{{ sec.title }}</h6>
-            <div class="table-responsive" style="max-height:280px;overflow:auto;">
-              <table class="table table-sm table-bordered">
-                <thead class="table-light"><tr>{% for h in sec.headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
-                <tbody>
+            <h6 class="mt-3 fw-bold" style="color:#1e3a5f;">{{ sec.title }}</h6>
+            <div class="table-responsive border rounded-3" style="max-height:300px;overflow:auto;">
+              <table class="table table-sm table-bordered mb-0">
+                <thead style="background:#1e3a5f;color:#f8fafc;"><tr>{% for h in sec.headers %}<th class="small">{{ h }}</th>{% endfor %}</tr></thead>
+                <tbody class="small">
                   {% for row in sec.rows %}
                   <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
                   {% endfor %}
@@ -74,7 +122,7 @@
           {% endif %}
         {% endfor %}
         {% else %}
-        <p class="text-muted">Configura las opciones y pulsa «Vista previa».</p>
+        <p class="text-muted">Configura las opciones a la izquierda y pulsa <strong>Vista previa</strong> para ver el contenido aquí.</p>
         {% endif %}
       </div>
     </div>
