@@ -19,7 +19,7 @@ Route::get('/', function () {
 
 Route::get('/personal/ingresar', function () {
     try {
-        $apiBaseUrl = env('API_BASE_URL', 'http://localhost:8000');
+        $apiBaseUrl = config('macuin.api_base_url', 'http://localhost:8000');
         $response = Http::timeout(8)->get("{$apiBaseUrl}/v1/redirect/personal");
 
         if ($response->successful()) {
@@ -28,9 +28,11 @@ Route::get('/personal/ingresar', function () {
             return redirect()->away($data['url']);
         }
 
-        return redirect()->away(env('FLASK_URL', 'http://localhost:5000').'/login');
+        $flaskUrl = config('macuin.flask_url', 'http://localhost:5000');
+        return redirect()->away($flaskUrl.'/login');
     } catch (\Exception $e) {
-        return redirect()->away(env('FLASK_URL', 'http://localhost:5000').'/login');
+        $flaskUrl = config('macuin.flask_url', 'http://localhost:5000');
+        return redirect()->away($flaskUrl.'/login');
     }
 })->name('personal.login');
 

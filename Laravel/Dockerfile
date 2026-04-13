@@ -68,5 +68,8 @@ COPY nginx.conf /etc/nginx/sites-available/default
 EXPOSE 8000
 
 # Sin script externo: en Windows un .sh con CRLF provoca "not found" al ejecutar el shebang.
-# docker-php-entrypoint recibe "sh -c …" y arranca nginx en primer plano.
-CMD ["sh", "-c", "cd /var/www/html && (php artisan optimize:clear >/dev/null 2>&1 || true); php artisan migrate --force; php-fpm & exec nginx -g 'daemon off;'"]
+# 1. Si el named volume vacío ocultó vendor/, restaurar con composer install.
+# 2. Limpiar cache stale de packages (el host bind mount puede tener refs a paquetes dev).
+# 3. Ejecutar migraciones y optimizar caché (config, rutas, vistas).
+# 4. Arrancar PHP-FPM en background y nginx en primer plano.
+CMD ["sh", "-c", "cd /var/www/html && if [ ! -f vendor/autoload.php ]; then composer install --no-interaction --prefer-dist --optimize-autoloader 2>&1; fi; rm -f bootstrap/cache/packages.php bootstrap/cache/services.php; php artisan package:discover --ansi 2>/dev/null; php artisan migrate --force 2>/dev/null; (php artisan optimize 2>/dev/null || true); php-fpm & exec nginx -g 'daemon off;'"]

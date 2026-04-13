@@ -48,6 +48,8 @@ return [
     */
     'api_base_url' => rtrim((string) env('API_BASE_URL', 'http://localhost:8000'), '/'),
 
+    'flask_url' => rtrim((string) env('FLASK_URL', 'http://localhost:5000'), '/'),
+
     'api_basic_user' => (string) env('API_BASIC_USER', 'alidaniel'),
     
     'api_basic_password' => (string) env('API_BASIC_PASSWORD', '123456'),

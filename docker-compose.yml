@@ -93,6 +93,9 @@ services:
       - MACUIN_PORTAL_CONTACT_SYNC_TOKEN=macuin_dev_portal_contact_sync
     volumes:
       - ./Laravel:/var/www/html
+      # vendor/ en volumen nativo Linux: evita ~8000 stat() sobre VirtioFS de Windows,
+      # que es la principal causa de lentitud (~10x más rápido que leer desde el host).
+      - laravel_vendor:/var/www/html/vendor
       # zz- fuerza que este .ini gane sobre docker-php-ext-opcache.ini (revalidación en caliente).
       - ./Laravel/php-dev.ini:/usr/local/etc/php/conf.d/zz-macuin-opcache.ini
     depends_on:
@@ -108,3 +111,4 @@ networks:
 
 volumes:
   postgres_data:
+  laravel_vendor:

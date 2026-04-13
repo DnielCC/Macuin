@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\PortalCartService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -33,7 +34,10 @@ class AppServiceProvider extends ServiceProvider
             $showInbox = false;
             if (auth()->check()) {
                 try {
-                    $n = app(PortalCartService::class)->lineCount((int) auth()->id());
+                    $userId = (int) auth()->id();
+                    $n = Cache::remember("cart_count_{$userId}", 30, function () use ($userId) {
+                        return app(PortalCartService::class)->lineCount($userId);
+                    });
                 } catch (\Throwable $e) {
                     report($e);
                 }
