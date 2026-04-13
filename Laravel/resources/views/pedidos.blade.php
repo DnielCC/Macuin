@@ -35,9 +35,9 @@
                                 <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">{{ $ped->estatus?->nombre ?? '—' }}</span>
                             </td>
                             <td class="px-4 py-3 text-gray-500">
-                                @php $fp = $ped->fecha_pedido; @endphp
+                                @php $fp = !empty($ped->fecha_pedido) ? \Illuminate\Support\Carbon::parse($ped->fecha_pedido) : null; @endphp
                                 @if($fp)
-                                    {{ $fp->timezone(config('app.timezone'))->format('d/m/Y H:i') }}
+                                    {{ $fp->timezone(config('app.timezone', 'UTC'))->format('d/m/Y H:i') }}
                                 @else
                                     —
                                 @endif

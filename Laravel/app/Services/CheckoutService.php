@@ -65,7 +65,7 @@ class CheckoutService
             // Formulate payload for the new transactional endpoint
             $payload = [
                 'folio' => $folio,
-                'usuario_email' => config('macuin.api_basic_user', 'alidaniel'), // Fallback to basic user if needed or get from resolver
+                'usuario_email' => $emailResolver,
                 'cliente' => [
                     'nombre' => $user->name,
                     'email' => strtolower(trim($user->email)),
