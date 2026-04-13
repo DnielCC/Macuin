@@ -2,39 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ContactMessage;
+use App\Services\MacuinApiClient;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ContactInboxController extends Controller
 {
+    private MacuinApiClient $api;
+
+    public function __construct(MacuinApiClient $api)
+    {
+        $this->api = $api;
+    }
+
     public function index(): View
     {
-        $mensajes = ContactMessage::query()
-            ->orderByDesc('id')
-            ->limit(200)
-            ->get();
+        $mensajes = $this->api->get('/v1/portal-contacto/mensajes') ?? [];
+        $mensajes = collect($mensajes)->map(fn($m) => (object)$m);
+
+        $noLeidos = $this->api->get('/v1/portal-contacto/mensajes/no-leidos/count');
+        $sinLeerCount = $noLeidos['count'] ?? 0;
 
         return view('admin.contacto-inbox', [
             'mensajes' => $mensajes,
-            'sinLeer' => ContactMessage::query()->where('is_read', false)->count(),
+            'sinLeer' => $sinLeerCount,
         ]);
     }
 
-    public function marcarLeido(Request $request, ContactMessage $mensaje): RedirectResponse
+    public function marcarLeido(Request $request, int $mensaje): RedirectResponse
     {
-        $mensaje->update([
-            'is_read' => true,
-            'read_at' => now(),
-        ]);
+        $this->api->patch("/v1/portal-contacto/mensajes/{$mensaje}/leido");
 
         return redirect()->route('admin.contacto.inbox')->with('status', 'Mensaje marcado como leído.');
     }
 
-    public function responder(Request $request, ContactMessage $mensaje): RedirectResponse
+    public function responder(Request $request, int $mensaje): RedirectResponse
     {
-        $field = 'reply_'.$mensaje->id;
+        $field = 'reply_'.$mensaje;
         $data = $request->validate(
             [
                 $field => ['required', 'string', 'min:1', 'max:5000'],
@@ -44,11 +49,8 @@ class ContactInboxController extends Controller
             ]
         );
 
-        $mensaje->update([
-            'admin_reply' => $data[$field],
-            'replied_at' => now(),
-            'is_read' => true,
-            'read_at' => $mensaje->read_at ?? now(),
+        $this->api->patch("/v1/portal-contacto/mensajes/{$mensaje}/responder", [
+            'admin_reply' => $data[$field]
         ]);
 
         return redirect()

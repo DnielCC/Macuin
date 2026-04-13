@@ -2,46 +2,51 @@
 
 namespace App\Services;
 
-use App\Models\Macuin\Autoparte;
-use App\Models\Macuin\Carrito;
-use App\Models\Macuin\CarritoLinea;
-use App\Models\Macuin\Inventario;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class PortalCartService
 {
     public const SESSION_UUID = 'macuin_carrito_uuid';
 
-    public function currentCartForUser(int $laravelUserId): ?Carrito
-    {
-        $uuid = session(self::SESSION_UUID);
-        if ($uuid) {
-            $c = Carrito::query()->where('uuid', $uuid)->where('laravel_user_id', $laravelUserId)->first();
-            if ($c) {
-                return $c;
-            }
-            session()->forget(self::SESSION_UUID);
-        }
+    private MacuinApiClient $api;
 
-        return Carrito::query()->where('laravel_user_id', $laravelUserId)->orderByDesc('id')->first();
+    public function __construct(MacuinApiClient $api)
+    {
+        $this->api = $api;
     }
 
-    public function getOrCreateCart(int $laravelUserId): Carrito
+    public function currentCartForUser(int $laravelUserId): ?array
+    {
+        $cart = $this->api->get('/v1/carritos/por-usuario/'.$laravelUserId);
+        if ($cart) {
+            session([self::SESSION_UUID => $cart['uuid']]);
+        } else {
+            session()->forget(self::SESSION_UUID);
+        }
+        return $cart;
+    }
+
+    public function getOrCreateCart(int $laravelUserId): array
     {
         $cart = $this->currentCartForUser($laravelUserId);
         if ($cart) {
             return $cart;
         }
+
         $uuid = (string) Str::uuid();
-        $cart = Carrito::query()->create([
+        $resp = $this->api->post('/v1/carritos/', [
             'uuid' => $uuid,
             'laravel_user_id' => $laravelUserId,
             'email_invitado' => null,
         ]);
-        session([self::SESSION_UUID => $uuid]);
 
-        return $cart;
+        if ($resp['ok'] && $resp['data']) {
+            session([self::SESSION_UUID => $resp['data']['uuid']]);
+            // Return empty structure as expected for a new cart
+            return ['id' => $resp['data']['id'], 'uuid' => $uuid, 'lineas' => []];
+        }
+
+        throw new \Exception('No se pudo crear el carrito en la API');
     }
 
     public function forgetSessionCart(): void
@@ -57,31 +62,55 @@ class PortalCartService
         if ($cantidad < 1 || $cantidad > 999) {
             return ['ok' => false, 'message' => 'La cantidad debe estar entre 1 y 999.'];
         }
-        $ap = Autoparte::query()->with('inventario')->find($autoparteId);
+
+        $ap = $this->api->get('/v1/autopartes/'.$autoparteId);
         if (! $ap) {
             return ['ok' => false, 'message' => 'Producto no encontrado.'];
         }
-        $stock = (int) ($ap->inventario?->stock_actual ?? 0);
+
+        // Get inventory stock
+        $inventarios = $this->api->get('/v1/inventarios', [], 5) ?? [];
+        $stock = 0;
+        foreach ($inventarios as $inv) {
+            if ($inv['autoparte_id'] === $autoparteId) {
+                $stock = (int) $inv['stock_actual'];
+                break;
+            }
+        }
+
         if ($stock < $cantidad) {
             return ['ok' => false, 'message' => 'Stock insuficiente para este producto.'];
         }
+
         $cart = $this->getOrCreateCart($laravelUserId);
-        $precio = (float) $ap->precio_unitario;
-        $existing = CarritoLinea::query()
-            ->where('carrito_id', $cart->id)
-            ->where('autoparte_id', $autoparteId)
-            ->first();
-        if ($existing) {
-            $nueva = $existing->cantidad + $cantidad;
+        $precio = (float) $ap['precio_unitario'];
+
+        // Check if line exists
+        $lineas = $cart['lineas'] ?? [];
+        $existingLineId = null;
+        $existingQty = 0;
+        foreach ($lineas as $ln) {
+            if ($ln['autoparte_id'] === $autoparteId) {
+                $existingLineId = $ln['id'];
+                $existingQty = $ln['cantidad'];
+                break;
+            }
+        }
+
+        if ($existingLineId) {
+            $nueva = $existingQty + $cantidad;
             if ($nueva > $stock) {
                 return ['ok' => false, 'message' => 'No puedes superar el stock disponible ('.$stock.' unidades).'];
             }
-            $existing->update(['cantidad' => $nueva]);
-
+            $this->api->patch("/v1/carritos/{$cart['id']}/lineas/{$existingLineId}", [
+                'cantidad' => $nueva
+            ]); // Using our specific signature or API structure (Wait, API expects query param 'cantidad' currently)
+            // Wait, our new PATCH method in carritos.py expects ?cantidad=X query param:
+            $this->api->patch("/v1/carritos/{$cart['id']}/lineas/{$existingLineId}?cantidad={$nueva}");
             return ['ok' => true, 'message' => 'Cantidad actualizada en el carrito.'];
         }
-        CarritoLinea::query()->create([
-            'carrito_id' => $cart->id,
+
+        $this->api->post("/v1/carritos/{$cart['id']}/lineas", [
             'autoparte_id' => $autoparteId,
             'cantidad' => $cantidad,
             'precio_unitario' => $precio,
@@ -96,13 +125,9 @@ class PortalCartService
         if (! $cart) {
             return false;
         }
-        $line = CarritoLinea::query()->where('carrito_id', $cart->id)->where('id', $lineaId)->first();
-        if (! $line) {
-            return false;
-        }
-        $line->delete();
 
-        return true;
+        $resp = $this->api->delete("/v1/carritos/{$cart['id']}/lineas/{$lineaId}");
+        return $resp['ok'];
     }
 
     public function updateLineQty(int $laravelUserId, int $lineaId, int $cantidad): array
@@ -114,29 +139,35 @@ class PortalCartService
         if (! $cart) {
             return ['ok' => false, 'message' => 'Carrito no encontrado.'];
         }
-        $line = CarritoLinea::query()->where('carrito_id', $cart->id)->where('id', $lineaId)->first();
-        if (! $line) {
+
+        $lineaEncontrada = null;
+        foreach (($cart['lineas'] ?? []) as $ln) {
+            if ($ln['id'] === $lineaId) {
+                $lineaEncontrada = $ln;
+                break;
+            }
+        }
+
+        if (! $lineaEncontrada) {
             return ['ok' => false, 'message' => 'Línea no encontrada.'];
         }
-        $ap = Autoparte::query()->with('inventario')->find($line->autoparte_id);
-        $stock = (int) ($ap?->inventario?->stock_actual ?? 0);
+
+        $stock = (int) ($lineaEncontrada['autoparte']['inventario']['stock_actual'] ?? 0);
         if ($cantidad > $stock) {
             return ['ok' => false, 'message' => 'Stock insuficiente.'];
         }
-        $line->update(['cantidad' => $cantidad]);
 
-        return ['ok' => true, 'message' => 'Cantidad actualizada.'];
+        // Send query param as that's what we built in carritos.py: PATCH /{carrito_id}/lineas/{linea_id}?cantidad=x
+        $resp = $this->api->patch("/v1/carritos/{$cart['id']}/lineas/{$lineaId}?cantidad={$cantidad}");
+
+        return $resp['ok'] 
+            ? ['ok' => true, 'message' => 'Cantidad actualizada.']
+            : ['ok' => false, 'message' => 'Error al actualizar cantidad.'];
     }
 
-    public function cartWithLines(int $laravelUserId): ?Carrito
+    public function cartWithLines(int $laravelUserId): ?array
     {
-        $c = $this->currentCartForUser($laravelUserId);
-        if (! $c) {
-            return null;
-        }
-        $c->load(['lineas.autoparte.categoria', 'lineas.autoparte.marca', 'lineas.autoparte.inventario']);
-
-        return $c;
+        return $this->currentCartForUser($laravelUserId);
     }
 
     public function lineCount(int $laravelUserId): int
@@ -146,6 +177,11 @@ class PortalCartService
             return 0;
         }
 
-        return (int) CarritoLinea::query()->where('carrito_id', $c->id)->sum('cantidad');
+        $count = 0;
+        foreach (($c['lineas'] ?? []) as $ln) {
+            $count += (int) $ln['cantidad'];
+        }
+        return $count;
     }
 }
+

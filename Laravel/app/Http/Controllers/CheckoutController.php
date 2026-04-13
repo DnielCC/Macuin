@@ -22,17 +22,26 @@ class CheckoutController extends Controller
             return redirect()->route('login')->with('error', 'Inicia sesión para pagar.');
         }
         $cart = $this->cart->cartWithLines((int) $request->user()->id);
-        if (! $cart || $cart->lineas->isEmpty()) {
+        if (! $cart || empty($cart['lineas'])) {
             return redirect()->route('carrito')->with('error', 'Tu carrito está vacío.');
         }
         $subtotal = 0.0;
-        foreach ($cart->lineas as $ln) {
-            $subtotal += (float) $ln->precio_unitario * (int) $ln->cantidad;
+        foreach ($cart['lineas'] as $ln) {
+            $subtotal += (float) $ln['precio_unitario'] * (int) $ln['cantidad'];
         }
         $envio = (float) config('macuin.envio_fijo_mxn', 150);
 
+        // Convert for view
+        $carritoView = (object) [
+            'id' => $cart['id'],
+            'uuid' => $cart['uuid'],
+            'lineas' => collect($cart['lineas'])->map(function ($ln) {
+                return json_decode(json_encode($ln), false); // cast deep to object
+            })
+        ];
+
         return view('pago', [
-            'carrito' => $cart,
+            'carrito' => $carritoView,
             'subtotal' => $subtotal,
             'envio' => $envio,
             'total' => $subtotal + $envio,

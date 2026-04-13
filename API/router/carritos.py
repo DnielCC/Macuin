@@ -64,6 +64,92 @@ def agregar_linea(carrito_id: int, body: CarritoLineaCreate, db: Session = Depen
     return linea
 
 
+@router_carritos.get("/por-usuario/{laravel_user_id}")
+def obtener_carrito_por_usuario(laravel_user_id: int, db: Session = Depends(get_db)):
+    """Busca el carrito más reciente de un usuario Laravel y devuelve sus líneas con info de autoparte."""
+    c = (
+        db.query(Carrito)
+        .filter(Carrito.laravel_user_id == laravel_user_id)
+        .order_by(Carrito.id.desc())
+        .first()
+    )
+    if not c:
+        return None
+    lineas = db.query(CarritoLinea).filter(CarritoLinea.carrito_id == c.id).all()
+    lineas_out = []
+    for ln in lineas:
+        ap = db.query(Autoparte).filter(Autoparte.id == ln.autoparte_id).first()
+        inv = None
+        if ap:
+            from database.inventario import Inventario
+            inv = db.query(Inventario).filter(Inventario.autoparte_id == ap.id).first()
+
+        cat_data = None
+        marca_data = None
+        if ap:
+            from database.categoria import Categoria
+            from database.marca import Marca
+            cat = db.query(Categoria).filter(Categoria.id == ap.categoria_id).first()
+            marca = db.query(Marca).filter(Marca.id == ap.marca_id).first()
+            if cat:
+                cat_data = {"id": cat.id, "nombre": cat.nombre}
+            if marca:
+                marca_data = {"id": marca.id, "nombre": marca.nombre}
+
+        lineas_out.append({
+            "id": ln.id,
+            "carrito_id": ln.carrito_id,
+            "autoparte_id": ln.autoparte_id,
+            "cantidad": ln.cantidad,
+            "precio_unitario": float(ln.precio_unitario),
+            "autoparte": {
+                "id": ap.id,
+                "sku_codigo": ap.sku_codigo,
+                "nombre": ap.nombre,
+                "descripcion": ap.descripcion,
+                "precio_unitario": float(ap.precio_unitario),
+                "imagen_url": ap.imagen_url,
+                "categoria_id": ap.categoria_id,
+                "marca_id": ap.marca_id,
+                "categoria": cat_data,
+                "marca": marca_data,
+                "inventario": {
+                    "id": inv.id,
+                    "stock_actual": inv.stock_actual,
+                    "stock_minimo": inv.stock_minimo,
+                } if inv else None,
+            } if ap else None,
+        })
+
+    return {
+        "id": c.id,
+        "uuid": c.uuid,
+        "laravel_user_id": c.laravel_user_id,
+        "email_invitado": c.email_invitado,
+        "lineas": lineas_out,
+    }
+
+
+@router_carritos.patch(
+    "/{carrito_id}/lineas/{linea_id}", dependencies=[Depends(varificar_peticion)]
+)
+def actualizar_cantidad_linea(
+    carrito_id: int, linea_id: int, cantidad: int = 1, db: Session = Depends(get_db)
+):
+    """Actualiza la cantidad de una línea existente."""
+    linea = (
+        db.query(CarritoLinea)
+        .filter(CarritoLinea.id == linea_id, CarritoLinea.carrito_id == carrito_id)
+        .first()
+    )
+    if not linea:
+        raise HTTPException(status_code=404, detail="Línea no encontrada")
+    linea.cantidad = cantidad
+    commit_or_raise(db)
+    db.refresh(linea)
+    return linea
+
+
 @router_carritos.delete(
     "/{carrito_id}/lineas/{linea_id}", dependencies=[Depends(varificar_peticion)]
 )

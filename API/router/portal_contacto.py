@@ -25,18 +25,18 @@ def _serializar(m: CustomerContactMessage) -> dict:
         return dt.isoformat()
 
     return {
-        "id": int(m.id),
-        "laravel_contact_message_id": int(m.id),
+        "id": int(m.id),  # type: ignore
+        "laravel_contact_message_id": int(m.id),  # type: ignore
         "nombre": m.name,
         "email": m.email,
         "telefono": m.phone,
         "asunto": m.subject,
         "mensaje": m.message,
         "admin_reply": m.admin_reply,
-        "replied_at": _iso(m.replied_at) if m.replied_at else None,
+        "replied_at": _iso(m.replied_at) if m.replied_at else None, # type: ignore
         "is_read": bool(m.is_read),
-        "read_at": _iso(m.read_at) if m.read_at else None,
-        "creado_en": _iso(m.created_at) if m.created_at else None,
+        "read_at": _iso(m.read_at) if m.read_at else None, # type: ignore
+        "creado_en": _iso(m.created_at) if m.created_at else None, # type: ignore
     }
 
 
@@ -60,9 +60,9 @@ def marcar_leido(mensaje_id: int, db: Session = Depends(get_db)):
     m = db.query(CustomerContactMessage).filter(CustomerContactMessage.id == mensaje_id).first()
     if not m:
         raise HTTPException(status_code=404, detail="Mensaje no encontrado.")
-    m.is_read = True
+    setattr(m, "is_read", True)
     # Columna sin zona horaria en PostgreSQL (Laravel): guardar naive UTC.
-    m.read_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    setattr(m, "read_at", datetime.now(timezone.utc).replace(tzinfo=None))
     commit_or_raise(db)
     db.refresh(m)
     return _serializar(m)
@@ -77,11 +77,11 @@ def responder_mensaje(mensaje_id: int, body: ContactPortalAdminReply, db: Sessio
     if not m:
         raise HTTPException(status_code=404, detail="Mensaje no encontrado.")
     now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
-    m.admin_reply = body.admin_reply.strip()[:5000]
-    m.replied_at = now_naive
-    m.is_read = True
+    setattr(m, "admin_reply", body.admin_reply.strip()[:5000])
+    setattr(m, "replied_at", now_naive)
+    setattr(m, "is_read", True)
     if m.read_at is None:
-        m.read_at = now_naive
+        setattr(m, "read_at", now_naive)
     commit_or_raise(db)
     db.refresh(m)
     return _serializar(m)
@@ -99,3 +99,53 @@ def eliminar_mensaje(mensaje_id: int, db: Session = Depends(get_db)):
     db.delete(m)
     commit_or_raise(db)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router_portal_contacto.get("/mensajes/por-email", dependencies=[Depends(varificar_peticion)])
+def mensajes_por_email(email: str = "", user_id: int = 0, db: Session = Depends(get_db)):
+    """Mensajes de un usuario específico (por email y/o user_id)."""
+    q = db.query(CustomerContactMessage)
+    filters = []
+    if email:
+        from sqlalchemy import func as sa_func
+        filters.append(sa_func.lower(sa_func.trim(CustomerContactMessage.email)) == email.strip().lower())
+    if user_id:
+        filters.append(CustomerContactMessage.user_id == user_id)
+    if not filters:
+        return []
+    from sqlalchemy import or_
+    rows = q.filter(or_(*filters)).order_by(CustomerContactMessage.id.desc()).limit(50).all()
+    return [_serializar(m) for m in rows]
+
+
+@router_portal_contacto.post(
+    "/mensajes",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(varificar_peticion)],
+)
+def crear_mensaje(
+    name: str,
+    email: str,
+    subject: str,
+    message: str,
+    user_id: int = 0,
+    phone: str = "",
+    db: Session = Depends(get_db),
+):
+    """Crea un mensaje de contacto desde el portal Laravel."""
+    now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
+    m = CustomerContactMessage(
+        user_id=user_id if user_id else None,
+        name=name,
+        email=email.strip().lower(),
+        phone=phone if phone else None,
+        subject=subject,
+        message=message,
+        is_read=False,
+        created_at=now_naive,
+        updated_at=now_naive,
+    )
+    db.add(m)
+    commit_or_raise(db)
+    db.refresh(m)
+    return _serializar(m)

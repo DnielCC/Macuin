@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Macuin\Cliente;
 use App\Models\User;
+use App\Services\MacuinApiClient;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +14,13 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
+    private MacuinApiClient $api;
+
+    public function __construct(MacuinApiClient $api)
+    {
+        $this->api = $api;
+    }
+
     public function create(): View
     {
         return view('auth.register');
@@ -82,15 +89,18 @@ class RegisteredUserController extends Controller
         $request->session()->regenerate();
 
         try {
-            Cliente::query()->firstOrCreate(
-                ['email' => $user->email],
-                [
+            // First check if it exists
+            $clienteExists = $this->api->get('/v1/clientes/por-email', ['email' => $user->email]);
+            if (!$clienteExists) {
+                // Determine user ID correctly based on environment state, if it exists
+                $this->api->post('/v1/clientes', [
                     'nombre' => $user->name,
+                    'email' => $user->email,
                     'telefono' => $user->phone,
                     'activo' => true,
                     'notas' => 'Registro portal Laravel — users.id '.$user->id,
-                ]
-            );
+                ]);
+            }
         } catch (\Throwable $e) {
             report($e);
         }

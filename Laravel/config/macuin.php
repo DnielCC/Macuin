@@ -48,6 +48,10 @@ return [
     */
     'api_base_url' => rtrim((string) env('API_BASE_URL', 'http://localhost:8000'), '/'),
 
+    'api_basic_user' => (string) env('API_BASIC_USER', 'alidaniel'),
+    
+    'api_basic_password' => (string) env('API_BASIC_PASSWORD', '123456'),
+
     /** Token compartido con PORTAL_CONTACTO_SYNC_TOKEN en el servicio API. */
     'portal_contact_sync_token' => (string) env('MACUIN_PORTAL_CONTACT_SYNC_TOKEN', ''),
 

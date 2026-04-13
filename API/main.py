@@ -21,6 +21,7 @@ from router import (
     pagos,
     parametros_sistema,
     pedidos,
+    portal_checkout,
     portal_contacto,
     redireccion,
     reportes,
@@ -96,5 +97,6 @@ app.include_router(parametros_sistema.router_parametros)
 app.include_router(carritos.router_carritos)
 app.include_router(pagos.router_pagos)
 app.include_router(estatus_pedido.router_estatus)
+app.include_router(portal_checkout.router_portal_checkout)
 app.include_router(portal_contacto.router_portal_contacto)
 app.include_router(reportes.router_reportes)

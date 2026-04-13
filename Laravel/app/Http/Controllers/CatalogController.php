@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Macuin\Autoparte;
-use App\Models\Macuin\Categoria;
-use App\Models\Macuin\Marca;
+use App\Services\MacuinApiClient;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class CatalogController extends Controller
 {
@@ -15,12 +14,15 @@ class CatalogController extends Controller
 
     private const VISTA = ['mosaico', 'lista'];
 
+    private MacuinApiClient $api;
+
+    public function __construct(MacuinApiClient $api)
+    {
+        $this->api = $api;
+    }
+
     public function index(Request $request): View
     {
-        $categorias = collect();
-        $marcas = collect();
-        $productos = collect();
-
         $orden = $request->query('orden', 'nombre_asc');
         if (! in_array($orden, self::ORDEN, true)) {
             $orden = 'nombre_asc';
@@ -38,61 +40,93 @@ class CatalogController extends Controller
 
         $categoriaId = $request->filled('categoria_id') ? (int) $request->query('categoria_id') : null;
         $marcaId = $request->filled('marca_id') ? (int) $request->query('marca_id') : null;
-        $qRaw = trim((string) $request->query('q', ''));
+        $qRaw = mb_strtolower(trim((string) $request->query('q', '')));
 
         try {
-            if (! Schema::hasTable('autopartes')) {
-                return view('catalogo', [
-                    'categorias' => $categorias,
-                    'marcas' => $marcas,
-                    'productos' => $productos,
-                    'orden' => $orden,
-                    'vista' => $vista,
-                    'stock' => $stock,
-                    'categoriaId' => $categoriaId,
-                    'marcaId' => $marcaId,
-                    'qRaw' => $qRaw,
-                ]);
-            }
+            // Caching static catalogs
+            $categorias = Cache::remember('api_categorias_all', 120, function() {
+                return collect($this->api->get('/v1/categorias') ?? []);
+            });
 
-            $categorias = Categoria::query()->orderBy('nombre')->get();
-            if (Schema::hasTable('marcas')) {
-                $marcas = Marca::query()->orderBy('nombre')->get();
-            }
+            $marcas = Cache::remember('api_marcas_all', 120, function() {
+                return collect($this->api->get('/v1/marcas') ?? []);
+            });
 
-            $query = Autoparte::query()
-                ->with(['categoria', 'marca', 'inventario']);
+            $inventarios = Cache::remember('api_inventarios_all', 30, function() {
+                return collect($this->api->get('/v1/inventarios') ?? []);
+            })->keyBy('autoparte_id');
 
-            if ($categoriaId) {
-                $query->where('categoria_id', $categoriaId);
-            }
-            if ($marcaId) {
-                $query->where('marca_id', $marcaId);
-            }
-            if ($stock === 'con') {
-                $query->whereHas('inventario', function ($w) {
-                    $w->where('stock_actual', '>', 0);
-                });
-            }
+            $autopartesData = Cache::remember('api_autopartes_all', 60, function() {
+                return collect($this->api->get('/v1/autopartes') ?? []);
+            });
 
-            $this->applySearch($query, $qRaw);
+            // Map standard object properties to mimic Elloquent behavior in views
+            $autopartesRaw = $autopartesData->map(function ($ap) use ($categorias, $marcas, $inventarios) {
+                // Attach relations manually
+                $ap['categoria'] = $categorias->firstWhere('id', $ap['categoria_id']);
+                $ap['marca'] = $marcas->firstWhere('id', $ap['marca_id']);
+                $ap['inventario'] = $inventarios->get($ap['id']);
+                
+                // Keep it array or convert to object depending on view preference.
+                // The current views use object notation like $producto->nombre, $producto->categoria->nombre.
+                // So we'll cast deeply to objects.
+                return json_decode(json_encode($ap), false);
+            });
 
-            match ($orden) {
-                'precio_asc' => $query->orderBy('precio_unitario'),
-                'precio_desc' => $query->orderByDesc('precio_unitario'),
-                'recientes' => $query->orderByDesc('fecha_alta')->orderByDesc('id'),
-                default => $query->orderBy('nombre'),
+            // Filtering
+            $filtered = $autopartesRaw->filter(function ($ap) use ($categoriaId, $marcaId, $stock, $qRaw) {
+                if ($categoriaId && $ap->categoria_id !== $categoriaId) {
+                    return false;
+                }
+                if ($marcaId && $ap->marca_id !== $marcaId) {
+                    return false;
+                }
+                if ($stock === 'con') {
+                    $stockAct = $ap->inventario->stock_actual ?? 0;
+                    if ($stockAct <= 0) {
+                        return false;
+                    }
+                }
+                if ($qRaw !== '') {
+                    $nombre = mb_strtolower($ap->nombre);
+                    $sku = mb_strtolower($ap->sku_codigo);
+                    if (!str_contains($nombre, $qRaw) && !str_contains($sku, $qRaw)) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            // Sorting
+            $filtered = match ($orden) {
+                'precio_asc' => $filtered->sortBy('precio_unitario'),
+                'precio_desc' => $filtered->sortByDesc('precio_unitario'),
+                'recientes' => $filtered->sortByDesc('fecha_alta')->sortByDesc('id'),
+                default => $filtered->sortBy('nombre'),
             };
 
-            $productos = $query->paginate(24)->withQueryString();
+            // Pagination
+            $page = filter_var($request->query('page', 1), FILTER_VALIDATE_INT) ?: 1;
+            $perPage = 24;
+            $paginated = new LengthAwarePaginator(
+                $filtered->forPage($page, $perPage)->values(), // Items on current page
+                $filtered->count(), // Total items
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
         } catch (\Throwable $e) {
             report($e);
+            $categorias = collect();
+            $marcas = collect();
+            $paginated = new LengthAwarePaginator([], 0, 24, 1);
         }
 
         return view('catalogo', [
-            'categorias' => $categorias,
-            'marcas' => $marcas,
-            'productos' => $productos,
+            'categorias' => $categorias->map(fn($c) => (object)$c),
+            'marcas' => $marcas->map(fn($m) => (object)$m),
+            'productos' => $paginated,
             'orden' => $orden,
             'vista' => $vista,
             'stock' => $stock,
@@ -100,28 +134,5 @@ class CatalogController extends Controller
             'marcaId' => $marcaId,
             'qRaw' => $qRaw,
         ]);
-    }
-
-    /**
-     * @param  \Illuminate\Database\Eloquent\Builder<Autoparte>  $query
-     */
-    private function applySearch($query, string $qRaw): void
-    {
-        if ($qRaw === '') {
-            return;
-        }
-
-        $term = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $qRaw).'%';
-        $driver = Schema::getConnection()->getDriverName();
-
-        $query->where(function ($w) use ($term, $driver) {
-            if ($driver === 'pgsql') {
-                $w->where('nombre', 'ilike', $term)
-                    ->orWhere('sku_codigo', 'ilike', $term);
-            } else {
-                $w->where('nombre', 'like', $term)
-                    ->orWhere('sku_codigo', 'like', $term);
-            }
-        });
     }
 }

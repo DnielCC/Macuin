@@ -24,17 +24,29 @@ class CartController extends Controller
         $cart = $this->cart->cartWithLines((int) $request->user()->id);
         $envio = (float) config('macuin.envio_fijo_mxn', 150);
         $subtotal = 0.0;
-        if ($cart) {
-            foreach ($cart->lineas as $ln) {
-                $subtotal += (float) $ln->precio_unitario * (int) $ln->cantidad;
+        if ($cart && !empty($cart['lineas'])) {
+            foreach ($cart['lineas'] as $ln) {
+                $subtotal += (float) $ln['precio_unitario'] * (int) $ln['cantidad'];
             }
         }
 
+        // We convert it to an object so the blade view ($carrito->lineas) doesn't break.
+        $carritoView = null;
+        if ($cart) {
+            $carritoView = (object) [
+                'id' => $cart['id'],
+                'uuid' => $cart['uuid'],
+                'lineas' => collect($cart['lineas'] ?? [])->map(function ($ln) {
+                    return json_decode(json_encode($ln), false); // cast deep to object
+                })
+            ];
+        }
+
         return view('carrito', [
-            'carrito' => $cart,
+            'carrito' => $carritoView,
             'subtotal' => $subtotal,
             'envio' => $envio,
-            'total' => $subtotal + ($cart && $cart->lineas->isNotEmpty() ? $envio : 0),
+            'total' => $subtotal + ($carritoView && $carritoView->lineas->isNotEmpty() ? $envio : 0),
         ]);
     }
 

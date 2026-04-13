@@ -125,31 +125,49 @@ fi
 # ── 6. Configurar Laravel dentro del contenedor ─────────────
 header "Configurando Laravel"
 
-info "Instalando dependencias de Composer..."
-docker exec macuin_laravel composer install --no-interaction --prefer-dist --optimize-autoloader 2>/dev/null
-success "Dependencias de Composer instaladas"
+if [ ! -d "./Laravel/vendor" ]; then
+    info "Instalando dependencias de Composer (primera vez o falta directorio vendor)..."
+    docker exec macuin_laravel composer install --no-interaction --prefer-dist --optimize-autoloader 2>/dev/null
+    success "Dependencias de Composer instaladas"
+else
+    info "Verificando actualizaciones de Composer..."
+    docker exec macuin_laravel composer install --no-interaction --prefer-dist --optimize-autoloader 2>/dev/null
+    success "Dependencias de Composer revisadas"
+fi
 
-info "Generando Application Key..."
-docker exec macuin_laravel php artisan key:generate --force 2>/dev/null
-success "Application Key generada"
+if ! grep -q "APP_KEY=base64:" ./Laravel/.env; then
+    info "Generando Application Key..."
+    docker exec macuin_laravel php artisan key:generate --force 2>/dev/null
+    success "Application Key generada"
+fi
 
 info "Configurando permisos de storage y cache..."
 docker exec macuin_laravel chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 docker exec macuin_laravel chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 success "Permisos configurados"
 
-info "Limpiando caché de Laravel..."
+info "Verificando y sincronizando Base de Datos de Laravel (SQLite)..."
+if [ ! -f "./Laravel/database/database.sqlite" ]; then
+    touch ./Laravel/database/database.sqlite
+    docker exec macuin_laravel php artisan migrate --force 2>/dev/null
+    success "Base de datos y tablas de caché/sesión generadas."
+else
+    docker exec macuin_laravel php artisan migrate --force 2>/dev/null
+    success "Tablas sincronizadas. (Los datos anteriores se mantuvieron intactos)."
+fi
+
+info "Limpiando caché de Laravel por si hubo cambios de código..."
 docker exec macuin_laravel php artisan optimize:clear 2>/dev/null
 success "Caché limpiada"
 
-# ── 7. Crear tablas en PostgreSQL (API) ──────────────────────
-header "Inicializando base de datos"
+# ── 7. Crear/Verificar tablas en PostgreSQL (API) ────────────
+header "Verificando y Sincronizando PostgreSQL (API)"
 
-info "Creando tablas y seed FASE 1 (SQLAlchemy + scripts/init_db.py)..."
-docker exec macuin_api python scripts/init_db.py 2>/dev/null && success "Base de datos inicializada (tablas + seed si aplica)" || warn "No se pudo inicializar la BD. Revisa: docker compose logs api"
+info "Garantizando que las estructuras SQLAlchemy y seed base estén aplicados (seguro, no sobreescribe)..."
+docker exec macuin_api python scripts/init_db.py 2>/dev/null && success "Estructuras de BD verificadas (tablas listas)" || warn "No se pudo sincronizar SQLite/Postgres SQLAlchemy"
 
-info "Usuarios demo para login Flask (bcrypt)..."
-docker exec macuin_api python scripts/seed_macuin_demo_users.py 2>/dev/null && success "Usuarios demo listos (ver README-CREDENCIALES.md)" || warn "No se pudo ejecutar seed de usuarios demo"
+info "Verificando usuarios demo Flask (creará solo si no existen)..."
+docker exec macuin_api python scripts/seed_macuin_demo_users.py 2>/dev/null && success "Usuarios demo garantizados" || warn "No se pudo garantizar usuarios demo"
 
 # ── 8. Verificar que Flask está corriendo ────────────────────
 header "Verificando Flask"

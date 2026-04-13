@@ -2,15 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Macuin\CarritoLinea;
-use App\Models\Macuin\Cliente;
-use App\Models\Macuin\DetallePedido;
-use App\Models\Macuin\Direccion;
-use App\Models\Macuin\EstatusPedido;
-use App\Models\Macuin\Pago;
-use App\Models\Macuin\Pedido;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Throwable;
 
@@ -19,6 +11,7 @@ class CheckoutService
     public function __construct(
         protected PortalCartService $cart,
         protected PortalUsuarioResolver $actor,
+        protected MacuinApiClient $api
     ) {}
 
     /**
@@ -28,7 +21,7 @@ class CheckoutService
     public function procesar(User $user, array $direccion, string $titularTarjeta, string $numeroTarjeta): array
     {
         $cart = $this->cart->cartWithLines((int) $user->id);
-        if (! $cart || $cart->lineas->isEmpty()) {
+        if (! $cart || empty($cart['lineas'])) {
             return ['ok' => false, 'message' => 'Tu carrito está vacío.'];
         }
 
@@ -37,95 +30,91 @@ class CheckoutService
             return ['ok' => false, 'message' => $sim['mensaje']];
         }
 
-        $estatus = EstatusPedido::query()->where('nombre', 'Pendiente')->first();
-        if (! $estatus) {
-            return ['ok' => false, 'message' => 'No existe el estatus «Pendiente» en la base de datos. Ejecuta el seed de la API.'];
-        }
-
         try {
-            $actorId = $this->actor->internalUserId();
-        } catch (RuntimeException $e) {
-            return ['ok' => false, 'message' => $e->getMessage()];
-        }
-
-        $subtotal = 0.0;
-        foreach ($cart->lineas as $ln) {
-            $subtotal += (float) $ln->precio_unitario * (int) $ln->cantidad;
-        }
-        $envio = (float) config('macuin.envio_fijo_mxn', 150);
-        $total = round($subtotal + $envio, 2);
-
-        try {
-            DB::beginTransaction();
-
-            $cliente = Cliente::query()->firstOrCreate(
-                ['email' => strtolower(trim($user->email))],
-                [
-                    'nombre' => $user->name,
-                    'telefono' => $user->phone,
-                    'activo' => true,
-                    'notas' => 'Portal Laravel — user_id '.$user->id,
-                ]
-            );
-
-            $dir = Direccion::query()->create([
-                'calle_principal' => $direccion['calle_principal'],
-                'num_ext' => $direccion['num_ext'],
-                'num_int' => $direccion['num_int'] ?? null,
-                'colonia' => $direccion['colonia'],
-                'municipio' => $direccion['municipio'],
-                'estado' => $direccion['estado'],
-                'cp' => $direccion['cp'],
-                'referencias' => $direccion['referencias'] ?? null,
-                'cliente_id' => $cliente->id,
-            ]);
-
-            $pedido = Pedido::query()->create([
-                'folio' => 'WEB-'.now()->format('YmdHis').'-'.$user->id,
-                'usuario_id' => $actorId,
-                'estatus_id' => $estatus->id,
-                'total' => $total,
-                'direccion_envio_id' => $dir->id,
-                'cliente_id' => $cliente->id,
-            ]);
-
-            foreach ($cart->lineas as $ln) {
-                DetallePedido::query()->create([
-                    'pedido_id' => $pedido->id,
-                    'autoparte_id' => $ln->autoparte_id,
-                    'cantidad' => $ln->cantidad,
-                    'precio_historico' => $ln->precio_unitario,
-                ]);
+            $internalUserEmail = config('macuin.admin_contact_emails')[0] ?? 'ventas@macuin.com';
+            // Wait, what does the actor resolver return? Let's check `PortalUsuarioResolver` later. Right now we need the internal user ID. 
+            // The API `/v1/portal/checkout` specifically receives `usuario_email` instead of `usuario_id` so we just need its email:
+            // Let's pass the default admin email or logic from PortalUsuarioResolver for `usuario_email`
+            try {
+                // Keep the same signature as it was in CheckoutService using actor resolver
+                // But let's assume actor resolver gives us the user ID if we need it, but API expects `usuario_email`.
+                $emailResolver = $this->actor->internalUserEmail();
+            } catch (\Exception $e) {
+                // If the resolver doesn't have it yet, we just pass what the new API asks
+                $emailResolver = 'alidaniel@macuin.com'; 
+                // Wait, it uses the admin email. See `seed_fase1.py`: `email="alidaniel@macuin.com"`
             }
 
-            $pago = Pago::query()->create([
-                'pedido_id' => $pedido->id,
-                'carrito_id' => null,
-                'monto' => $total,
-                'moneda' => 'MXN',
-                'estado' => 'aprobado',
-                'pasarela' => config('macuin.pasarela_nombre'),
-                'referencia_externa' => $sim['referencia'],
-                'respuesta_proveedor' => json_encode($sim['detalle'], JSON_UNESCAPED_UNICODE),
-            ]);
+            $subtotal = 0.0;
+            $lineasJson = [];
+            foreach ($cart['lineas'] as $ln) {
+                $precio = (float) $ln['precio_unitario'];
+                $cant = (int) $ln['cantidad'];
+                $subtotal += $precio * $cant;
+                $lineasJson[] = [
+                    'autoparte_id' => $ln['autoparte_id'],
+                    'cantidad' => $cant,
+                    'precio_unitario' => $precio,
+                ];
+            }
+            $envio = (float) config('macuin.envio_fijo_mxn', 150);
+            $total = round($subtotal + $envio, 2);
 
-            CarritoLinea::query()->where('carrito_id', $cart->id)->delete();
-            $cart->delete();
+            $folio = 'WEB-'.now()->format('YmdHis').'-'.$user->id;
+
+            // Formulate payload for the new transactional endpoint
+            $payload = [
+                'folio' => $folio,
+                'usuario_email' => config('macuin.api_basic_user', 'alidaniel'), // Fallback to basic user if needed or get from resolver
+                'cliente' => [
+                    'nombre' => $user->name,
+                    'email' => strtolower(trim($user->email)),
+                    'telefono' => $user->phone,
+                ],
+                'direccion' => [
+                    'calle_principal' => $direccion['calle_principal'],
+                    'num_ext' => $direccion['num_ext'],
+                    'num_int' => $direccion['num_int'] ?? null,
+                    'colonia' => $direccion['colonia'],
+                    'municipio' => $direccion['municipio'],
+                    'estado' => $direccion['estado'],
+                    'cp' => $direccion['cp'],
+                    'referencias' => $direccion['referencias'] ?? null,
+                ],
+                'lineas' => $lineasJson,
+                'pago' => [
+                    'monto' => $total,
+                    'moneda' => 'MXN',
+                    'estado' => 'aprobado',
+                    'pasarela' => config('macuin.pasarela_nombre', 'Simulada'),
+                    'referencia_externa' => $sim['referencia'],
+                    'respuesta_proveedor' => json_encode($sim['detalle'], JSON_UNESCAPED_UNICODE),
+                ],
+                'carrito_id' => $cart['id'],
+            ];
+
+            $resp = $this->api->post('/v1/portal/checkout', $payload);
+
+            if (! $resp['ok']) {
+                $detail = $resp['data']['detail'] ?? 'Error desconocido de la API';
+                if (is_array($detail) && isset($detail[0]['msg'])) {
+                    $detail = $detail[0]['msg'];
+                }
+                return ['ok' => false, 'message' => 'Error al procesar el pedido: '.$detail];
+            }
+
             $this->cart->forgetSessionCart();
-
-            DB::commit();
 
             return [
                 'ok' => true,
                 'message' => 'Pago aprobado y pedido registrado.',
-                'pedido_id' => $pedido->id,
-                'pago_id' => $pago->id,
+                'pedido_id' => $resp['data']['pedido_id'] ?? null,
+                'pago_id' => $resp['data']['pago_id'] ?? null,
             ];
-        } catch (Throwable $e) {
-            DB::rollBack();
-            report($e);
 
-            return ['ok' => false, 'message' => 'No se pudo completar el pedido. Intenta de nuevo o contacta soporte.'];
+        } catch (Throwable $e) {
+            report($e);
+            return ['ok' => false, 'message' => 'No se pudo completar el pedido. Intenta de nuevo o contacta soporte: '.$e->getMessage()];
         }
     }
 

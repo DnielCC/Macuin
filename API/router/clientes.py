@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from database.cliente import Cliente
@@ -8,6 +8,15 @@ from models.cliente import ClienteBase, ClienteUpdate
 from security.auth import varificar_peticion
 
 router_clientes = APIRouter(prefix="/v1/clientes", tags=["Clientes B2B"])
+
+
+@router_clientes.get("/por-email")
+def cliente_por_email(email: str = Query(..., min_length=3), db: Session = Depends(get_db)):
+    """Busca un cliente por email (case-insensitive)."""
+    c = db.query(Cliente).filter(Cliente.email == email.strip().lower()).first()
+    if not c:
+        return None
+    return c
 
 
 @router_clientes.get("/")
@@ -53,7 +62,7 @@ def baja_cliente(cliente_id: int, db: Session = Depends(get_db)):
     c = db.query(Cliente).filter(Cliente.id == cliente_id).first()
     if not c:
         raise HTTPException(status_code=404, detail="Cliente no encontrado")
-    c.activo = False
+    c.activo = False # type: ignore
     commit_or_raise(db)
     db.refresh(c)
     return c
