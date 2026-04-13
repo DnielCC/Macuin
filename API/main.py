@@ -68,6 +68,15 @@ async def integrity_exception_handler(request: Request, exc: IntegrityError):
     )
 
 
+from database.db import Base, engine
+
+@app.on_event("startup")
+def startup_event():
+    # Asegurar que todas las tablas existan antes de recibir peticiones
+    # Esto previene el error: relation "usuarios" does not exist
+    Base.metadata.create_all(bind=engine)
+
+
 app.include_router(auth.router_auth)
 app.include_router(usuarios.routerusu)
 app.include_router(autopartes.routerauto)
