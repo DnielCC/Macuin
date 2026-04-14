@@ -234,6 +234,8 @@ def register(app):
         try:
             pedidos = api.get("/v1/pedidos/")
             pedidos_e = _enriquecer_pedidos(api, pedidos)
+            # Filtrar pedidos cancelados: no mostrar si el estatus es "Cancelado" o tiene motivo de cancelación
+            pedidos_e = [p for p in pedidos_e if p.get("_estatus_nombre") != "Cancelado" and not p.get("motivo_cancelacion")]
         except ApiError as e:
             flash(str(e.message), "danger")
             pedidos_e = []

@@ -694,6 +694,13 @@ def render_pdf(context: Dict[str, Any]) -> bytes:
         textColor=colors.HexColor(MACUIN_MUTED),
         spaceAfter=4,
     )
+    hdr_style = ParagraphStyle(
+        name="RepHdr",
+        parent=body_style,
+        fontName=_FONT_TITLE,
+        fontSize=9,
+        textColor=colors.white,
+    )
 
     story: List[Any] = []
     brand = Table([[Paragraph(escape(context.get("title", "Reporte")), title_style)]], colWidths=[17 * cm])
@@ -729,7 +736,7 @@ def render_pdf(context: Dict[str, Any]) -> bytes:
             story.append(Spacer(1, 12))
         elif sec["type"] == "table":
             story.append(Paragraph(escape(sec["title"]), h2_style))
-            hdr = [Paragraph(f"<b>{escape(str(h))}</b>", body_style) for h in sec["headers"]]
+            hdr = [Paragraph(f"<b>{escape(str(h))}</b>", hdr_style) for h in sec["headers"]]
             body_rows: List[List[Any]] = [hdr]
             for row in sec["rows"]:
                 body_rows.append([Paragraph(escape(_safe(c)), body_style) for c in row])

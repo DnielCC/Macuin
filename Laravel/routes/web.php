@@ -69,6 +69,9 @@ Route::middleware(['auth', 'throttle:40,1'])->group(function () {
         ->name('pago.procesar');
 
     Route::get('/pedidos', [PedidosController::class, 'index'])->name('pedidos');
+    Route::post('/pedidos/{pedido}/cancelar', [PedidosController::class, 'cancelar'])
+        ->middleware('throttle:10,1')
+        ->name('pedidos.cancelar');
 });
 
 Route::get('/contacto', [ContactController::class, 'create'])->name('contacto');

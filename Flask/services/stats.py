@@ -76,7 +76,13 @@ def logistica_kpis(pedidos: List[dict], estatus: List[dict]) -> Dict[str, Any]:
     id_to = {e["id"]: e.get("nombre", "") for e in estatus}
     enviados = sum(1 for p in pedidos if id_to.get(p.get("estatus_id")) == "Enviado")
     entregados = sum(1 for p in pedidos if id_to.get(p.get("estatus_id")) == "Entregado")
-    return {"enviados": enviados, "entregados": entregados, "total_pedidos": len(pedidos)}
+    cancelados = sum(1 for p in pedidos if id_to.get(p.get("estatus_id")) == "Cancelado")
+    return {
+        "enviados": enviados,
+        "entregados": entregados,
+        "cancelados": cancelados,
+        "total_pedidos": len(pedidos),
+    }
 
 
 def almacen_kpis(inventarios: List[dict], pedidos: List[dict], estatus: List[dict]) -> Dict[str, Any]:

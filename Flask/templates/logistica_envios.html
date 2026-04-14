@@ -23,17 +23,25 @@
             <td class="fw-bold">#{{ p.id }}</td>
             <td>{{ p._cliente_nombre }}</td>
             <td>{{ p.total }}</td>
-            <td>{{ p._estatus_nombre }}</td>
             <td>
-              {% if p._estatus_nombre != 'Entregado' %}
+              {% if p._estatus_nombre == 'Cancelado' %}
+              <span class="badge bg-danger">Cancelado</span>
+              {% else %}
+              {{ p._estatus_nombre }}
+              {% endif %}
+            </td>
+            <td>
+              {% if p._estatus_nombre == 'Entregado' %}
+              <span class="text-muted small">Completo</span>
+              {% elif p._estatus_nombre == 'Cancelado' %}
+              <span class="text-danger small fw-bold">No procesable</span>
+              {% else %}
               <form method="post" action="{{ url_for('logistica_envios_estatus', pedido_id=p.id) }}" class="d-flex flex-wrap gap-1">
                 {% if p._estatus_nombre != 'Enviado' %}
                 <button type="submit" name="estatus" value="Enviado" class="btn btn-sm btn-outline-primary">Marcar Enviado</button>
                 {% endif %}
                 <button type="submit" name="estatus" value="Entregado" class="btn btn-sm btn-outline-success">Marcar Entregado</button>
               </form>
-              {% else %}
-              <span class="text-muted small">Completo</span>
               {% endif %}
             </td>
           </tr>

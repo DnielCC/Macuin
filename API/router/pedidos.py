@@ -181,6 +181,16 @@ def cancelar_pedido(
     pedido = db.query(Pedido).filter(Pedido.id == pedido_id).first()
     if not pedido:
         raise HTTPException(status_code=404, detail="Pedido no encontrado")
+
+    # Buscar estatus "Cancelado" para actualizar el estatus_id del pedido
+    estatus_cancelado = (
+        db.query(EstatusPedido)
+        .filter(EstatusPedido.nombre == "Cancelado")
+        .first()
+    )
+    if estatus_cancelado:
+        pedido.estatus_id = estatus_cancelado.id
+
     pedido.motivo_cancelacion = body.motivo_cancelacion
     pedido.fecha_cancelacion = body.fecha_cancelacion or datetime.now(timezone.utc)
     commit_or_raise(db)
