@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Numeric, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Text, Numeric, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database.db import Base
@@ -15,6 +15,13 @@ class Autoparte(Base):
     categoria_id = Column(Integer, ForeignKey("categorias.id"), nullable=False)
     marca_id = Column(Integer, ForeignKey("marcas.id"), nullable=False)
     fecha_alta = Column(DateTime(timezone=True), server_default=func.now())
+    esta_activo = Column(Boolean, default=True)
 
     categoria = relationship("Categoria", backref="autopartes")
     marca = relationship("Marca", backref="autopartes")
+
+    # Relaciones para borrado lógico (Soft Delete)
+    # Al "borrar", desactivamos la autoparte y borramos su inventario/carritos físicamente
+    inventario_rec = relationship("Inventario", back_populates="autoparte", cascade="all, delete-orphan", uselist=False)
+    items_carrito = relationship("CarritoLinea", back_populates="autoparte", cascade="all, delete-orphan")
+    detalles_pedidos = relationship("DetallePedido", back_populates="autoparte")

@@ -24,9 +24,9 @@ class CarritoLinea(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     carrito_id = Column(Integer, ForeignKey("carritos.id", ondelete="CASCADE"), nullable=False, index=True)
-    autoparte_id = Column(Integer, ForeignKey("autopartes.id"), nullable=False)
+    autoparte_id = Column(Integer, ForeignKey("autopartes.id", ondelete="CASCADE"), nullable=False)
     cantidad = Column(Integer, nullable=False)
     precio_unitario = Column(Numeric(12, 2), nullable=False)
 
     carrito = relationship("Carrito", back_populates="lineas")
-    autoparte = relationship("Autoparte", backref="lineas_carrito")
+    autoparte = relationship("Autoparte", back_populates="items_carrito")

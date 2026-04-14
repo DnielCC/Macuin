@@ -6,7 +6,7 @@ class Inventario(Base):
     __tablename__ = "inventarios"
 
     id = Column(Integer, primary_key=True, index=True)
-    autoparte_id = Column(Integer, ForeignKey("autopartes.id"), nullable=False, unique=True)
+    autoparte_id = Column(Integer, ForeignKey("autopartes.id", ondelete="CASCADE"), nullable=False, unique=True)
     ubicacion_id = Column(Integer, ForeignKey("ubicaciones.id"), nullable=True, index=True)
     stock_actual = Column(Integer, nullable=False, default=0)
     stock_minimo = Column(Integer, nullable=False, default=5)
@@ -14,7 +14,7 @@ class Inventario(Base):
     estante = Column(String(10), nullable=True)
     nivel = Column(String(10), nullable=True)
 
-    autoparte = relationship("Autoparte", backref="inventario")
+    autoparte = relationship("Autoparte", back_populates="inventario_rec")
     ubicacion = relationship("Ubicacion", backref="inventarios")
     movimientos = relationship(
         "MovimientoInventario",

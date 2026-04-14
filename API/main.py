@@ -3,6 +3,7 @@ import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import IntegrityError
 
 from router import (
@@ -50,10 +51,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount("/img", StaticFiles(directory="img"), name="img")
 
 @app.middleware("http")
 async def _charset_utf8_json(request, call_next):
-    """Asegura charset=utf-8 en JSON para clientes que no asumen UTF-8 por defecto."""
     response = await call_next(request)
     ct = response.headers.get("content-type", "")
     if ct.startswith("application/json") and "charset" not in ct.lower():

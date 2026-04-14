@@ -12,7 +12,7 @@
             <span class="absolute inset-0 z-10 flex items-center justify-center bg-gray-900/75 text-white font-medium text-sm">Agotado</span>
         @endif
         @if($img)
-            <img src="{{ $img }}" alt="{{ $p->nombre }}" class="w-full h-full object-cover" loading="lazy">
+            <img src="{{ $img }}" alt="{{ $p->nombre }}" class="w-full h-full object-cover {{ $agotado ? 'grayscale' : '' }}" loading="lazy">
         @else
             <span class="text-gray-400 text-xs px-2 text-center">Sin imagen</span>
         @endif
